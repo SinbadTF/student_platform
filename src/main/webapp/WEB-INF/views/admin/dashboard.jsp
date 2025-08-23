@@ -27,7 +27,7 @@
                         <i class="bi bi-people-fill text-primary" style="font-size: 3rem;"></i>
                         <h4 class="mt-3">Manage Students</h4>
                         <p>View, add, edit, or delete student records</p>
-                        <a href="/students/list" class="btn btn-outline-primary">Student Management</a>
+                        <a href="/students" class="btn btn-outline-primary">Student Management</a>
                     </div>
                 </div>
             </div>
@@ -38,7 +38,7 @@
                         <i class="bi bi-person-badge text-success" style="font-size: 3rem;"></i>
                         <h4 class="mt-3">Manage Staff</h4>
                         <p>View, add, edit, or delete staff records</p>
-                        <a href="/staff/list" class="btn btn-outline-success">Staff Management</a>
+                        <a href="/staff" class="btn btn-outline-success">Staff Management</a>
                     </div>
                 </div>
             </div>
@@ -49,7 +49,7 @@
                         <i class="bi bi-award text-info" style="font-size: 3rem;"></i>
                         <h4 class="mt-3">Manage Rewards</h4>
                         <p>View, add, edit, or delete reward records</p>
-                        <a href="/rewards/list" class="btn btn-outline-info">Reward Management</a>
+                        <a href="/rewards" class="btn btn-outline-info">Reward Management</a>
                     </div>
                 </div>
             </div>
