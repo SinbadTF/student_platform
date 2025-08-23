@@ -1,5 +1,5 @@
 package studentplatform.student_platform.model;
-
+//htet htet 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
