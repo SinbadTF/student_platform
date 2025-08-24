@@ -24,14 +24,12 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
-import studentplatform.student_platform.model.Point;
 import studentplatform.student_platform.model.Reward;
 import studentplatform.student_platform.model.Staff;
 import studentplatform.student_platform.model.Student;
 // Add these imports at the top of the file
 
 import studentplatform.student_platform.service.AdminService;
-import studentplatform.student_platform.service.PointService;
 import studentplatform.student_platform.service.RewardService;
 import studentplatform.student_platform.service.StaffService;
 import studentplatform.student_platform.service.StudentService;
@@ -51,20 +49,24 @@ public class WebController {
     private final StudentService studentService;
     private final StaffService staffService;
     private final RewardService rewardService;
-    private final PointService pointService;
+    // Remove PointService
+    // private final PointService pointService;
     private final AdminService adminService;
     private final ClubService clubService;
     private final EventService eventService;
     
     @Autowired
     public WebController(StudentService studentService, StaffService staffService, 
-                         RewardService rewardService, PointService pointService,
+                         RewardService rewardService, 
+                         // Remove PointService parameter
+                         // PointService pointService,
                          AdminService adminService, ClubService clubService,
                          EventService eventService) {
         this.studentService = studentService;
         this.staffService = staffService;
         this.rewardService = rewardService;
-        this.pointService = pointService;
+        // Remove this line
+        // this.pointService = pointService;
         this.adminService = adminService;
         this.clubService = clubService;
         this.eventService = eventService;
@@ -82,7 +84,8 @@ public class WebController {
         model.addAttribute("studentCount", studentService.getAllStudents().size());
         model.addAttribute("staffCount", staffService.getAllStaff().size());
         model.addAttribute("rewardCount", rewardService.getAllRewards().size());
-        model.addAttribute("pointCount", pointService.getAllPoints().size());
+        // Remove or update this line to use student points instead
+        // model.addAttribute("pointCount", pointService.getAllPoints().size());
         
         return "home";
     }
@@ -246,60 +249,8 @@ public class WebController {
     }
     
     // Points Management
-    @GetMapping("/points")
-    public String points(Model model, @RequestParam(required = false) String keyword) {
-        if (keyword != null && !keyword.isEmpty()) {
-            model.addAttribute("points", pointService.searchPoints(keyword));
-        } else {
-            model.addAttribute("points", pointService.getAllPoints());
-        }
-        return "points/list";
-    }
+   
     
-    @GetMapping("/points/create")
-    public String createPointForm(Model model) {
-        model.addAttribute("point", new Point());
-        model.addAttribute("students", studentService.getAllStudents());
-        model.addAttribute("rewards", rewardService.getAllRewards());
-        return "points/form";
-    }
-    
-    @GetMapping("/points/edit/{id}")
-    public String editPointForm(@PathVariable Long id, Model model) {
-        return pointService.getPointById(id)
-                .map(point -> {
-                    model.addAttribute("point", point);
-                    model.addAttribute("students", studentService.getAllStudents());
-                    model.addAttribute("rewards", rewardService.getAllRewards());
-                    return "points/form";
-                })
-                .orElse("redirect:/points");
-    }
-    
-    @PostMapping("/points/save")
-    public String savePoint(@Valid @ModelAttribute("point") Point point, BindingResult result) {
-        if (result.hasErrors()) {
-            return "points/form";
-        }
-        pointService.savePoint(point);
-        return "redirect:/points";
-    }
-    
-    @GetMapping("/points/view/{id}")
-    public String viewPoint(@PathVariable Long id, Model model) {
-        return pointService.getPointById(id)
-                .map(point -> {
-                    model.addAttribute("point", point);
-                    return "points/view";
-                })
-                .orElse("redirect:/points");
-    }
-    
-    @GetMapping("/points/delete/{id}")
-    public String deletePoint(@PathVariable Long id) {
-        pointService.deletePoint(id);
-        return "redirect:/points";
-    }
     
     // Admin Dashboard
     @GetMapping("/admin/dashboard")
@@ -313,7 +264,6 @@ public class WebController {
         model.addAttribute("studentCount", studentService.getAllStudents().size());
         model.addAttribute("staffCount", staffService.getAllStaff().size());
         model.addAttribute("rewardCount", rewardService.getAllRewards().size());
-        model.addAttribute("pointCount", pointService.getAllPoints().size());
         
         // Add pending registrations count
         model.addAttribute("pendingStudentCount", studentService.findByStatus(Student.AccountStatus.PENDING).size());
@@ -681,7 +631,7 @@ public class WebController {
                 .map(event -> {
                     model.addAttribute("event", event);
                     model.addAttribute("pendingParticipations", eventService.getPendingParticipationsByEvent(event));
-                    model.addAttribute("approvedParticipations", eventService.getApprovedParticipationsByEvent(event));
+                    model.addAttribute("approvedParticipations", eventService.approveParticipationsByEvent(event));
                     return "admin/event-view";
                 })
                 .orElse("redirect:/admin/events");
@@ -874,24 +824,8 @@ public class WebController {
                 .map(student -> {
                     model.addAttribute("student", student);
                     
-                    // Calculate total points
-                    int totalPoints = student.getPoints().stream()
-                            .mapToInt(Point::getValue)
-                            .sum();
-                    model.addAttribute("totalPoints", totalPoints);
                     
-                    // Count rewards
-                    long rewardsCount = student.getPoints().stream()
-                            .map(Point::getReward)
-                            .distinct()
-                            .count();
-                    model.addAttribute("rewardsCount", rewardsCount);
                     
-                    // Get recent points for the table
-                    List<Point> recentPoints = student.getPoints().stream()
-                            .sorted(Comparator.comparing(Point::getIssuedAt).reversed())
-                            .collect(Collectors.toList());
-                    model.addAttribute("recentPoints", recentPoints);
                     
                     // Prepare data for points history chart
                     Map<String, Integer> monthlyPoints = new LinkedHashMap<>();
@@ -904,13 +838,7 @@ public class WebController {
                         monthlyPoints.put(monthLabel, 0);
                     }
                     
-                    // Aggregate points by month
-                    student.getPoints().stream()
-                            .filter(p -> p.getIssuedAt().isAfter(sixMonthsAgo))
-                            .forEach(point -> {
-                                String month = point.getIssuedAt().getMonth().getDisplayName(TextStyle.SHORT, Locale.ENGLISH);
-                                monthlyPoints.put(month, monthlyPoints.getOrDefault(month, 0) + point.getValue());
-                            });
+                   
                     
                     model.addAttribute("chartLabels", new ArrayList<>(monthlyPoints.keySet()));
                     model.addAttribute("chartData", new ArrayList<>(monthlyPoints.values()));

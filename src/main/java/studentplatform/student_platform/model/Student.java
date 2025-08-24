@@ -6,7 +6,6 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -14,9 +13,6 @@ import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Table(name = "students")
@@ -55,14 +51,8 @@ public class Student {
     @Size(min = 6, message = "Password must be at least 6 characters")
     private String password;
     
-    @OneToMany(mappedBy = "student")
-    private List<Point> points = new ArrayList<>();
-    
-    // Helper method to add points
-    public void addPoint(Point point) {
-        points.add(point);
-        point.setStudent(this);
-    }
+    // New points field to replace the Point entity relationship
+    private Integer points = 0;
     
     // Add this field to the Student class
     @Enumerated(EnumType.STRING)

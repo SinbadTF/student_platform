@@ -124,8 +124,31 @@ public String hashPassword(String password) {
         }
     }
 
+    // New methods for managing points
+    public Integer getStudentPoints(Long studentId) {
+        return studentRepository.findById(studentId)
+                .map(Student::getPoints)
+                .orElse(0);
+    }
     
-
-
+    public Student addPointsToStudent(Long studentId, Integer pointsToAdd, String reason) {
+        Optional<Student> studentOpt = studentRepository.findById(studentId);
+        if (studentOpt.isPresent()) {
+            Student student = studentOpt.get();
+            Integer currentPoints = student.getPoints() != null ? student.getPoints() : 0;
+            student.setPoints(currentPoints + pointsToAdd);
+            return studentRepository.save(student);
+        }
+        return null;
+    }
     
+    public Student setStudentPoints(Long studentId, Integer points) {
+        Optional<Student> studentOpt = studentRepository.findById(studentId);
+        if (studentOpt.isPresent()) {
+            Student student = studentOpt.get();
+            student.setPoints(points);
+            return studentRepository.save(student);
+        }
+        return null;
+    }
 }

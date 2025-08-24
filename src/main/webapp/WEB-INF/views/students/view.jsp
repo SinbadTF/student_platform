@@ -51,37 +51,14 @@
     <div class="col-md-6">
         <div class="card mb-4">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5>Points History</h5>
-                <a href="/points/award/${student.id}" class="btn btn-sm btn-primary">Award Points</a>
+                <h5>Points Summary</h5>
+                <a href="/students/add-points/${student.id}" class="btn btn-sm btn-primary">Award Points</a>
             </div>
             <div class="card-body">
-                <c:if test="${not empty student.points}">
-                    <div class="table-responsive">
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Reward</th>
-                                    <th>Points</th>
-                                    <th>Issued By</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <c:forEach items="${student.points}" var="point">
-                                    <tr>
-                                        <td><fmt:formatDate pattern="yyyy-MM-dd" value="${point.issuedAt}" /></td>
-                                        <td>${point.reward.name}</td>
-                                        <td>${point.reward.pointValue}</td>
-                                        <td>${point.issuedBy.firstName} ${point.issuedBy.lastName}</td>
-                                    </tr>
-                                </c:forEach>
-                            </tbody>
-                        </table>
-                    </div>
-                </c:if>
-                <c:if test="${empty student.points}">
-                    <p class="text-center">No points history available</p>
-                </c:if>
+                <div class="text-center">
+                    <h3 class="display-4">${student.points}</h3>
+                    <p class="text-muted">Total Points</p>
+                </div>
             </div>
         </div>
     </div>

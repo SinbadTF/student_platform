@@ -34,7 +34,7 @@
                         <i class="bi bi-star-fill text-warning" style="font-size: 2rem;"></i>
                     </div>
                     <h5 class="card-title">Total Points</h5>
-                    <h2 class="display-6 fw-bold text-primary">${totalPoints}</h2>
+                    <h2 class="display-6 fw-bold text-primary">${student.points}</h2>
                 </div>
             </div>
         </div>
@@ -80,38 +80,14 @@
             <div class="card border-0 shadow-sm rounded-3 mb-4">
                 <div class="card-header bg-white border-0 py-3">
                     <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0"><i class="bi bi-graph-up text-primary me-2"></i> Points History</h5>
-                        <a href="#" class="btn btn-sm btn-outline-primary">View All</a>
+                        <h5 class="mb-0"><i class="bi bi-graph-up text-primary me-2"></i> Points Summary</h5>
                     </div>
                 </div>
                 <div class="card-body">
                     <canvas id="pointsChart" width="400" height="200"></canvas>
-                    <div class="table-responsive mt-3">
-                        <table class="table table-hover">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Reward</th>
-                                    <th>Points</th>
-                                    <th>Issued By</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <c:forEach items="${recentPoints}" var="point" end="4">
-                                    <tr>
-                                        <td><fmt:formatDate pattern="yyyy-MM-dd" value="${point.issuedAt}" /></td>
-                                        <td>${point.reward.name}</td>
-                                        <td><span class="badge bg-success">${point.value}</span></td>
-                                        <td>${point.issuedBy.firstName} ${point.issuedBy.lastName}</td>
-                                    </tr>
-                                </c:forEach>
-                                <c:if test="${empty recentPoints}">
-                                    <tr>
-                                        <td colspan="4" class="text-center">No points history available</td>
-                                    </tr>
-                                </c:if>
-                            </tbody>
-                        </table>
+                    <div class="text-center mt-4">
+                        <h5>Current Points: ${student.points}</h5>
+                        <p class="text-muted">Keep participating in activities to earn more points!</p>
                     </div>
                 </div>
             </div>

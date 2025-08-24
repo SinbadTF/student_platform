@@ -6,7 +6,7 @@ import studentplatform.student_platform.model.Admin;
 import studentplatform.student_platform.model.Club;
 import studentplatform.student_platform.model.ClubParticipation;
 import studentplatform.student_platform.model.ClubParticipation.ParticipationStatus;
-import studentplatform.student_platform.model.Point;
+
 import studentplatform.student_platform.model.Student;
 import studentplatform.student_platform.repository.ClubParticipationRepository;
 import studentplatform.student_platform.repository.ClubRepository;
@@ -20,15 +20,17 @@ public class ClubService {
 
     private final ClubRepository clubRepository;
     private final ClubParticipationRepository participationRepository;
-    private final PointService pointService;
+    // Replace PointService with StudentService
+    private final StudentService studentService;
 
     @Autowired
     public ClubService(ClubRepository clubRepository, 
                        ClubParticipationRepository participationRepository,
-                       PointService pointService) {
+                       // Replace PointService with StudentService
+                       StudentService studentService) {
         this.clubRepository = clubRepository;
         this.participationRepository = participationRepository;
-        this.pointService = pointService;
+        this.studentService = studentService;
     }
 
     public List<Club> getAllClubs() {
@@ -117,28 +119,17 @@ public class ClubService {
         return null;
     }
     
-    public Point awardPointsForParticipation(ClubParticipation participation, int pointValue, String reason) {
+    // Update this method to use StudentService instead of PointService
+    public void awardPointsForParticipation(ClubParticipation participation, int pointValue, String reason) {
         if (participation.getStatus() == ParticipationStatus.APPROVED && !participation.isPointsAwarded()) {
-            // Create a point record
-            Point point = new Point();
-            point.setValue(pointValue);
-            point.setReason(reason);
-            point.setIssuedAt(LocalDateTime.now());
-            point.setStudent(participation.getStudent());
-            // Remove or comment out the problematic line:
-            // point.setIssuedBy(participation.getApprovedBy());
-            
-            // Save the point
-            Point savedPoint = pointService.awardPointsToStudent(point);
+            // Use StudentService to add points directly
+            Student student = participation.getStudent();
+            studentService.addPointsToStudent(student.getId(), pointValue, reason);
             
             // Mark participation as having points awarded
             participation.setPointsAwarded(true);
             participationRepository.save(participation);
-            
-            return savedPoint;
         }
-        
-        return null;
     }
     
     public List<ClubParticipation> getApprovedParticipationsByStudent(Student student) {

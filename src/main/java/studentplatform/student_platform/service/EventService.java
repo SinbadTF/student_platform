@@ -6,7 +6,7 @@ import studentplatform.student_platform.model.Admin;
 import studentplatform.student_platform.model.Event;
 import studentplatform.student_platform.model.EventParticipation;
 import studentplatform.student_platform.model.EventParticipation.ParticipationStatus;
-import studentplatform.student_platform.model.Point;
+
 import studentplatform.student_platform.model.Student;
 import studentplatform.student_platform.repository.EventParticipationRepository;
 import studentplatform.student_platform.repository.EventRepository;
@@ -20,15 +20,17 @@ public class EventService {
 
     private final EventRepository eventRepository;
     private final EventParticipationRepository participationRepository;
-    private final PointService pointService;
+    // Replace PointService with StudentService
+    private final StudentService studentService;
 
     @Autowired
     public EventService(EventRepository eventRepository, 
                         EventParticipationRepository participationRepository,
-                        PointService pointService) {
+                        // Replace PointService with StudentService
+                        StudentService studentService) {
         this.eventRepository = eventRepository;
         this.participationRepository = participationRepository;
-        this.pointService = pointService;
+        this.studentService = studentService;
     }
 
     public List<Event> getAllEvents() {
@@ -118,39 +120,27 @@ public class EventService {
         return null;
     }
     
-    public Point awardPointsForParticipation(EventParticipation participation) {
+    // Update this method to use StudentService instead of PointService
+    public void awardPointsForParticipation(EventParticipation participation) {
         if (participation.getStatus() == ParticipationStatus.APPROVED && !participation.isPointsAwarded()) {
             Event event = participation.getEvent();
             
-            // Create a point record
-            Point point = new Point();
-            point.setValue(event.getPointValue());
-            point.setReason("Participation in event: " + event.getName());
-            point.setIssuedAt(LocalDateTime.now());
-            point.setStudent(participation.getStudent());
-            // Remove or comment out the problematic line:
-            // point.setIssuedBy(participation.getApprovedBy());
-            
-            // Save the point
-            Point savedPoint = pointService.awardPointsToStudent(point);
+            // Use StudentService to add points directly
+            Student student = participation.getStudent();
+            studentService.addPointsToStudent(
+                student.getId(), 
+                event.getPointValue(), 
+                "Participation in event: " + event.getName()
+            );
             
             // Mark participation as having points awarded
             participation.setPointsAwarded(true);
             participationRepository.save(participation);
-            
-            return savedPoint;
         }
-        
-        return null;
     }
 
-    public List<EventParticipation> getApprovedParticipationsByStudent(Student student) {
-        return participationRepository.findByStudentAndStatus(student, ParticipationStatus.APPROVED);
+    public Object approveParticipationsByEvent(Event event) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'approveParticipationsByEvent'");
     }
-    
-    public List<EventParticipation> getApprovedParticipationsByEvent(Event event) {
-        return participationRepository.findByEventAndStatus(event, ParticipationStatus.APPROVED);
-    }
-
-
 }
