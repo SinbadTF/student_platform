@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import studentplatform.student_platform.model.Reward;
 import studentplatform.student_platform.model.Staff;
+import studentplatform.student_platform.model.Student;
 import studentplatform.student_platform.repository.RewardRepository;
 
 import java.util.List;
@@ -39,9 +40,7 @@ public class RewardService {
         return rewardRepository.findByPointValueLessThanEqual(pointValue);
     }
 
-    public List<Reward> getRewardsByStaff(Staff staff) {
-        return rewardRepository.findByIssuedBy(staff);
-    }
+
 
     public List<Reward> searchRewardsByKeyword(String keyword) {
         return rewardRepository.searchByKeyword(keyword);
@@ -53,5 +52,14 @@ public class RewardService {
 
     public void deleteReward(Long id) {
         rewardRepository.deleteById(id);
+    }
+
+    // Remove this method:
+    // public List<Reward> getRewardsByStudent(Student student) {
+    //     return rewardRepository.findByReceivedBy(student);
+    // }
+
+    public List<Reward> getRewardsByStaff(Staff staff) {
+        return rewardRepository.findByIssuedBy(staff);
     }
 }

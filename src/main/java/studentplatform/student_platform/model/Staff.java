@@ -3,6 +3,7 @@ package studentplatform.student_platform.model;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -15,7 +16,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -38,30 +38,29 @@ public class Staff {
     @NotBlank(message = "Last name is required")
     private String lastName;
     
+    @NotBlank(message = "Email is required")
     @Email(message = "Please provide a valid email address")
     private String email;
     
+    @NotBlank(message = "Department is required")
     private String department;
     
+    @NotBlank(message = "Position is required")
     private String position;
     
-    // Added username and password fields
     @NotBlank(message = "Username is required")
-    @Size(min = 4, max = 50, message = "Username must be between 4 and 50 characters")
     private String username;
     
     @NotBlank(message = "Password is required")
-    @Size(min = 6, message = "Password must be at least 6 characters")
+    @Size(min = 8, message = "Password must be at least 8 characters long")
     private String password;
     
-    @OneToMany(mappedBy = "issuedBy")
-    private List<Reward> rewardsIssued = new ArrayList<>();
-    
-    // Add this field to the Staff class
     @Enumerated(EnumType.STRING)
     private AccountStatus status = AccountStatus.PENDING;
     
-    // Add this enum to the Staff class
+    @OneToMany(mappedBy = "issuedBy", fetch = FetchType.EAGER)
+    private List<Reward> rewards;
+    
     public enum AccountStatus {
         PENDING,
         APPROVED,

@@ -181,7 +181,53 @@
                 </div>
             </div>
         </div>
+    <!-- After the Clubs and Activities section, around line 198 -->
+    
+    <!-- Available Rewards Section -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-header bg-white border-0 py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="bi bi-gift text-success me-2"></i> Available Rewards</h5>
+                        <a href="/students/rewards/catalog" class="btn btn-sm btn-outline-success">View All Rewards</a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <c:forEach items="${availableRewards}" var="reward" end="3">
+                            <div class="col-md-3">
+                                <div class="card h-100 border-0 shadow-sm">
+                                    <div class="card-body text-center">
+                                        <div class="bg-success bg-opacity-10 rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                                            <i class="bi bi-gift text-success" style="font-size: 1.5rem;"></i>
+                                        </div>
+                                        <h5 class="card-title">${reward.name}</h5>
+                                        <p class="card-text small">${reward.description}</p>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="badge bg-primary">${reward.pointValue} points</span>
+                                        
+
+                                <form action="/students/rewards/exchange/${reward.id}" method="post" style="display:inline;">
+                                    <button type="submit" class="btn btn-sm btn-outline-success">Redeem</button>
+                                </form> 
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </c:forEach>
+                        <c:if test="${empty availableRewards}">
+                            <div class="col-12 text-center py-4">
+                                <p>No rewards available for your current points (${student.points})</p>
+                                <a href="/students/rewards/catalog" class="btn btn-sm btn-outline-primary">View All Rewards</a>
+                            </div>
+                        </c:if>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
+</div> <!-- This closes the main container -->
 </div>
 
 <!-- Chart.js for data visualization -->

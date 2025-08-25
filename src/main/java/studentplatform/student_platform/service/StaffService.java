@@ -1,10 +1,15 @@
 package studentplatform.student_platform.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.hibernate.Hibernate;
+
 import org.springframework.stereotype.Service;
+
+
+import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 import studentplatform.student_platform.model.Staff;
+
 import studentplatform.student_platform.repository.StaffRepository;
 
 import java.util.List;
@@ -94,8 +99,25 @@ public class StaffService {
     }
 
     public void approveRegistration(Long id) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'approveRegistration'");
+        Optional<Staff> staffOpt = staffRepository.findById(id);
+        if (staffOpt.isPresent()) {
+            Staff staff = staffOpt.get();
+            staff.setStatus(Staff.AccountStatus.APPROVED);
+            staffRepository.save(staff);
+        }
     }
-    
+
+    @Transactional(readOnly = true)
+    public Staff getStaffWithRewards(String username) {
+        Optional<Staff> staffOpt = staffRepository.findByUsername(username);
+        if (staffOpt.isPresent()) {
+            Staff staff = staffOpt.get();
+            // Force initialization of the rewards collection
+            if (staff.getRewards() != null) {
+                staff.getRewards().size();
+            }
+            return staff;
+        }
+        return null;
+    }
 }

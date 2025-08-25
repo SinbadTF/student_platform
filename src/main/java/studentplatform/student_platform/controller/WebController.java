@@ -23,14 +23,16 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import jakarta.servlet.http.HttpSession;
+import org.springframework.transaction.annotation.Transactional;
 import jakarta.validation.Valid;
 import studentplatform.student_platform.model.Reward;
+import studentplatform.student_platform.model.RewardExchange;
 import studentplatform.student_platform.model.Staff;
 import studentplatform.student_platform.model.Student;
-// Add these imports at the top of the file
 
 import studentplatform.student_platform.service.AdminService;
 import studentplatform.student_platform.service.RewardService;
+import studentplatform.student_platform.service.RewardExchangeService;
 import studentplatform.student_platform.service.StaffService;
 import studentplatform.student_platform.service.StudentService;
 
@@ -49,24 +51,20 @@ public class WebController {
     private final StudentService studentService;
     private final StaffService staffService;
     private final RewardService rewardService;
-    // Remove PointService
-    // private final PointService pointService;
+    private final RewardExchangeService rewardExchangeService;
     private final AdminService adminService;
     private final ClubService clubService;
     private final EventService eventService;
     
     @Autowired
     public WebController(StudentService studentService, StaffService staffService, 
-                         RewardService rewardService, 
-                         // Remove PointService parameter
-                         // PointService pointService,
+                         RewardService rewardService, RewardExchangeService rewardExchangeService,
                          AdminService adminService, ClubService clubService,
                          EventService eventService) {
         this.studentService = studentService;
         this.staffService = staffService;
         this.rewardService = rewardService;
-        // Remove this line
-        // this.pointService = pointService;
+        this.rewardExchangeService = rewardExchangeService;
         this.adminService = adminService;
         this.clubService = clubService;
         this.eventService = eventService;
@@ -103,7 +101,9 @@ public class WebController {
     
     @GetMapping("/students/create")
     public String createStudentForm(Model model) {
-        model.addAttribute("student", new Student());
+        Student student = new Student();
+        student.initializeNewStudent(); // Initialize default values
+        model.addAttribute("student", student);
         return "students/form";
     }
     
@@ -383,7 +383,8 @@ public class WebController {
             // Create new staff with pending status
             Staff staff = new Staff();
             staff.setUsername(username);
-            staff.setPassword(password); // Will be hashed in service
+            String Staffhashpasword=studentService.hashPassword(password);
+            staff.setPassword(Staffhashpasword); 
             staff.setEmail(email);
             staff.setStaffId(entityId); // Store the requested ID
             staff.setStatus(Staff.AccountStatus.PENDING);
@@ -454,10 +455,11 @@ public class WebController {
                 
                 // Continue with authentication
                 if(staffService.authStaff(username, password)) {
-                    session.setAttribute("user", staff);
-                    session.setAttribute("userId", staff.getId());
+                    Staff staffWithRewards = staffService.getStaffWithRewards(username);
+                    session.setAttribute("user", staffWithRewards);
+                    session.setAttribute("userId", staffWithRewards.getId());
                     session.setAttribute("userRole", "STAFF");
-                    return "redirect:/staff/dashboard/" + staff.getId();
+                    return "redirect:/staff/dashboard";
                 }
             }
         } else if(role.equals("ADMIN")) {
@@ -824,8 +826,19 @@ public class WebController {
                 .map(student -> {
                     model.addAttribute("student", student);
                     
+                    // Get student's reward exchanges
+                    List<RewardExchange> recentExchanges = rewardExchangeService.getRecentExchangesByStudent(student);
+                    model.addAttribute("recentExchanges", recentExchanges);
                     
+                    // Get available rewards based on student's points
+                    List<Reward> availableRewards = rewardService.getAllRewards().stream()
+                            .filter(reward -> student.getPoints() >= reward.getPointValue())
+                            .collect(Collectors.toList());
+                    model.addAttribute("availableRewards", availableRewards);
                     
+                    // Calculate total points spent on rewards
+                    Integer totalPointsSpent = rewardExchangeService.getTotalPointsSpentByStudent(student);
+                    model.addAttribute("totalPointsSpent", totalPointsSpent);
                     
                     // Prepare data for points history chart
                     Map<String, Integer> monthlyPoints = new LinkedHashMap<>();
@@ -837,8 +850,6 @@ public class WebController {
                         String monthLabel = month.getMonth().getDisplayName(TextStyle.SHORT, Locale.ENGLISH);
                         monthlyPoints.put(monthLabel, 0);
                     }
-                    
-                   
                     
                     model.addAttribute("chartLabels", new ArrayList<>(monthlyPoints.keySet()));
                     model.addAttribute("chartData", new ArrayList<>(monthlyPoints.values()));
@@ -853,4 +864,71 @@ public class WebController {
                 })
                 .orElse("redirect:/students");
     }
+
+
+        
+       
+    // Reward Catalog - Show available rewards that students can exchange points for
+    @GetMapping("/students/rewards/catalog")
+    public String rewardCatalog(Model model, HttpSession session) {
+        Student student = (Student) session.getAttribute("user");
+        if (student == null) {
+            return "redirect:/login";
+        }
+        
+        // Get all available rewards
+        List<Reward> allRewards = rewardService.getAllRewards();
+        
+        // Add student's current points to the model
+        model.addAttribute("student", student);
+        model.addAttribute("rewards", allRewards);
+        
+        return "students/rewards/catalog";
+    }
+    
+    // Exchange a reward
+    @PostMapping("/students/rewards/exchange/{rewardId}")
+    public String exchangeReward(@PathVariable Long rewardId, HttpSession session, RedirectAttributes redirectAttributes) {
+        Student student = (Student) session.getAttribute("user");
+        if (student == null) {
+            return "redirect:/login";
+        }
+        
+        try {
+            // Check if student has enough points
+            if (!studentService.hasEnoughPointsForReward(student.getId(), rewardId)) {
+                redirectAttributes.addFlashAttribute("error", "You don't have enough points for this reward.");
+                return "redirect:/students/rewards/catalog";
+            }
+            
+            // Process the exchange
+            RewardExchange exchange = rewardExchangeService.exchangeReward(student.getId(), rewardId);
+            redirectAttributes.addFlashAttribute("success", "Reward exchanged successfully!");
+            
+            return "redirect:/students/rewards/history";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error exchanging reward: " + e.getMessage());
+            return "redirect:/students/rewards/catalog";
+        }
+    }
+    
+    // View exchange history
+    @GetMapping("/students/rewards/history")
+    public String rewardExchangeHistory(Model model, HttpSession session) {
+        Student student = (Student) session.getAttribute("user");
+        if (student == null) {
+            return "redirect:/login";
+        }
+        
+        // Get student's exchange history
+        List<RewardExchange> exchanges = rewardExchangeService.getExchangesByStudent(student);
+        
+        model.addAttribute("student", student);
+        model.addAttribute("exchanges", exchanges);
+        
+        return "students/rewards/history";
+    }
+    
+    
+    
 }

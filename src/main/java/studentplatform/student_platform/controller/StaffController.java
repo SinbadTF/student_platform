@@ -1,93 +1,129 @@
 package studentplatform.student_platform.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
+
+import studentplatform.student_platform.model.Reward;
+import studentplatform.student_platform.model.RewardExchange;
 import studentplatform.student_platform.model.Staff;
+import studentplatform.student_platform.service.RewardExchangeService;
+import studentplatform.student_platform.service.RewardService;
 import studentplatform.student_platform.service.StaffService;
 
-import jakarta.validation.Valid;
+import java.time.LocalDateTime;
 import java.util.List;
 
-@RestController
-@RequestMapping("/api/staff")
+@Controller
+@RequestMapping("/staff")
 public class StaffController {
 
     private final StaffService staffService;
+    private final RewardService rewardService;
+    private final RewardExchangeService rewardExchangeService;
 
     @Autowired
-    public StaffController(StaffService staffService) {
+    public StaffController(StaffService staffService, RewardService rewardService, 
+                          RewardExchangeService rewardExchangeService) {
         this.staffService = staffService;
+        this.rewardService = rewardService;
+        this.rewardExchangeService = rewardExchangeService;
     }
 
-    @GetMapping
-    public ResponseEntity<List<Staff>> getAllStaff() {
-        return ResponseEntity.ok(staffService.getAllStaff());
+    @GetMapping("/dashboard")
+    public String dashboard(Model model, HttpSession session) {
+        Staff staff = (Staff) session.getAttribute("user");
+        if (staff == null) {
+            return "redirect:/login";
+        }
+        
+        // Get rewards created by this staff member
+        List<Reward> createdRewards = rewardService.getRewardsByStaff(staff);
+        model.addAttribute("createdRewards", createdRewards);
+        
+        // Get pending reward exchanges for staff to process
+        List<RewardExchange> pendingExchanges = rewardExchangeService.getExchangesByStatus("REDEEMED");
+        model.addAttribute("pendingExchanges", pendingExchanges);
+        
+        // Get fulfilled exchanges by this staff member
+        List<RewardExchange> fulfilledExchanges = rewardExchangeService.getExchangesFulfilledByStaff(staff);
+        model.addAttribute("fulfilledExchanges", fulfilledExchanges);
+        
+        model.addAttribute("staff", staff);
+        return "staff/dashboard";
     }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<Staff> getStaffById(@PathVariable Long id) {
-        return staffService.getStaffById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    
+    @GetMapping("/rewards/create")
+    public String createRewardForm(Model model, HttpSession session) {
+        Staff staff = (Staff) session.getAttribute("user");
+        if (staff == null) {
+            return "redirect:/login";
+        }
+        
+        model.addAttribute("reward", new Reward());
+        model.addAttribute("staff", staff);
+        return "staff/rewards/form";
     }
-
-    @GetMapping("/staffId/{staffId}")
-    public ResponseEntity<Staff> getStaffByStaffId(@PathVariable String staffId) {
-        return staffService.getStaffByStaffId(staffId)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    
+    @PostMapping("/rewards/save")
+    public String saveReward(@Valid @ModelAttribute("reward") Reward reward, 
+                           BindingResult result, 
+                           HttpSession session,
+                           RedirectAttributes redirectAttributes) {
+        Staff staff = (Staff) session.getAttribute("user");
+        if (staff == null) {
+            return "redirect:/login";
+        }
+        
+        if (result.hasErrors()) {
+            return "staff/rewards/form";
+        }
+        
+        reward.setIssuedBy(staff);
+        rewardService.saveReward(reward);
+        redirectAttributes.addFlashAttribute("success", "Reward created successfully!");
+        return "redirect:/staff/dashboard";
     }
-
-    @GetMapping("/email/{email}")
-    public ResponseEntity<Staff> getStaffByEmail(@PathVariable String email) {
-        return staffService.getStaffByEmail(email)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    
+    @GetMapping("/rewards/exchanges")
+    public String viewExchanges(Model model, HttpSession session) {
+        Staff staff = (Staff) session.getAttribute("user");
+        if (staff == null) {
+            return "redirect:/login";
+        }
+        
+        List<RewardExchange> pendingExchanges = rewardExchangeService.getExchangesByStatus("REDEEMED");
+        model.addAttribute("pendingExchanges", pendingExchanges);
+        model.addAttribute("staff", staff);
+        return "staff/rewards/exchanges";
     }
-
-    @GetMapping("/department/{department}")
-    public ResponseEntity<List<Staff>> getStaffByDepartment(@PathVariable String department) {
-        List<Staff> staffList = staffService.getStaffByDepartment(department);
-        return staffList.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(staffList);
-    }
-
-    @GetMapping("/position/{position}")
-    public ResponseEntity<List<Staff>> getStaffByPosition(@PathVariable String position) {
-        List<Staff> staffList = staffService.getStaffByPosition(position);
-        return staffList.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(staffList);
-    }
-
-    @GetMapping("/search")
-    public ResponseEntity<List<Staff>> searchStaff(@RequestParam String keyword) {
-        List<Staff> staffList = staffService.searchStaffByName(keyword);
-        return staffList.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(staffList);
-    }
-
-    @PostMapping
-    public ResponseEntity<Staff> createStaff(@Valid @RequestBody Staff staff) {
-        Staff savedStaff = staffService.saveStaff(staff);
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedStaff);
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<Staff> updateStaff(@PathVariable Long id, @Valid @RequestBody Staff staff) {
-        return staffService.getStaffById(id)
-                .map(existingStaff -> {
-                    staff.setId(id);
-                    return ResponseEntity.ok(staffService.saveStaff(staff));
-                })
-                .orElse(ResponseEntity.notFound().build());
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteStaff(@PathVariable Long id) {
-        return staffService.getStaffById(id)
-                .map(staff -> {
-                    staffService.deleteStaff(id);
-                    return ResponseEntity.noContent().<Void>build();
-                })
-                .orElse(ResponseEntity.notFound().build());
+    
+    @PostMapping("/rewards/fulfill/{exchangeId}")
+    public String fulfillReward(@PathVariable Long exchangeId,
+                              HttpSession session,
+                              RedirectAttributes redirectAttributes) {
+        Staff staff = (Staff) session.getAttribute("user");
+        if (staff == null) {
+            return "redirect:/login";
+        }
+        
+        try {
+            rewardExchangeService.fulfillReward(exchangeId, staff);
+            redirectAttributes.addFlashAttribute("success", "Reward exchange fulfilled successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error fulfilling reward: " + e.getMessage());
+        }
+        
+        return "redirect:/staff/rewards/exchanges";
     }
 }

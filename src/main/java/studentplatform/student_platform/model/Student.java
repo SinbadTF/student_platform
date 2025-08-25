@@ -51,8 +51,17 @@ public class Student {
     @Size(min = 6, message = "Password must be at least 6 characters")
     private String password;
     
-    // New points field to replace the Point entity relationship
-    private Integer points = 0;
+    private Integer points;
+    
+    // Add a constructor or initialization method
+    public void initializeNewStudent() {
+        if (this.points == null) {
+            this.points = 0;
+        }
+        if (this.status == null) {
+            this.status = AccountStatus.PENDING;
+        }
+    }
     
     // Add this field to the Student class
     @Enumerated(EnumType.STRING)

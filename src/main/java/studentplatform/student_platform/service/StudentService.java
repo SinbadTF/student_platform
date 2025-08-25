@@ -4,8 +4,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import studentplatform.student_platform.controller.string;
+import studentplatform.student_platform.model.Reward;
 import studentplatform.student_platform.model.Student;
 import studentplatform.student_platform.repository.StudentRepository;
+import studentplatform.student_platform.repository.RewardRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -16,10 +18,12 @@ import java.security.NoSuchAlgorithmException;
 public class StudentService {
 
     private final StudentRepository studentRepository;
+    private final RewardRepository rewardRepository; // Added field
 
     @Autowired
-    public StudentService(StudentRepository studentRepository) {
+    public StudentService(StudentRepository studentRepository, RewardRepository rewardRepository) { // Added parameter
         this.studentRepository = studentRepository;
+        this.rewardRepository = rewardRepository; // Initialize field
     }
 
     public boolean authStudent(String username, String password) {
@@ -150,5 +154,45 @@ public String hashPassword(String password) {
             return studentRepository.save(student);
         }
         return null;
+    }
+    
+    // Add these methods for reward exchange functionality
+    // Fix the method to use findById instead of findRewardById
+    public boolean hasEnoughPointsForReward(Long studentId, Long rewardId) {
+        Optional<Student> studentOpt = studentRepository.findById(studentId);
+        Optional<Reward> rewardOpt = rewardRepository.findById(rewardId); // Changed from findRewardById to findById
+        
+        if (studentOpt.isPresent() && rewardOpt.isPresent()) {
+            Student student = studentOpt.get();
+            Reward reward = rewardOpt.get();
+            return student.getPoints() >= reward.getPointValue();
+        }
+        return false;
+    }
+    
+    public Student deductPointsForReward(Long studentId, Integer pointsToDeduct) {
+        Optional<Student> studentOpt = studentRepository.findById(studentId);
+        if (studentOpt.isPresent()) {
+            Student student = studentOpt.get();
+            Integer currentPoints = student.getPoints() != null ? student.getPoints() : 0;
+            
+            if (currentPoints >= pointsToDeduct) {
+                student.setPoints(currentPoints - pointsToDeduct);
+                return studentRepository.save(student);
+            } else {
+                throw new IllegalStateException("Student does not have enough points");
+            }
+        }
+        return null;
+    }
+    
+    public List<Reward> getAvailableRewardsForStudent(Long studentId) {
+        Optional<Student> studentOpt = studentRepository.findById(studentId);
+        if (studentOpt.isPresent()) {
+            Student student = studentOpt.get();
+            Integer points = student.getPoints() != null ? student.getPoints() : 0;
+            return rewardRepository.findByPointValueLessThanEqual(points);
+        }
+        return List.of();
     }
 }

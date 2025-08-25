@@ -11,6 +11,10 @@
     <div class="card-body">
         <form:form action="/students/save" method="post" modelAttribute="student">
             <form:hidden path="id" />
+            <!-- Add hidden field for points to preserve value when updating -->
+            <form:hidden path="points" />
+            <!-- Add hidden field for status to preserve value when updating -->
+            <form:hidden path="status" />
             
             <div class="mb-3 row">
                 <label for="studentId" class="col-sm-2 col-form-label">Student ID</label>
@@ -69,6 +73,24 @@
                         <form:option value="4" label="Year 4" />
                     </form:select>
                     <form:errors path="year" cssClass="text-danger" />
+                </div>
+            </div>
+            
+            <!-- Add username field -->
+            <div class="mb-3 row">
+                <label for="username" class="col-sm-2 col-form-label">Username</label>
+                <div class="col-sm-10">
+                    <form:input path="username" class="form-control" required="true" />
+                    <form:errors path="username" cssClass="text-danger" />
+                </div>
+            </div>
+            
+            <!-- Add password field -->
+            <div class="mb-3 row">
+                <label for="password" class="col-sm-2 col-form-label">Password</label>
+                <div class="col-sm-10">
+                    <form:input path="password" type="password" class="form-control" required="true" />
+                    <form:errors path="password" cssClass="text-danger" />
                 </div>
             </div>
             
