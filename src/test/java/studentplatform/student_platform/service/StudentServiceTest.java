@@ -1,11 +1,14 @@
 package studentplatform.student_platform.service;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import studentplatform.student_platform.model.Student;
 import studentplatform.student_platform.repository.StudentRepository;
+import studentplatform.student_platform.repository.RewardRepository;
 
 import java.util.Arrays;
 import java.util.List;
@@ -19,6 +22,9 @@ class StudentServiceTest {
 
     @Mock
     private StudentRepository studentRepository;
+    
+    @Mock
+    private RewardRepository rewardRepository;
 
     @InjectMocks
     private StudentService studentService;
@@ -26,6 +32,27 @@ class StudentServiceTest {
     private Student student1;
     private Student student2;
 
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+        
+        // Create test student objects
+        student1 = new Student();
+        student1.setId(1L);
+        student1.setStudentId("STU001");
+        student1.setFirstName("Alice");
+        student1.setLastName("Johnson");
+        student1.setEmail("alice.johnson@university.edu");
+        student1.setDepartment("Computer Science");
+        
+        student2 = new Student();
+        student2.setId(2L);
+        student2.setStudentId("STU002");
+        student2.setFirstName("Bob");
+        student2.setLastName("Smith");
+        student2.setEmail("bob.smith@university.edu");
+        student2.setDepartment("Mathematics");
+    }
     
     @Test
     void getAllStudents() {
