@@ -28,7 +28,6 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
     @Query("SELECT s FROM Student s WHERE s.firstName LIKE %:keyword% OR s.lastName LIKE %:keyword%")
     List<Student> searchByName(@Param("keyword") String keyword);
     
-    // Add this method to StudentRepository
     List<Student> findByStatus(Student.AccountStatus status);
 
     

@@ -1,9 +1,9 @@
 package studentplatform.student_platform.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.stereotype.Service;
 
-import studentplatform.student_platform.controller.string;
+
 import studentplatform.student_platform.model.Reward;
 import studentplatform.student_platform.model.Student;
 import studentplatform.student_platform.repository.StudentRepository;
@@ -18,12 +18,12 @@ import java.security.NoSuchAlgorithmException;
 public class StudentService {
 
     private final StudentRepository studentRepository;
-    private final RewardRepository rewardRepository; // Added field
+    private final RewardRepository rewardRepository; 
 
-    @Autowired
-    public StudentService(StudentRepository studentRepository, RewardRepository rewardRepository) { // Added parameter
+
+    public StudentService(StudentRepository studentRepository, RewardRepository rewardRepository) { 
         this.studentRepository = studentRepository;
-        this.rewardRepository = rewardRepository; // Initialize field
+        this.rewardRepository = rewardRepository; 
     }
 
     public boolean authStudent(String username, String password) {

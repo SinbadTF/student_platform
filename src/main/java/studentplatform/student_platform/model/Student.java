@@ -53,7 +53,7 @@ public class Student {
     @Size(min = 6, message = "Password must be at least 6 characters")
     private String password;
     
-    private Integer points;
+    private Integer points=0;
     
     // Add a constructor or initialization method
     public void initializeNewStudent() {

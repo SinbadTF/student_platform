@@ -346,31 +346,29 @@ public class WebController {
                                      @RequestParam String entityId,
                                      Model model) {
         
-        // Validate passwords match
+        
         if (!password.equals(confirmPassword)) {
             model.addAttribute("error", "Passwords do not match");
             return "register";
         }
         
-        // Check if username already exists in either Student or Staff
         if (role.equals("STUDENT")) {
             if (studentService.findByUsername(username).isPresent()) {
                 model.addAttribute("error", "Username already exists");
                 return "register";
             }
             
-            // Create new student with pending status
             Student student = new Student();
             student.setUsername(username);
             String Stuhashpasword=studentService.hashPassword(password);
             student.setPassword(Stuhashpasword); 
             student.setEmail(email);
-            student.setStudentId((entityId)); // Store the requested ID
+            student.setStudentId((entityId)); 
             student.setStatus(Student.AccountStatus.PENDING);
             
-            // Set default values for required fields
+           
             student.setFirstName("Pending");
-            student.setLastName("Approval");
+            student.setLastName("Pending");
             student.setDepartment("Pending");
             student.setYear(1);
             
@@ -1030,6 +1028,18 @@ public class WebController {
         return "students/rewards/history";
     }
     
+
+
+    @GetMapping("/students/profile")
+    public String studentProfile(Model model, HttpSession session) {
+    Student student = (Student) session.getAttribute("user");
+    if (student == null) {
+        return "redirect:/login";
+    }
     
-    
+    model.addAttribute("student", student);
+    return "students/profile";
+}
+
+
 }
