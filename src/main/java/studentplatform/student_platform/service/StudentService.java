@@ -136,14 +136,30 @@ public String hashPassword(String password) {
     }
     
     public Student addPointsToStudent(Long studentId, Integer pointsToAdd, String reason) {
+        System.out.println("=== Adding points to student ===");
+        System.out.println("Student ID: " + studentId);
+        System.out.println("Points to add: " + pointsToAdd);
+        System.out.println("Reason: " + reason);
+        
         Optional<Student> studentOpt = studentRepository.findById(studentId);
         if (studentOpt.isPresent()) {
             Student student = studentOpt.get();
             Integer currentPoints = student.getPoints() != null ? student.getPoints() : 0;
+            System.out.println("Student: " + student.getUsername() + " (ID: " + student.getId() + ")");
+            System.out.println("Current points: " + currentPoints);
+            System.out.println("New total will be: " + (currentPoints + pointsToAdd));
+            
             student.setPoints(currentPoints + pointsToAdd);
-            return studentRepository.save(student);
+            Student savedStudent = studentRepository.save(student);
+            
+            System.out.println("Student saved to database. New points: " + savedStudent.getPoints());
+            System.out.println("=== Points added successfully ===");
+            
+            return savedStudent;
+        } else {
+            System.err.println("Student not found with ID: " + studentId);
+            return null;
         }
-        return null;
     }
     
     public Student setStudentPoints(Long studentId, Integer points) {

@@ -5,6 +5,7 @@
 <html>
 <head>
     <title>${event.name}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
     <jsp:include page="../layout/header.jsp" />
@@ -24,20 +25,55 @@
                         <p>${event.location}</p>
                         
                         <h5>Date & Time</h5>
-                        <p><strong>Start:</strong> <fmt:formatDate pattern="yyyy-MM-dd HH:mm" value="${event.startTime}" /></p>
-                        <p><strong>End:</strong> <fmt:formatDate pattern="yyyy-MM-dd HH:mm" value="${event.endTime}" /></p>
+                        <p><strong>Start:</strong> ${event.startTime}</p>
+                        <p><strong>End:</strong> ${event.endTime}</p>
                         
                         <h5>Points</h5>
                         <p>${event.pointValue} points will be awarded for participation</p>
                         
-                        <h5>Created By</h5>
-                        <p>${event.createdBy.firstName} ${event.createdBy.lastName}</p>
+                        <h5>Event Status</h5>
+                        <c:choose>
+                            <c:when test="${!hasStarted}">
+                                <div class="alert alert-info">
+                                    <strong>Event hasn't started yet.</strong> Join button will appear when the event begins.
+                                </div>
+                            </c:when>
+                            <c:when test="${hasEnded}">
+                                <div class="alert alert-secondary">
+                                    <strong>Event has ended.</strong> Registration is no longer available.
+                                </div>
+                            </c:when>
+                            <c:otherwise>
+                                <div class="alert alert-success">
+                                    <strong>Event is now active!</strong> Students can join during this time.
+                                </div>
+                            </c:otherwise>
+                        </c:choose>
                     </div>
                     <div class="col-md-4 text-center">
                         <c:if test="${!isRegistered}">
-                            <form action="/events/register/${event.id}" method="post">
-                                <button type="submit" class="btn btn-success btn-lg">Register for Event</button>
-                            </form>
+                            <c:choose>
+                                <c:when test="${isJoinWindow}">
+                                    <form action="/events/register/${event.id}" method="post">
+                                        <button type="submit" class="btn btn-success btn-lg">Join Now</button>
+                                    </form>
+                                    <p class="text-muted mt-2">Event is currently active</p>
+                                </c:when>
+                                <c:otherwise>
+                                    <div class="alert alert-warning">
+                                        <strong>
+                                            <c:choose>
+                                                <c:when test="${!hasStarted}">
+                                                    Registration opens at event start time
+                                                </c:when>
+                                                <c:otherwise>
+                                                    Registration closed at event end time
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </strong>
+                                    </div>
+                                </c:otherwise>
+                            </c:choose>
                         </c:if>
                         <c:if test="${isRegistered}">
                             <div class="alert alert-info">
@@ -53,5 +89,8 @@
     </div>
     
     <jsp:include page="../layout/footer.jsp" />
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
+

@@ -4,71 +4,85 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin - Event Management</title>
-</head>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link href="<c:url value='/static/css/main.css' />" rel="stylesheet">
+    <style>
+        .empty-state { padding: 3rem 1rem; border: 2px dashed #e9ecef; border-radius: .5rem; background: #fafafa; }
+    </style>
+    </head>
 <body>
     <jsp:include page="../layout/header.jsp" />
-    
+
     <div class="container mt-4">
-        <div class="row mb-3">
-            <div class="col-md-6">
-                <h2>Event Management</h2>
-            </div>
-            <div class="col-md-6 text-right">
-                <form action="/admin/events" method="get" class="form-inline justify-content-end">
-                    <div class="input-group">
-                        <input type="text" name="keyword" class="form-control" placeholder="Search events..." value="${param.keyword}">
-                        <div class="input-group-append">
-                            <button class="btn btn-outline-secondary" type="submit">Search</button>
-                        </div>
-                    </div>
-                </form>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="mb-0"><i class="bi bi-calendar-event text-warning"></i> Event Management</h2>
+            <div>
+                <a href="/admin/check-pending-points" class="btn btn-outline-secondary me-2" onclick="return confirm('Check for events that should award points?')">
+                    <i class="bi bi-clock"></i> Check Pending
+                </a>
+                <a href="/admin/check-student-points" class="btn btn-secondary me-2" onclick="return confirm('Check all student points status?')">
+                    <i class="bi bi-search"></i> Check Points
+                </a>
+                <a href="/admin/manual-award-points" class="btn btn-info me-2" onclick="return confirm('Manually trigger point awarding for ended events?')">
+                    <i class="bi bi-currency-dollar"></i> Award Points
+                </a>
+                <a href="/admin/events/create" class="btn btn-warning"><i class="bi bi-plus-lg"></i> Create New Event</a>
             </div>
         </div>
-        
-        <a href="/admin/events/create" class="btn btn-primary mb-3">Create New Event</a>
-        
-        <!-- All Events Table -->
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Location</th>
-                    <th>Start Time</th>
-                    <th>End Time</th>
-                    <th>Points</th>
-                    <th>Created By</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <c:forEach var="event" items="${events}">
-                    <tr>
-                        <td>${event.id}</td>
-                        <td>${event.name}</td>
-                        <td>${event.location}</td>
-                        <td>${event.startTime}</td>
-                        <td>${event.endTime}</td>
-                        <td>${event.pointValue}</td>
-                        <td>${event.createdBy.firstName} ${event.createdBy.lastName}</td>
-                        <td>
-                            <a href="/admin/events/view/${event.id}" class="btn btn-info btn-sm">View</a>
-                            <a href="/admin/events/edit/${event.id}" class="btn btn-warning btn-sm">Edit</a>
-                            <a href="/admin/events/delete/${event.id}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this event?')">Delete</a>
-                        </td>
-                    </tr>
-                </c:forEach>
-                
-                <c:if test="${empty events}">
-                    <tr>
-                        <td colspan="8" class="text-center">No events found</td>
-                    </tr>
-                </c:if>
-            </tbody>
-        </table>
+
+        <c:choose>
+            <c:when test="${not empty events}">
+                <div class="table-responsive">
+                    <table class="table table-striped align-middle">
+                        <thead>
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">Name</th>
+                                <th scope="col">Location</th>
+                                <th scope="col">Start</th>
+                                <th scope="col">End</th>
+                                <th scope="col">Points</th>
+                                <th scope="col" class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <c:forEach var="event" items="${events}">
+                                <tr>
+                                    <td>${event.id}</td>
+                                    <td>${event.name}</td>
+                                    <td>${event.location}</td>
+                                    <td>${event.startTime}</td>
+                                    <td>${event.endTime}</td>
+                                    <td>${event.pointValue}</td>
+                                    <td class="text-end">
+                                        <a href="/admin/events/view/${event.id}" class="btn btn-sm btn-outline-info">View</a>
+                                        <a href="/admin/events/edit/${event.id}" class="btn btn-sm btn-outline-warning ms-1">Edit</a>
+                                        <a href="/admin/events/delete/${event.id}" class="btn btn-sm btn-outline-danger ms-1" onclick="return confirm('Delete this event?');">Delete</a>
+                                    </td>
+                                </tr>
+                            </c:forEach>
+                        </tbody>
+                    </table>
+                </div>
+            </c:when>
+            <c:otherwise>
+                <div class="empty-state text-center">
+                    <div class="mb-2"><i class="bi bi-calendar-x" style="font-size: 3rem; color: #adb5bd;"></i></div>
+                    <h5 class="mb-2">No events yet</h5>
+                    <p class="text-muted mb-3">Create your first event to get started.</p>
+                    <a href="/admin/events/create" class="btn btn-warning"><i class="bi bi-plus-lg"></i> Create New Event</a>
+                </div>
+            </c:otherwise>
+        </c:choose>
     </div>
-    
+
     <jsp:include page="../layout/footer.jsp" />
-</body>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    </body>
 </html>
+
+

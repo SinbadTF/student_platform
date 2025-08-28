@@ -9,15 +9,17 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "club_participations")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class ClubParticipation {
@@ -51,5 +53,19 @@ public class ClubParticipation {
         PENDING,
         APPROVED,
         REJECTED
+    }
+
+    @Override
+    public String toString() {
+        return "ClubParticipation{" +
+                "id=" + id +
+                ", studentId=" + (student != null ? student.getId() : "null") +
+                ", clubId=" + (club != null ? club.getId() : "null") +
+                ", joinedAt=" + joinedAt +
+                ", status=" + status +
+                ", approvedAt=" + approvedAt +
+                ", approvedById=" + (approvedBy != null ? approvedBy.getId() : "null") +
+                ", pointsAwarded=" + pointsAwarded +
+                '}';
     }
 }

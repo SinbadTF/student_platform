@@ -10,8 +10,9 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
@@ -19,7 +20,8 @@ import java.util.List;
 
 @Entity
 @Table(name = "clubs")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Club {
@@ -46,4 +48,17 @@ public class Club {
     
     @OneToMany(mappedBy = "club")
     private List<ClubParticipation> participants = new ArrayList<>();
+
+    @Override
+    public String toString() {
+        return "Club{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", meetingLocation='" + meetingLocation + '\'' +
+                ", meetingSchedule='" + meetingSchedule + '\'' +
+                ", createdById=" + (createdBy != null ? createdBy.getId() : "null") +
+                ", participantsCount=" + (participants != null ? participants.size() : 0) +
+                '}';
+    }
 }
