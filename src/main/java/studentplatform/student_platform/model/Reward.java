@@ -10,13 +10,15 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "rewards")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Reward {
@@ -37,4 +39,15 @@ public class Reward {
     @ManyToOne
     @JoinColumn(name = "issued_by_id")
     private Staff issuedBy;
+
+    @Override
+    public String toString() {
+        return "Reward{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", pointValue=" + pointValue +
+                ", issuedById=" + (issuedBy != null ? issuedBy.getId() : "null") +
+                '}';
+    }
 }

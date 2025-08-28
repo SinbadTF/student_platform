@@ -7,13 +7,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${event.id == null ? 'Create New Event' : 'Edit Event'} - Admin</title>
-    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <!-- Custom CSS -->
     <link href="<c:url value='/static/css/main.css' />" rel="stylesheet">
-    <!-- Flatpickr for datetime picker -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 </head>
 <body>
@@ -49,13 +45,13 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="startTime" class="form-label">Start Time</label>
-                            <form:input path="startTime" class="form-control datetime-picker" required="true" />
+                            <form:input path="startTime" id="startTime" class="form-control datetime-picker" required="true" />
                             <form:errors path="startTime" cssClass="text-danger" />
                         </div>
                         
                         <div class="col-md-6 mb-3">
                             <label for="endTime" class="form-label">End Time</label>
-                            <form:input path="endTime" class="form-control datetime-picker" required="true" />
+                            <form:input path="endTime" id="endTime" class="form-control datetime-picker" required="true" />
                             <form:errors path="endTime" cssClass="text-danger" />
                         </div>
                     </div>
@@ -80,18 +76,40 @@
     
     <jsp:include page="../layout/footer.jsp" />
     
-    <!-- Bootstrap JS Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Flatpickr JS -->
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            flatpickr(".datetime-picker", {
+            const startPicker = flatpickr("#startTime", {
                 enableTime: true,
                 dateFormat: "Y-m-d H:i",
-                time_24hr: true
+                time_24hr: true,
+                minDate: new Date(),
+                onChange: function(selectedDates) {
+                    if (selectedDates && selectedDates.length) {
+                        endPicker.set('minDate', selectedDates[0]);
+                    }
+                }
+            });
+            const endPicker = flatpickr("#endTime", {
+                enableTime: true,
+                dateFormat: "Y-m-d H:i",
+                time_24hr: true,
+                minDate: new Date()
+            });
+
+            const form = document.querySelector('form');
+            form.addEventListener('submit', function(e) {
+                const start = startPicker.selectedDates[0];
+                const end = endPicker.selectedDates[0];
+                if (!start || !end || end < start) {
+                    e.preventDefault();
+                    alert('End time must be after the start time.');
+                }
             });
         });
     </script>
 </body>
 </html>
+
+

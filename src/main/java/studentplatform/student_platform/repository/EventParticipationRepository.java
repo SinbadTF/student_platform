@@ -14,19 +14,21 @@ import java.util.Optional;
 
 @Repository
 public interface EventParticipationRepository extends JpaRepository<EventParticipation, Long> {
-    
+
     List<EventParticipation> findByStudent(Student student);
-    
+
     List<EventParticipation> findByEvent(Event event);
-    
+
     List<EventParticipation> findByStatus(ParticipationStatus status);
-    
+
     List<EventParticipation> findByEventAndStatus(Event event, ParticipationStatus status);
-    
+
     List<EventParticipation> findByStudentAndStatus(Student student, ParticipationStatus status);
-    
+
     Optional<EventParticipation> findByStudentAndEvent(Student student, Event event);
-    
+
     @Query("SELECT ep FROM EventParticipation ep WHERE ep.status = :status AND ep.pointsAwarded = false")
     List<EventParticipation> findApprovedParticipationsWithoutPoints(@Param("status") ParticipationStatus status);
 }
+
+

@@ -12,15 +12,17 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
 
 @Entity
 @Table(name = "staff")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Staff {
@@ -65,5 +67,21 @@ public class Staff {
         PENDING,
         APPROVED,
         REJECTED
+    }
+
+    @Override
+    public String toString() {
+        return "Staff{" +
+                "id=" + id +
+                ", staffId='" + staffId + '\'' +
+                ", firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", email='" + email + '\'' +
+                ", department='" + department + '\'' +
+                ", position='" + position + '\'' +
+                ", username='" + username + '\'' +
+                ", status=" + status +
+                ", rewardsCount=" + (rewards != null ? rewards.size() : 0) +
+                '}';
     }
 }

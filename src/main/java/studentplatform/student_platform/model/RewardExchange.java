@@ -7,15 +7,17 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "reward_exchanges")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class RewardExchange {
@@ -56,5 +58,20 @@ public class RewardExchange {
 
     public void setFulfilledBy(Staff staff) {
         this.fulfilledBy = staff;
+    }
+
+    @Override
+    public String toString() {
+        return "RewardExchange{" +
+                "id=" + id +
+                ", studentId=" + (student != null ? student.getId() : "null") +
+                ", rewardId=" + (reward != null ? reward.getId() : "null") +
+                ", fulfilledById=" + (fulfilledBy != null ? fulfilledBy.getId() : "null") +
+                ", pointsSpent=" + pointsSpent +
+                ", exchangedAt=" + exchangedAt +
+                ", fulfilledAt=" + fulfilledAt +
+                ", status='" + status + '\'' +
+                ", deliveryDetails='" + deliveryDetails + '\'' +
+                '}';
     }
 }
