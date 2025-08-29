@@ -1,10 +1,10 @@
 <%@ include file="../layout/student_header.jsp" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
-<!-- Modern Student Dashboard -->
+
 <div class="container py-4">
-    <!-- Welcome Banner -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="card bg-primary text-white shadow-lg rounded-3 border-0">
@@ -25,7 +25,6 @@
         </div>
     </div>
 
-    <!-- Quick Stats -->
     <div class="row mb-4">
         <div class="col-md-3">
             <div class="card border-0 shadow-sm rounded-3 h-100">
@@ -73,9 +72,7 @@
         </div>
     </div>
 
-    <!-- Main Features -->
     <div class="row mb-4">
-        <!-- Points History with Chart -->
         <div class="col-md-8">
             <div class="card border-0 shadow-sm rounded-3 mb-4">
                 <div class="card-header bg-white border-0 py-3">
@@ -93,9 +90,7 @@
             </div>
         </div>
 
-        <!-- Quick Actions and Features -->
         <div class="col-md-4">
-            <!-- Lucky Spin -->
             <div class="card border-0 shadow-sm rounded-3 mb-4">
                 <div class="card-body text-center p-4">
                     <div class="bg-warning bg-opacity-25 rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 100px; height: 100px;">
@@ -107,7 +102,6 @@
                 </div>
             </div>
 
-            <!-- Upcoming Events -->
             <div class="card border-0 shadow-sm rounded-3">
                 <div class="card-header bg-white border-0 py-3">
                     <h5 class="mb-0"><i class="bi bi-calendar-event text-danger me-2"></i> Upcoming Events</h5>
@@ -139,7 +133,6 @@
         </div>
     </div>
 
-    <!-- Clubs and Activities -->
     <div class="row">
         <div class="col-12">
             <div class="card border-0 shadow-sm rounded-3">
@@ -181,9 +174,8 @@
                 </div>
             </div>
         </div>
-    <!-- After the Clubs and Activities section, around line 198 -->
-    
-    <!-- Available Rewards Section -->
+    </div>
+
     <div class="row mt-4">
         <div class="col-12">
             <div class="card border-0 shadow-sm rounded-3">
@@ -195,8 +187,8 @@
                 </div>
                 <div class="card-body">
                     <div class="row">
-                        <c:forEach items="${availableRewards}" var="reward" end="3">
-                            <div class="col-md-3">
+                        <c:forEach items="${availableRewards}" var="reward" varStatus="status">
+                            <div class="col-md-4 mb-4">
                                 <div class="card h-100 border-0 shadow-sm">
                                     <div class="card-body text-center">
                                         <div class="bg-success bg-opacity-10 rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
@@ -206,11 +198,7 @@
                                         <p class="card-text small">${reward.description}</p>
                                         <div class="d-flex justify-content-between align-items-center">
                                             <span class="badge bg-primary">${reward.pointValue} points</span>
-                                        
-
-                                <form action="/students/rewards/exchange/${reward.id}" method="post" style="display:inline;">
-                                    <button type="submit" class="btn btn-sm btn-outline-success">Redeem</button>
-                                </form> 
+                                            <button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#confirmRedeemModal${reward.id}">Redeem</button>
                                         </div>
                                     </div>
                                 </div>
@@ -227,59 +215,29 @@
             </div>
         </div>
     </div>
-</div> <!-- This closes the main container -->
-</div>
-
-<!-- Chart.js for data visualization -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-    // Use actual data from backend for points chart
-    const ctx = document.getElementById('pointsChart').getContext('2d');
-    const pointsChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: ${pointsChartLabels},
-            datasets: [{
-                label: 'Points Earned',
-                data: ${pointsChartData},
-                backgroundColor: 'rgba(13, 110, 253, 0.2)',
-                borderColor: 'rgba(13, 110, 253, 1)',
-                borderWidth: 2,
-                tension: 0.3,
-                fill: true
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    display: false
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            return context.parsed.y + ' points';
-                        }
-                    }
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    title: {
-                        display: true,
-                        text: 'Points'
-                    }
-                },
-                x: {
-                    title: {
-                        display: true,
-                        text: 'Month'
-                    }
-                }
-            }
-        }
-    });
-</script>
+</div> <c:forEach items="${availableRewards}" var="reward" varStatus="status">
+    <div class="modal fade" id="confirmRedeemModal${reward.id}" tabindex="-1" aria-labelledby="confirmRedeemModalLabel${reward.id}" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmRedeemModalLabel${reward.id}">Confirm Redemption</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to redeem <strong>${reward.name}</strong>?</p>
+                    <p>This will cost <strong>${reward.pointValue} points</strong>.</p>
+                    <p>Your current points: <strong>${student.points}</strong></p>
+                    <p>Points after redemption: <strong>${student.points - reward.pointValue}</strong></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <form action="/students/rewards/exchange/${reward.id}" method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-success">Confirm Redemption</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</c:forEach>
 
 <%@ include file="../layout/footer.jsp" %>

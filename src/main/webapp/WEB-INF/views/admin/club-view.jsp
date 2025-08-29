@@ -12,7 +12,7 @@
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <!-- Custom CSS -->
-    <link href="<c:url value='/static/css/main.css' />" rel="stylesheet">
+    <link href="<c:url value='/resources/css/main.css' />" rel="stylesheet">
 </head>
 <body>
     <jsp:include page="../layout/header.jsp" />

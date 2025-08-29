@@ -39,6 +39,9 @@ public class Reward {
     @ManyToOne
     @JoinColumn(name = "issued_by_id")
     private Staff issuedBy;
+    
+    // Add active field with default value of true
+    private boolean active = true;
 
     @Override
     public String toString() {
@@ -48,6 +51,7 @@ public class Reward {
                 ", description='" + description + '\'' +
                 ", pointValue=" + pointValue +
                 ", issuedById=" + (issuedBy != null ? issuedBy.getId() : "null") +
+                ", active=" + active +
                 '}';
     }
 }

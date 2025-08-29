@@ -1,6 +1,7 @@
 <%@ include file="../../layout/student_header.jsp" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <div class="container py-4">
     <!-- Page Header -->
@@ -65,11 +66,9 @@
                             </span>
                             <c:choose>
                                 <c:when test="${student.points >= reward.pointValue}">
-                                    <form action="/students/rewards/exchange/${reward.id}" method="post">
-                                        <button type="submit" class="btn btn-success">
-                                            <i class="bi bi-cart-plus"></i> Redeem
-                                        </button>
-                                    </form>
+                                    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#confirmRedeemModal${reward.id}">
+                                        <i class="bi bi-cart-plus"></i> Redeem
+                                    </button>
                                 </c:when>
                                 <c:otherwise>
                                     <button class="btn btn-secondary" disabled>
@@ -104,5 +103,41 @@
         </div>
     </div>
 </div>
+
+<!-- Modal Dialogs for Reward Redemption -->
+<c:forEach items="${rewards}" var="reward">
+    <div class="modal fade" id="confirmRedeemModal${reward.id}" tabindex="-1" aria-labelledby="confirmRedeemModalLabel${reward.id}" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmRedeemModalLabel${reward.id}">Confirm Redemption</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to redeem <strong>${reward.name}</strong>?</p>
+                    <p>This will cost <strong>${reward.pointValue} points</strong>.</p>
+                    <p>Your current points: <strong>${student.points}</strong></p>
+                    <p>Points after redemption: <strong>${student.points - reward.pointValue}</strong></p>
+                    
+                    
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <form action="/students/rewards/exchange/${reward.id}" method="post" style="display:inline;">
+                        <input type="hidden" name="deliveryDetails" id="hiddenDeliveryDetails${reward.id}">
+                        <button type="submit" class="btn btn-success" onclick="copyDeliveryDetails(${reward.id})">Confirm Redemption</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</c:forEach>
+
+<script>
+    function copyDeliveryDetails(rewardId) {
+        const textareaValue = document.getElementById('deliveryDetails' + rewardId).value;
+        document.getElementById('hiddenDeliveryDetails' + rewardId).value = textareaValue;
+    }
+</script>
 
 <%@ include file="../../layout/footer.jsp" %>

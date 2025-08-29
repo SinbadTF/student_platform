@@ -87,7 +87,7 @@ public class WebController {
         // Remove or update this line to use student points instead
         // model.addAttribute("pointCount", pointService.getAllPoints().size());
         
-        return "home";
+        return "login";
     }
     
     // Student Management
@@ -139,7 +139,12 @@ public class WebController {
     }
     
     @GetMapping("/students/delete/{id}")
-    public String deleteStudent(@PathVariable Long id) {
+    public String deleteStudent(@PathVariable Long id, HttpSession session) {
+        Admin admin = (Admin) session.getAttribute("user");
+        if (admin == null) {
+            return "redirect:/login";
+        }
+        
         studentService.deleteStudent(id);
         return "redirect:/students";
     }
@@ -191,19 +196,32 @@ public class WebController {
     }
     
     @GetMapping("/staff/delete/{id}")
-    public String deleteStaff(@PathVariable Long id) {
+    public String deleteStaff(@PathVariable Long id, HttpSession session) {
+        Admin admin = (Admin) session.getAttribute("user");
+        if (admin == null) {
+            return "redirect:/login";
+        }
+        
         staffService.deleteStaff(id);
         return "redirect:/staff";
     }
     
     // Rewards Management
     @GetMapping("/rewards")
-    public String rewards(Model model, @RequestParam(required = false) String keyword) {
+    public String rewards(Model model, @RequestParam(required = false) String keyword, 
+                         @RequestParam(required = false) Boolean showInactive) {
+        List<Reward> rewardsList;
+        
         if (keyword != null && !keyword.isEmpty()) {
-            model.addAttribute("rewards", rewardService.searchRewardsByKeyword(keyword));
+            rewardsList = rewardService.searchRewardsByKeyword(keyword);
+        } else if (showInactive != null && showInactive) {
+            rewardsList = rewardService.getAllRewards();
         } else {
-            model.addAttribute("rewards", rewardService.getAllRewards());
+            rewardsList = rewardService.getActiveRewards();
         }
+        
+        model.addAttribute("rewards", rewardsList);
+        model.addAttribute("showInactive", showInactive != null && showInactive);
         return "rewards/list";
     }
     
@@ -245,8 +263,42 @@ public class WebController {
     }
     
     @GetMapping("/rewards/delete/{id}")
-    public String deleteReward(@PathVariable Long id) {
-        rewardService.deleteReward(id);
+    public String deleteReward(@PathVariable Long id, HttpSession session, RedirectAttributes redirectAttributes) {
+        Admin admin = (Admin) session.getAttribute("user");
+        if (admin == null) {
+            return "redirect:/login";
+        }
+        
+        try {
+            rewardService.deleteReward(id);
+            redirectAttributes.addFlashAttribute("success", "Reward deleted successfully.");
+        } catch (IllegalStateException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/rewards";
+    }
+    
+    @GetMapping("/rewards/deactivate/{id}")
+    public String deactivateReward(@PathVariable Long id, HttpSession session, RedirectAttributes redirectAttributes) {
+        Admin admin = (Admin) session.getAttribute("user");
+        if (admin == null) {
+            return "redirect:/login";
+        }
+        
+        rewardService.deactivateReward(id);
+        redirectAttributes.addFlashAttribute("success", "Reward deactivated successfully.");
+        return "redirect:/rewards";
+    }
+    
+    @GetMapping("/rewards/activate/{id}")
+    public String activateReward(@PathVariable Long id, HttpSession session, RedirectAttributes redirectAttributes) {
+        Admin admin = (Admin) session.getAttribute("user");
+        if (admin == null) {
+            return "redirect:/login";
+        }
+        
+        rewardService.activateReward(id);
+        redirectAttributes.addFlashAttribute("success", "Reward activated successfully.");
         return "redirect:/rewards";
     }
     
@@ -930,7 +982,8 @@ public class WebController {
                     model.addAttribute("recentExchanges", recentExchanges);
                     
                     // Get available rewards based on student's points
-                    List<Reward> availableRewards = rewardService.getAllRewards().stream()
+                    // Changed from getAllRewards() to getActiveRewards() to only show active rewards
+                    List<Reward> availableRewards = rewardService.getActiveRewards().stream()
                             .filter(reward -> student.getPoints() >= reward.getPointValue())
                             .collect(Collectors.toList());
                     model.addAttribute("availableRewards", availableRewards);
@@ -964,23 +1017,31 @@ public class WebController {
                 .orElse("redirect:/students");
     }
 
-
-        
-       
-    // Reward Catalog - Show available rewards that students can exchange points for
     @GetMapping("/students/rewards/catalog")
-    public String rewardCatalog(Model model, HttpSession session) {
+    public String rewardCatalog(Model model, HttpSession session, 
+                                @RequestParam(required = false) String search, 
+                                @RequestParam(required = false) String filter) {
         Student student = (Student) session.getAttribute("user");
         if (student == null) {
             return "redirect:/login";
         }
         
-        // Get all available rewards
-        List<Reward> allRewards = rewardService.getAllRewards();
+        List<Reward> rewards;
         
-        // Add student's current points to the model
+        if (search != null && !search.isEmpty()) {
+            rewards = rewardService.searchRewardsByKeyword(search);
+        } else if ("available".equals(filter)) {
+            rewards = rewardService.getActiveRewards().stream()
+                .filter(reward -> student.getPoints() >= reward.getPointValue())
+                .collect(Collectors.toList());
+        } else {
+            rewards = rewardService.getActiveRewards();
+        }
+        
         model.addAttribute("student", student);
-        model.addAttribute("rewards", allRewards);
+        model.addAttribute("rewards", rewards);
+        model.addAttribute("search", search);
+        model.addAttribute("filter", filter);
         
         return "students/rewards/catalog";
     }
@@ -1003,6 +1064,10 @@ public class WebController {
             // Process the exchange
             RewardExchange exchange = rewardExchangeService.exchangeReward(student.getId(), rewardId);
             redirectAttributes.addFlashAttribute("success", "Reward exchanged successfully!");
+            
+            // Update the student in the session with the latest data from the database
+            Student updatedStudent = studentService.getStudentById(student.getId()).orElse(student);
+            session.setAttribute("user", updatedStudent);
             
             return "redirect:/students/rewards/history";
         } catch (Exception e) {

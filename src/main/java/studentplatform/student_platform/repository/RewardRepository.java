@@ -28,4 +28,6 @@ public interface RewardRepository extends JpaRepository<Reward, Long> {
 
     // Remove this line:
     // List<Reward> findByReceivedBy(Student student);
+    
+    List<Reward> findByActiveTrue();
 }

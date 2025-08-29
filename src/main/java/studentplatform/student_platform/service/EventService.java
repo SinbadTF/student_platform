@@ -12,6 +12,7 @@ import studentplatform.student_platform.repository.EventParticipationRepository;
 import studentplatform.student_platform.repository.EventRepository;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -248,6 +249,21 @@ public class EventService {
             System.err.println("Error in awardPointsForEndedEvents: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    public List<EventParticipation> getParticipationsByStudent(Student student) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getParticipationsByStudent'");
+    }
+
+    public List<Student> getApprovedParticipationsByStudent(Student student) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getApprovedParticipationsByStudent'");
+    }
+
+    public Collection<Student> getUpcomingEvents() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getUpcomingEvents'");
     }
 }
 

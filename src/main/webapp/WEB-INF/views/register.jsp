@@ -6,62 +6,110 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register - Student Platform</title>
+    <!-- Google Fonts - Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <!-- Custom CSS -->
-    <link href="<c:url value='/static/css/main.css' />" rel="stylesheet">
+    <link href="<c:url value='/resources/css/main.css' />" rel="stylesheet">
+    <style>
+        .logo-container {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .logo-img {
+            height: 85px; 
+            opacity: 0.95; 
+            transition: all 0.3s ease;
+        }
+        .logo-img:hover {
+            opacity: 1;
+            transform: scale(1.05);
+        }
+        .auth-card {
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        .auth-header {
+            padding: 1.5rem;
+        }
+    </style>
 </head>
 <body class="bg-light">
     <div class="container">
-        <div class="row justify-content-center mt-5">
-            <div class="col-md-6">
-                <div class="card shadow-sm">
-                    <div class="card-header bg-primary text-white text-center">
-                        <h3>Create New Account</h3>
+        <div class="row justify-content-center align-items-center" style="min-height: 100vh;">
+            <div class="col-md-6 animate-fade-in">
+                <div class="card auth-card border-0">
+                    <div class="card-header auth-header bg-primary text-white text-center border-0">
+                        <div class="logo-container justify-content-center">
+                            <img src="<c:url value='/resources/images/university_logo.png' />" alt="University Logo" class="logo-img">
+                        </div>
+                        <h3 class="mb-0">Create New Account</h3>
                     </div>
                     <div class="card-body p-4">
                         <c:if test="${not empty error}">
-                            <div class="alert alert-danger">${error}</div>
+                            <div class="alert alert-danger rounded-3">${error}</div>
                         </c:if>
                         
-                        <form action="/register" method="post">
+                        <form action="/register" method="post" class="mt-2">
                             <div class="mb-3">
                                 <label for="username" class="form-label">Username</label>
-                                <input type="text" class="form-control" id="username" name="username" required>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="bi bi-person"></i></span>
+                                    <input type="text" class="form-control" id="username" name="username" placeholder="Choose a username" required>
+                                </div>
                             </div>
                             <div class="mb-3">
                                 <label for="email" class="form-label">Email</label>
-                                <input type="email" class="form-control" id="email" name="email" required>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="bi bi-envelope"></i></span>
+                                    <input type="email" class="form-control" id="email" name="email" placeholder="Enter your email" required>
+                                </div>
                             </div>
                             <div class="mb-3">
                                 <label for="password" class="form-label">Password</label>
-                                <input type="password" class="form-control" id="password" name="password" required>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="bi bi-lock"></i></span>
+                                    <input type="password" class="form-control" id="password" name="password" placeholder="Create a password" required>
+                                </div>
                             </div>
                             <div class="mb-3">
                                 <label for="confirmPassword" class="form-label">Confirm Password</label>
-                                <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="bi bi-lock-fill"></i></span>
+                                    <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" placeholder="Confirm your password" required>
+                                </div>
                             </div>
                             <div class="mb-3">
                                 <label for="role" class="form-label">Register As</label>
-                                <select class="form-select" id="role" name="role" required>
-                                    <option value="" selected disabled>Select Role</option>
-                                    <option value="STUDENT">Student</option>
-                                    <option value="STAFF">Staff</option>
-                                </select>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="bi bi-person-badge"></i></span>
+                                    <select class="form-select" id="role" name="role" required>
+                                        <option value="" selected disabled>Select Role</option>
+                                        <option value="STUDENT">Student</option>
+                                        <option value="STAFF">Staff</option>
+                                    </select>
+                                </div>
                             </div>
-                            <div class="mb-3">
+                            <div class="mb-4">
                                 <label for="entityId" class="form-label">ID Number</label>
-                                <input type="text" class="form-control" id="entityId" name="entityId" 
-                                       placeholder="Enter your Student/Staff ID" required>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="bi bi-card-text"></i></span>
+                                    <input type="text" class="form-control" id="entityId" name="entityId" 
+                                           placeholder="Enter your Student/Staff ID" required>
+                                </div>
                             </div>
                             <div class="d-grid gap-2">
-                                <button type="submit" class="btn btn-primary">Register</button>
+                                <button type="submit" class="btn btn-primary btn-lg">Register <i class="bi bi-check-circle ms-2"></i></button>
                             </div>
                         </form>
-                        <div class="text-center mt-3">
-                            <p>Already have an account? <a href="/login">Login here</a></p>
+                        <div class="text-center mt-4">
+                            <p>Already have an account? <a href="/login" class="text-primary fw-bold">Login here</a></p>
                         </div>
                     </div>
                 </div>

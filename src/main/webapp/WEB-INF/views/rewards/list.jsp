@@ -9,19 +9,45 @@
     <jsp:include page="../layout/header.jsp" />
     
     <div class="container mt-4">
+        <!-- Add Flash Messages Display -->
+        <c:if test="${not empty success}">
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                ${success}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        </c:if>
+        <c:if test="${not empty error}">
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                ${error}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        </c:if>
+        <!-- End Flash Messages Display -->
+        
         <div class="row mb-3">
             <div class="col-md-6">
                 <h2>Rewards Management</h2>
             </div>
             <div class="col-md-6 text-right">
-                <form action="/rewards" method="get" class="form-inline justify-content-end">
-                    <div class="input-group">
-                        <input type="text" name="keyword" class="form-control" placeholder="Search rewards..." value="${param.keyword}">
-                        <div class="input-group-append">
-                            <button class="btn btn-outline-secondary" type="submit">Search</button>
-                        </div>
+                <div class="d-flex justify-content-end">
+                    <div class="form-check me-3 mt-2">
+                        <input class="form-check-input" type="checkbox" id="showInactive" 
+                               ${showInactive ? 'checked' : ''} onchange="toggleInactive()">
+                        <label class="form-check-label" for="showInactive">
+                            Show Inactive Rewards
+                        </label>
                     </div>
-                </form>
+                    <form action="/rewards" method="get" class="form-inline">
+                        <input type="hidden" name="showInactive" value="${showInactive}">
+                        <div class="input-group">
+                            <input type="text" name="keyword" class="form-control" 
+                                   placeholder="Search rewards..." value="${param.keyword}">
+                            <div class="input-group-append">
+                                <button class="btn btn-outline-secondary" type="submit">Search</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
         
@@ -35,21 +61,35 @@
                     <th>Description</th>
                     <th>Point Value</th>
                     <th>Issued By</th>
+                    <th>Status</th>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
                 <c:forEach var="reward" items="${rewards}">
-                    <tr>
+                    <tr class="${reward.active ? '' : 'table-secondary'}">
                         <td>${reward.id}</td>
                         <td>${reward.name}</td>
                         <td>${reward.description}</td>
                         <td>${reward.pointValue}</td>
                         <td>${reward.issuedBy != null ? reward.issuedBy.firstName : ''} ${reward.issuedBy != null ? reward.issuedBy.lastName : ''}</td>
                         <td>
+                            <span class="badge ${reward.active ? 'bg-success' : 'bg-secondary'}">
+                                ${reward.active ? 'Active' : 'Inactive'}
+                            </span>
+                        </td>
+                        <td>
                             <a href="/rewards/view/${reward.id}" class="btn btn-info btn-sm">View</a>
                             <a href="/rewards/edit/${reward.id}" class="btn btn-warning btn-sm">Edit</a>
-                            <button onclick="confirmDelete(${reward.id}, '${reward.name}')" class="btn btn-danger btn-sm">Delete</button>
+                            <c:choose>
+                                <c:when test="${reward.active}">
+                                    <button onclick="confirmDelete(${reward.id}, '${reward.name}')" class="btn btn-danger btn-sm">Delete</button>
+                                    <button onclick="confirmDeactivate(${reward.id}, '${reward.name}')" class="btn btn-secondary btn-sm">Deactivate</button>
+                                </c:when>
+                                <c:otherwise>
+                                    <button onclick="confirmActivate(${reward.id}, '${reward.name}')" class="btn btn-success btn-sm">Activate</button>
+                                </c:otherwise>
+                            </c:choose>
                         </td>
                     </tr>
                 </c:forEach>
@@ -59,21 +99,38 @@
     </div>
     
     <!-- Delete Confirmation Modal -->
-    <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body" id="deleteModalBody">
                     Are you sure you want to delete this reward?
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <a href="" id="deleteLink" class="btn btn-danger">Delete</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Deactivate Confirmation Modal -->
+    <div class="modal fade" id="deactivateModal" tabindex="-1" aria-labelledby="deactivateModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deactivateModalLabel">Confirm Deactivate</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="deactivateModalBody">
+                    Are you sure you want to deactivate this reward?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <a href="" id="deactivateLink" class="btn btn-primary">Deactivate</a>
                 </div>
             </div>
         </div>
@@ -85,7 +142,27 @@
         function confirmDelete(id, name) {
             document.getElementById('deleteModalBody').textContent = 'Are you sure you want to delete the reward "' + name + '"?';
             document.getElementById('deleteLink').href = '/rewards/delete/' + id;
-            $('#deleteModal').modal('show');
+            new bootstrap.Modal(document.getElementById('deleteModal')).show();
+        }
+        
+        function confirmDeactivate(id, name) {
+            document.getElementById('deactivateModalBody').textContent = 'Are you sure you want to deactivate the reward "' + name + '"? It will no longer be available for students to redeem.';
+            document.getElementById('deactivateLink').href = '/rewards/deactivate/' + id;
+            new bootstrap.Modal(document.getElementById('deactivateModal')).show();
+        }
+        
+        function confirmActivate(id, name) {
+            document.getElementById('deactivateModalBody').textContent = 'Are you sure you want to activate the reward "' + name + '"? It will become available for students to redeem.';
+            document.getElementById('deactivateLink').href = '/rewards/activate/' + id;
+            document.getElementById('deactivateModalLabel').textContent = 'Confirm Activate';
+            document.getElementById('deactivateLink').textContent = 'Activate';
+            document.getElementById('deactivateLink').className = 'btn btn-success';
+            new bootstrap.Modal(document.getElementById('deactivateModal')).show();
+        }
+        
+        function toggleInactive() {
+            const showInactive = document.getElementById('showInactive').checked;
+            window.location.href = '/rewards?showInactive=' + showInactive;
         }
     </script>
 </body>

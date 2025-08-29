@@ -47,29 +47,10 @@
                                 <div class="btn-group" role="group">
                                     <a href="/students/view/${student.id}" class="btn btn-sm btn-info">View</a>
                                     <a href="/students/edit/${student.id}" class="btn btn-sm btn-warning">Edit</a>
-                                    <a href="#" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal${student.id}">Delete</a>
+                                    <button onclick="confirmDelete(${student.id}, '${student.firstName} ${student.lastName}')" class="btn btn-sm btn-danger">Delete</button>
                                 </div>
                             </td>
                         </tr>
-                        
-                        <!-- Delete Confirmation Modal -->
-                        <div class="modal fade" id="deleteModal${student.id}" tabindex="-1" aria-hidden="true">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title">Confirm Delete</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        Are you sure you want to delete student ${student.firstName} ${student.lastName}?
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                        <a href="/students/delete/${student.id}" class="btn btn-danger">Delete</a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                     </c:forEach>
                     
                     <c:if test="${empty students}">
@@ -82,5 +63,32 @@
         </div>
     </div>
 </div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="deleteModalBody">
+                <!-- Content will be set dynamically -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <a href="#" id="confirmDeleteBtn" class="btn btn-danger">Delete</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function confirmDelete(id, name) {
+        document.getElementById('deleteModalBody').textContent = `Are you sure you want to delete student ${name}?`;
+        document.getElementById('confirmDeleteBtn').href = `/students/delete/${id}`;
+        new bootstrap.Modal(document.getElementById('deleteModal')).show();
+    }
+</script>
 
 <%@ include file="../layout/footer.jsp" %>

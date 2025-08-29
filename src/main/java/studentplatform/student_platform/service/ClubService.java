@@ -139,4 +139,9 @@ public class ClubService {
     public List<ClubParticipation> getApprovedParticipationsByClub(Club club) {
         return participationRepository.findByClubAndStatus(club, ParticipationStatus.APPROVED);
     }
+
+    public List<ClubParticipation> getParticipationsByStudent(Student student) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getParticipationsByStudent'");
+    }
 }

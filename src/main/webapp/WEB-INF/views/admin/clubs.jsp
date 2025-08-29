@@ -5,6 +5,7 @@
 <html>
 <head>
     <title>Admin - Club Management</title>
+    <link href="<c:url value='/resources/css/main.css' />" rel="stylesheet">
 </head>
 <body>
     <jsp:include page="../layout/header.jsp" />

@@ -9,7 +9,7 @@
     <title>Admin - Event Management</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <link href="<c:url value='/static/css/main.css' />" rel="stylesheet">
+    <link href="<c:url value='/resources/css/main.css' />" rel="stylesheet">
     <style>
         .empty-state { padding: 3rem 1rem; border: 2px dashed #e9ecef; border-radius: .5rem; background: #fafafa; }
     </style>
