@@ -339,8 +339,21 @@ public class WebController {
     
     // Approve Student Registration
     @PostMapping("/admin/approve-student/{id}")
-    public String approveStudentRegistration(@RequestParam String studentId) {
-        studentService.approveRegistration(studentId);
+    public String approveStudentRegistration(@PathVariable Long id, @RequestParam String studentId, RedirectAttributes redirectAttributes) {
+        // Validate student ID format
+        if (!studentId.matches("TNT-\\d{4}")) {
+            redirectAttributes.addFlashAttribute("error", "Invalid Student ID format. Must be TNT-**** (e.g., TNT-1234)");
+            return "redirect:/admin/pending-students";
+        }
+        
+        try {
+            // Update student ID and approve registration
+            studentService.updateStudentIdAndApprove(id, studentId);
+            redirectAttributes.addFlashAttribute("success", "Student approved successfully with ID: " + studentId);
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error approving student: " + e.getMessage());
+        }
+        
         return "redirect:/admin/pending-students";
     }
     
@@ -394,7 +407,6 @@ public class WebController {
                                      @RequestParam String password,
                                      @RequestParam String confirmPassword,
                                      @RequestParam String role,
-                                     @RequestParam String entityId,
                                      Model model) {
         
         
@@ -414,7 +426,6 @@ public class WebController {
             String Stuhashpasword=studentService.hashPassword(password);
             student.setPassword(Stuhashpasword); 
             student.setEmail(email);
-            student.setStudentId((entityId)); 
             student.setStatus(Student.AccountStatus.PENDING);
             
            
@@ -437,7 +448,6 @@ public class WebController {
             String Staffhashpasword=studentService.hashPassword(password);
             staff.setPassword(Staffhashpasword); 
             staff.setEmail(email);
-            staff.setStaffId(entityId); // Store the requested ID
             staff.setStatus(Staff.AccountStatus.PENDING);
             
             // Set default values for required fields
@@ -1104,22 +1114,5 @@ public class WebController {
     model.addAttribute("student", student);
     return "students/profile";
 }
-@PostMapping("/students/rewards/cancel/{exchangeId}")
-public String cancelRewardExchange(@PathVariable Long exchangeId, HttpSession session, RedirectAttributes redirectAttributes) {
-    Student student = (Student) session.getAttribute("user");
-    if (student == null) {
-        return "redirect:/login";
-    }
-    
-    try {
-        rewardExchangeService.cancelRewardExchange(exchangeId);
-        redirectAttributes.addFlashAttribute("success", "Reward exchange cancelled successfully!");
-    } catch (Exception e) {
-        redirectAttributes.addFlashAttribute("error", "Error cancelling reward exchange: " + e.getMessage());
-    }
-    
-    return "redirect:/students/rewards/history";
-}
-
 
 }

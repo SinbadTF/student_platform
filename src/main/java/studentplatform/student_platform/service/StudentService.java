@@ -217,4 +217,21 @@ public String hashPassword(String password) {
         }
         return List.of();
     }
+    public void updateStudentIdAndApprove(Long id, String studentId) {
+        // First check if the studentId is already in use by another student
+        Optional<Student> existingStudent = studentRepository.findByStudentId(studentId);
+        if (existingStudent.isPresent() && !existingStudent.get().getId().equals(id)) {
+            throw new RuntimeException("Student ID '" + studentId + "' is already in use by another student");
+        }
+        
+        Optional<Student> studentOpt = studentRepository.findById(id);
+        if (studentOpt.isPresent()) {
+            Student student = studentOpt.get();
+            student.setStudentId(studentId);
+            student.setStatus(Student.AccountStatus.APPROVED);
+            studentRepository.save(student);
+        } else {
+            throw new RuntimeException("Student not found with ID: " + id);
+        }
+    }
 }

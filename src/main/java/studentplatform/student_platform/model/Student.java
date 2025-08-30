@@ -27,8 +27,6 @@ public class Student {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @NotBlank(message = "Student ID is required")
-    @Size(min = 5, max = 20, message = "Student ID must be between 5 and 20 characters")
     private String studentId;
     
     @NotBlank(message = "First name is required")

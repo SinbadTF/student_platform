@@ -43,14 +43,7 @@
                     deliveryDetailsContainer.style.display = 'none';
                 }
 
-                // Handle cancel button
-                const cancelForm = modal.querySelector('#cancel-exchange-form');
-                if (exchangeStatus === 'REDEEMED') {
-                    cancelForm.style.display = 'block';
-                    cancelForm.action = `/students/rewards/cancel/${exchangeId}`;
-                } else {
-                    cancelForm.style.display = 'none';
-                }
+                
             });
         }
     });
@@ -221,9 +214,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <form id="cancel-exchange-form" method="post" style="display: none;">
-                    <button type="submit" class="btn btn-danger">Cancel Exchange</button>
-                </form>
+                
             </div>
         </div>
     </div>

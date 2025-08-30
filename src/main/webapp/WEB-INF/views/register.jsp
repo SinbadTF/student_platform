@@ -96,14 +96,7 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="mb-4">
-                                <label for="entityId" class="form-label">ID Number</label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-light"><i class="bi bi-card-text"></i></span>
-                                    <input type="text" class="form-control" id="entityId" name="entityId" 
-                                           placeholder="Enter your Student/Staff ID" required>
-                                </div>
-                            </div>
+                            
                             <div class="d-grid gap-2">
                                 <button type="submit" class="btn btn-primary btn-lg">Register <i class="bi bi-check-circle ms-2"></i></button>
                             </div>
