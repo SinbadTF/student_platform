@@ -100,7 +100,8 @@
                         </div>
                         <h5 class="card-title">Clubs</h5>
                         <h2 class="display-6 fw-bold text-primary">${clubCount != null ? clubCount : 0}</h2>
-                        <a href="/clubs" class="btn btn-sm btn-outline-primary mt-2">Manage</a>
+                        <a href="${pageContext.request.contextPath}/admin/clubs" 
+                        class="btn btn-sm btn-outline-primary mt-2">Manage</a>
                     </div>
                 </div>
             </div>
@@ -163,7 +164,7 @@
                                         <i class="bi bi-people-fill text-primary" style="font-size: 2rem;"></i>
                                         <h5 class="mt-3">Manage Clubs</h5>
                                         <p>View, add, edit, or delete club records</p>
-                                        <a href="/clubs" class="btn btn-primary">Club Management</a>
+                                        <a href="${pageContext.request.contextPath}/admin/clubs" class="btn btn-primary">Club Management</a>
                                     </div>
                                 </div>
                             </div>

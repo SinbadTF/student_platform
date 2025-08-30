@@ -38,11 +38,10 @@ import studentplatform.student_platform.service.StaffService;
 import studentplatform.student_platform.service.StudentService;
 
 import studentplatform.student_platform.model.Admin;
-import studentplatform.student_platform.model.Club;
 import studentplatform.student_platform.model.Event;
-import studentplatform.student_platform.model.ClubParticipation;
+
 import studentplatform.student_platform.model.EventParticipation;
-import studentplatform.student_platform.service.ClubService;
+
 import studentplatform.student_platform.service.EventService;
 
 
@@ -55,20 +54,20 @@ public class WebController {
     private final RewardService rewardService;
     private final RewardExchangeService rewardExchangeService;
     private final AdminService adminService;
-    private final ClubService clubService;
+
     private final EventService eventService;
     
     @Autowired
     public WebController(StudentService studentService, StaffService staffService, 
                          RewardService rewardService, RewardExchangeService rewardExchangeService,
-                         AdminService adminService, ClubService clubService,
+                         AdminService adminService,
                          EventService eventService) {
         this.studentService = studentService;
         this.staffService = staffService;
         this.rewardService = rewardService;
         this.rewardExchangeService = rewardExchangeService;
         this.adminService = adminService;
-        this.clubService = clubService;
+      
         this.eventService = eventService;
     }
 
@@ -85,7 +84,7 @@ public class WebController {
         model.addAttribute("staffCount", staffService.getAllStaff().size());
         model.addAttribute("rewardCount", rewardService.getAllRewards().size());
         model.addAttribute("eventCount", eventService.getAllEvents().size());
-        model.addAttribute("clubCount", clubService.getAllClubs().size());
+   
         return "login";
     }
     
@@ -548,7 +547,8 @@ public class WebController {
         return "redirect:/login";
     }
     
-    // Admin Club Management
+
+
     @GetMapping("/admin/clubs")
     public String adminClubs(Model model, HttpSession session) {
         Admin admin = (Admin) session.getAttribute("user");
@@ -556,78 +556,52 @@ public class WebController {
             return "redirect:/login";
         }
         
-        model.addAttribute("clubs", clubService.getAllClubs());
+        // For now, pass empty list since ClubService doesn't exist
+        model.addAttribute("clubs", new ArrayList<>());
         return "admin/clubs";
     }
-    
-    @GetMapping("/admin/clubs/create")
-    public String createClubForm(Model model, HttpSession session) {
+
+    @GetMapping("/admin/clubmanagement")
+    public String adminClubManagement(Model model, HttpSession session) {
         Admin admin = (Admin) session.getAttribute("user");
         if (admin == null) {
             return "redirect:/login";
         }
         
-        model.addAttribute("club", new Club());
-        return "admin/club-form";
+        // For now, pass empty list since ClubService doesn't exist
+        model.addAttribute("clubs", new ArrayList<>());
+        return "admin/clubmanagement";
     }
-    
-    @PostMapping("/admin/clubs/save")
-    public String saveClub(@Valid @ModelAttribute("club") Club club, BindingResult result, HttpSession session) {
+
+    @GetMapping("/admin/activitymanagement")
+    public String adminActivityManagement(Model model, HttpSession session) {
         Admin admin = (Admin) session.getAttribute("user");
         if (admin == null) {
             return "redirect:/login";
         }
         
-        if (result.hasErrors()) {
-            return "admin/club-form";
-        }
-        
-        clubService.saveClub(club);
-        return "redirect:/admin/clubs";
+        // For now, pass empty list since ClubService doesn't exist
+        model.addAttribute("clubs", new ArrayList<>());
+        return "admin/activitymanagement";
     }
-    
-    @GetMapping("/admin/clubs/edit/{id}")
-    public String editClubForm(@PathVariable Long id, Model model, HttpSession session) {
+
+    @GetMapping("/admin/studentmonitoring")
+    public String adminStudentMonitoring(Model model, HttpSession session) {
         Admin admin = (Admin) session.getAttribute("user");
         if (admin == null) {
             return "redirect:/login";
         }
         
-        return clubService.getClubById(id)
-                .map(club -> {
-                    model.addAttribute("club", club);
-                    return "admin/club-form";
-                })
-                .orElse("redirect:/admin/clubs");
+        // For now, pass empty list since ClubService doesn't exist
+        model.addAttribute("clubs", new ArrayList<>());
+        return "admin/studentmonitoring";
+    }
+
+    @GetMapping("/admin/test-links")
+    public String testLinks(Model model) {
+        return "admin/test-links";
     }
     
-    @GetMapping("/admin/clubs/view/{id}")
-    public String viewClub(@PathVariable Long id, Model model, HttpSession session) {
-        Admin admin = (Admin) session.getAttribute("user");
-        if (admin == null) {
-            return "redirect:/login";
-        }
-        
-        return clubService.getClubById(id)
-                .map(club -> {
-                    model.addAttribute("club", club);
-                    model.addAttribute("pendingParticipations", clubService.getPendingParticipationsByClub(club));
-                    model.addAttribute("approvedParticipations", clubService.getApprovedParticipationsByClub(club));
-                    return "admin/club-view";
-                })
-                .orElse("redirect:/admin/clubs");
-    }
-    
-    @GetMapping("/admin/clubs/delete/{id}")
-    public String deleteClub(@PathVariable Long id, HttpSession session) {
-        Admin admin = (Admin) session.getAttribute("user");
-        if (admin == null) {
-            return "redirect:/login";
-        }
-        
-        clubService.deleteClub(id);
-        return "redirect:/admin/clubs";
-    }
     
           @GetMapping("/admin/events")
     public String adminEvents(Model model, HttpSession session) {
@@ -711,17 +685,7 @@ public class WebController {
         return "redirect:/admin/events";
     }
     
-    // Admin Participation Management
-    @GetMapping("/admin/club-participations")
-    public String clubParticipations(Model model, HttpSession session) {
-        Admin admin = (Admin) session.getAttribute("user");
-        if (admin == null) {
-            return "redirect:/login";
-        }
-        
-        model.addAttribute("pendingParticipations", clubService.getPendingParticipations());
-        return "admin/club-participations";
-    }
+   
     
     @GetMapping("/admin/event-participations")
     public String eventParticipations(Model model, HttpSession session) {
@@ -734,16 +698,7 @@ public class WebController {
         return "admin/event-participations";
     }
     
-    @PostMapping("/admin/approve-club-participation/{id}")
-    public String approveClubParticipation(@PathVariable Long id, HttpSession session) {
-        Admin admin = (Admin) session.getAttribute("user");
-        if (admin == null) {
-            return "redirect:/login";
-        }
-        
-        clubService.approveParticipation(id, admin);
-        return "redirect:/admin/club-participations";
-    }
+  
     
     @PostMapping("/admin/reject-club-participation/{id}")
     public String rejectClubParticipation(@PathVariable Long id, HttpSession session) {
@@ -752,7 +707,8 @@ public class WebController {
             return "redirect:/login";
         }
         
-        clubService.rejectParticipation(id, admin);
+        // TODO: Implement when ClubService is available
+        // clubService.rejectParticipation(id, admin);
         return "redirect:/admin/club-participations";
     }
     
@@ -778,35 +734,13 @@ public class WebController {
         return "redirect:/admin/event-participations";
     }
     
-    // Award points for club participation
-    @PostMapping("/admin/award-club-points/{id}")
-    public String awardClubPoints(@PathVariable Long id,
-                                 @RequestParam("pointValue") int pointValue,
-                                 @RequestParam("reason") String reason,
-                                 HttpSession session) {
-        Admin admin = (Admin) session.getAttribute("user");
-        if (admin == null) {
-            return "redirect:/login";
-        }
-        
-        clubService.getClubById(id).ifPresent(club -> {
-            // Get all approved participations for this club
-            List<ClubParticipation> participations = clubService.getPendingParticipationsByClub(club);
-            for (ClubParticipation participation : participations) {
-                if (participation.getStatus() == ClubParticipation.ParticipationStatus.APPROVED && 
-                    !participation.isPointsAwarded()) {
-                    clubService.awardPointsForParticipation(participation, pointValue, reason);
-                }
-            }
-        });
-        
-        return "redirect:/admin/clubs/view/" + id;
-    }
-    
+
+
     // Student Club and Event Interface
     @GetMapping("/clubs")
     public String studentClubs(Model model) {
-        model.addAttribute("clubs", clubService.getAllClubs());
+        // For now, pass empty list since ClubService doesn't exist
+        model.addAttribute("clubs", new ArrayList<>());
         return "clubs/list";
     }
     
@@ -852,23 +786,7 @@ public class WebController {
         }
     }
     
-    @GetMapping("/clubs/view/{id}")
-    public String viewClubForStudent(@PathVariable Long id, Model model, HttpSession session) {
-        Student student = (Student) session.getAttribute("user");
-        if (student == null) {
-            return "redirect:/login";
-        }
-        
-        return clubService.getClubById(id)
-                .map(club -> {
-                    model.addAttribute("club", club);
-                    // Check if student is already a member
-                    model.addAttribute("isJoined", clubService.getPendingParticipationsByClub(club).stream()
-                            .anyMatch(p -> p.getStudent().getId().equals(student.getId())));
-                    return "clubs/view";
-                })
-                .orElse("redirect:/clubs");
-    }
+
     
     @GetMapping("/events/view/{id}")
     public String viewEventForStudent(@PathVariable Long id, Model model, HttpSession session) {
@@ -914,20 +832,7 @@ public class WebController {
         }
     }
     
-    @PostMapping("/clubs/join/{id}")
-    public String joinClub(@PathVariable Long id, HttpSession session) {
-        Student student = (Student) session.getAttribute("user");
-        if (student == null) {
-            return "redirect:/login";
-        }
-        
-        clubService.getClubById(id).ifPresent(club -> {
-            clubService.joinClub(student, club);
-        });
-        
-        return "redirect:/clubs/view/" + id;
-    }
-    
+
     @PostMapping("/events/register/{id}")
     public String registerForEvent(@PathVariable Long id, HttpSession session) {
         Student student = (Student) session.getAttribute("user");
