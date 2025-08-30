@@ -22,7 +22,7 @@ import lombok.AllArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Student {
-    
+    //login redirect
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

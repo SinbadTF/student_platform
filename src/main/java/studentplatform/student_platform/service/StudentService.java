@@ -162,6 +162,12 @@ public String hashPassword(String password) {
         }
     }
     
+    public Student addPointsToStudent(Student student, Integer pointsToAdd) {
+        Integer currentPoints = student.getPoints() != null ? student.getPoints() : 0;
+        student.setPoints(currentPoints + pointsToAdd);
+        return studentRepository.save(student);
+    }
+    
     public Student setStudentPoints(Long studentId, Integer points) {
         Optional<Student> studentOpt = studentRepository.findById(studentId);
         if (studentOpt.isPresent()) {

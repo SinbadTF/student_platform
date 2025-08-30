@@ -23,6 +23,10 @@ public class AdminService {
         return adminRepository.findByAdminId(adminId);
     }
     
+    public Optional<Admin> getAdminById(Long id) {
+        return adminRepository.findById(id);
+    }
+    
     public Admin saveAdmin(Admin admin) {
         // Hash the password before saving
         admin.setPassword(hashPassword(admin.getPassword()));
