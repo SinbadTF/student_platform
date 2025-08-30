@@ -6,6 +6,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - Student Platform</title>
+    <!-- Google Fonts - Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
@@ -16,118 +20,242 @@
 <body>
     <jsp:include page="../layout/header.jsp" />
     
-    <div class="container mt-4">
-        <h2><i class="bi bi-speedometer2"></i> Admin Dashboard</h2>
-        <hr>
-        
-        <div class="row mt-4">
-            <div class="col-md-4">
-                <div class="card mb-4">
-                    <div class="card-body text-center">
-                        <i class="bi bi-people-fill text-primary" style="font-size: 3rem;"></i>
-                        <h4 class="mt-3">Manage Students</h4>
-                        <p>View, add, edit, or delete student records</p>
-                        <a href="/students" class="btn btn-outline-primary">Student Management</a>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-4">
-                <div class="card mb-4">
-                    <div class="card-body text-center">
-                        <i class="bi bi-person-badge text-success" style="font-size: 3rem;"></i>
-                        <h4 class="mt-3">Manage Staff</h4>
-                        <p>View, add, edit, or delete staff records</p>
-                        <a href="/staff" class="btn btn-outline-success">Staff Management</a>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-4">
-                <div class="card mb-4">
-                    <div class="card-body text-center">
-                        <i class="bi bi-award text-info" style="font-size: 3rem;"></i>
-                        <h4 class="mt-3">Manage Rewards</h4>
-                        <p>View, add, edit, or delete reward records</p>
-                        <a href="/rewards" class="btn btn-outline-info">Reward Management</a>
+    <div class="container py-4">
+        <!-- Welcome Banner -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card bg-primary text-white shadow-lg rounded-3 border-0">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h2 class="display-6 fw-bold">Admin Dashboard</h2>
+                                <p class="lead mb-0">Manage all aspects of the Student Platform</p>
+                            </div>
+                            <div class="text-center">
+                                <div class="bg-white rounded-circle p-3 d-inline-block">
+                                    <i class="bi bi-speedometer2 text-primary" style="font-size: 3rem;"></i>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
         
-        <!-- New row for Club and Event Management -->
-        <div class="row mt-2">
-            <div class="col-md-6">
-                <div class="card mb-4">
+        <!-- Stats Overview -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm rounded-3 h-100">
                     <div class="card-body text-center">
-                        <i class="bi bi-people-fill text-danger" style="font-size: 3rem;"></i>
-                        <h4 class="mt-3">Manage Clubs</h4>
-                        <p>View, add, edit, or delete club records</p>
-                        <a href="/admin/clubs" class="btn btn-outline-danger">Club Management</a>
+                        <div class="bg-light rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                            <i class="bi bi-people-fill text-primary" style="font-size: 2rem;"></i>
+                        </div>
+                        <h5 class="card-title">Students</h5>
+                        <h2 class="display-6 fw-bold text-primary">${studentCount != null ? studentCount : 0}</h2>
+                        <a href="/students" class="btn btn-sm btn-outline-primary mt-2">Manage</a>
                     </div>
                 </div>
             </div>
-            
-            <div class="col-md-6">
-                <div class="card mb-4">
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm rounded-3 h-100">
                     <div class="card-body text-center">
-                        <i class="bi bi-calendar-event text-warning" style="font-size: 3rem;"></i>
-                        <h4 class="mt-3">Manage Events</h4>
-                        <p>View, add, edit, or delete event records</p>
-                        <a href="/admin/events" class="btn btn-outline-warning">Event Management</a>
+                        <div class="bg-light rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                            <i class="bi bi-person-badge text-success" style="font-size: 2rem;"></i>
+                        </div>
+                        <h5 class="card-title">Staff</h5>
+                        <h2 class="display-6 fw-bold text-success">${staffCount != null ? staffCount : 0}</h2>
+                        <a href="/staff" class="btn btn-sm btn-outline-success mt-2">Manage</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm rounded-3 h-100">
+                    <div class="card-body text-center">
+                        <div class="bg-light rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                            <i class="bi bi-award text-info" style="font-size: 2rem;"></i>
+                        </div>
+                        <h5 class="card-title">Rewards</h5>
+                        <h2 class="display-6 fw-bold text-info">${rewardCount != null ? rewardCount : 0}</h2>
+                        <a href="/rewards" class="btn btn-sm btn-outline-info mt-2">Manage</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm rounded-3 h-100">
+                    <div class="card-body text-center">
+                        <div class="bg-light rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                            <i class="bi bi-calendar-event text-warning" style="font-size: 2rem;"></i>
+                        </div>
+                        <h5 class="card-title">Events</h5>
+                        <h2 class="display-6 fw-bold text-warning">${eventsCount != null ? eventsCount : 0}</h2>
+                        <a href="/admin/events" class="btn btn-sm btn-outline-warning mt-2">Manage</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm rounded-3 h-100">
+                    <div class="card-body text-center">
+                        <div class="bg-light rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                            <i class="bi bi-people-fill text-primary" style="font-size: 2rem;"></i>
+                        </div>
+                        <h5 class="card-title">Clubs</h5>
+                        <h2 class="display-6 fw-bold text-primary">${clubCount != null ? clubCount : 0}</h2>
+                        <a href="/clubs" class="btn btn-sm btn-outline-primary mt-2">Manage</a>
                     </div>
                 </div>
             </div>
         </div>
         
-        <div class="row mt-2">
-            <div class="col-md-6">
-                <div class="card mb-4">
-                    <div class="card-header bg-warning text-dark">
-                        <h5><i class="bi bi-hourglass-split"></i> Pending Student Registrations</h5>
+        <!-- Quick Actions -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm rounded-3">
+                    <div class="card-header bg-white border-0 py-3">
+                        <h5 class="mb-0"><i class="bi bi-lightning-charge text-primary me-2"></i> Quick Actions</h5>
                     </div>
                     <div class="card-body">
-                        <p>Review and approve/reject pending student account registrations</p>
-                        <a href="/admin/pending-students" class="btn btn-warning">View Pending Students</a>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-6">
-                <div class="card mb-4">
-                    <div class="card-header bg-warning text-dark">
-                        <h5><i class="bi bi-hourglass-split"></i> Pending Staff Registrations</h5>
-                    </div>
-                    <div class="card-body">
-                        <p>Review and approve/reject pending staff account registrations</p>
-                        <a href="/admin/pending-staff" class="btn btn-warning">View Pending Staff</a>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="card h-100 border-0 shadow-sm">
+                                    <div class="card-body text-center">
+                                        <i class="bi bi-people-fill text-primary" style="font-size: 2rem;"></i>
+                                        <h5 class="mt-3">Manage Students</h5>
+                                        <p>View, add, edit, or delete student records</p>
+                                        <a href="/students" class="btn btn-primary">Student Management</a>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <div class="card h-100 border-0 shadow-sm">
+                                    <div class="card-body text-center">
+                                        <i class="bi bi-person-badge text-success" style="font-size: 2rem;"></i>
+                                        <h5 class="mt-3">Manage Staff</h5>
+                                        <p>View, add, edit, or delete staff records</p>
+                                        <a href="/staff" class="btn btn-success">Staff Management</a>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <div class="card h-100 border-0 shadow-sm">
+                                    <div class="card-body text-center">
+                                        <i class="bi bi-award text-info" style="font-size: 2rem;"></i>
+                                        <h5 class="mt-3">Manage Rewards</h5>
+                                        <p>View, add, edit, or delete reward records</p>
+                                        <a href="/rewards" class="btn btn-info text-white">Reward Management</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card h-100 border-0 shadow-sm">
+                                    <div class="card-body text-center">
+                                        <i class="bi bi-calendar-event text-warning" style="font-size: 2rem;"></i>
+                                        <h5 class="mt-3">Manage Events</h5>
+                                        <p>View, add, edit, or delete event records</p>
+                                        <a href="/admin/events" class="btn btn-warning">Event Management</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card h-100 border-0 shadow-sm">
+                                    <div class="card-body text-center">
+                                        <i class="bi bi-people-fill text-primary" style="font-size: 2rem;"></i>
+                                        <h5 class="mt-3">Manage Clubs</h5>
+                                        <p>View, add, edit, or delete club records</p>
+                                        <a href="/clubs" class="btn btn-primary">Club Management</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
         
-        <!-- New row for Club and Event Participations -->
-        <div class="row mt-2">
-            <div class="col-md-6">
-                <div class="card mb-4">
-                    <div class="card-header bg-info text-white">
-                        <h5><i class="bi bi-check-circle"></i> Club Participations</h5>
+        <!-- Pending Approvals -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm rounded-3">
+                    <div class="card-header bg-white border-0 py-3">
+                        <h5 class="mb-0"><i class="bi bi-hourglass-split text-warning me-2"></i> Pending Approvals</h5>
                     </div>
                     <div class="card-body">
-                        <p>Review and approve/reject pending club participation requests</p>
-                        <a href="/admin/club-participations" class="btn btn-info">View Club Participations</a>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="card h-100 border-0 shadow-sm">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="bg-warning bg-opacity-25 rounded-circle p-2 me-3">
+                                                <i class="bi bi-person-plus text-warning"></i>
+                                            </div>
+                                            <h5 class="mb-0">Student Registrations</h5>
+                                        </div>
+                                        <p>Review and approve/reject pending student account registrations</p>
+                                        <a href="/admin/pending-students" class="btn btn-warning">View Pending Students</a>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="card h-100 border-0 shadow-sm">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="bg-warning bg-opacity-25 rounded-circle p-2 me-3">
+                                                <i class="bi bi-person-badge text-warning"></i>
+                                            </div>
+                                            <h5 class="mb-0">Staff Registrations</h5>
+                                        </div>
+                                        <p>Review and approve/reject pending staff account registrations</p>
+                                        <a href="/admin/pending-staff" class="btn btn-warning">View Pending Staff</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-            
-            <div class="col-md-6">
-                <div class="card mb-4">
-                    <div class="card-header bg-info text-white">
-                        <h5><i class="bi bi-check-circle"></i> Event Participations</h5>
+        </div>
+        
+        <!-- Participation Management -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm rounded-3">
+                    <div class="card-header bg-white border-0 py-3">
+                        <h5 class="mb-0"><i class="bi bi-check-circle text-info me-2"></i> Participation Management</h5>
                     </div>
                     <div class="card-body">
-                        <p>Review and approve/reject pending event participation requests</p>
-                        <a href="/admin/event-participations" class="btn btn-info">View Event Participations</a>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="card h-100 border-0 shadow-sm">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="bg-info bg-opacity-25 rounded-circle p-2 me-3">
+                                                <i class="bi bi-people-fill text-info"></i>
+                                            </div>
+                                            <h5 class="mb-0">Club Participations</h5>
+                                        </div>
+                                        <p>Review and approve/reject pending club participation requests</p>
+                                        <a href="/admin/club-participations" class="btn btn-info text-white">View Club Participations</a>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="card h-100 border-0 shadow-sm">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="bg-info bg-opacity-25 rounded-circle p-2 me-3">
+                                                <i class="bi bi-calendar-event text-info"></i>
+                                            </div>
+                                            <h5 class="mb-0">Event Participations</h5>
+                                        </div>
+                                        <p>Review and approve/reject pending event participation requests</p>
+                                        <a href="/admin/event-participations" class="btn btn-info text-white">View Event Participations</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

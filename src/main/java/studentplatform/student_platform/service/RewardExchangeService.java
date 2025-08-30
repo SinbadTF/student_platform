@@ -131,6 +131,24 @@ public class RewardExchangeService {
         return exchangeRepository.findByStatus("FULFILLED");
     }
 
+    public void cancelRewardExchange(Long exchangeId) {
+        RewardExchange exchange = exchangeRepository.findById(exchangeId)
+                .orElseThrow(() -> new ResourceNotFoundException("Exchange not found with id: " + exchangeId));
+        
+        // Only allow cancellation if not already fulfilled
+        if (!exchange.getStatus().equals("FULFILLED")) {
+            // Refund points to student
+            Student student = exchange.getStudent();
+            student.setPoints(student.getPoints() + exchange.getPointsSpent());
+            studentService.saveStudent(student);
+            
+            exchange.setStatus("CANCELLED");
+            exchangeRepository.save(exchange);
+        } else {
+            throw new IllegalStateException("Cannot cancel a fulfilled exchange");
+        }
+    }
+
     public List<RewardExchange> getExchangesFulfilledByStaff(Staff staff) {
         return exchangeRepository.findByFulfilledBy(staff);
     }

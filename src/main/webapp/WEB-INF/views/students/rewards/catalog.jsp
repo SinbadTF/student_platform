@@ -3,6 +3,17 @@
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
+<!-- Add custom CSS for consistent point badge styling -->
+<style>
+    .points-badge {
+        min-width: 120px;
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        height: 38px; /* Fixed height for all badges */
+    }
+</style>
+
 <div class="container py-4">
     <!-- Page Header -->
     <div class="row mb-4">
@@ -61,7 +72,7 @@
                         <h5 class="card-title">${reward.name}</h5>
                         <p class="card-text">${reward.description}</p>
                         <div class="d-flex justify-content-between align-items-center mt-3">
-                            <span class="badge bg-primary rounded-pill fs-6">
+                            <span class="badge bg-primary rounded-pill fs-6 points-badge">
                                 <i class="bi bi-star-fill me-1"></i> ${reward.pointValue} points
                             </span>
                             <c:choose>

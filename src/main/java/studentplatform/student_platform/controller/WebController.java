@@ -84,9 +84,8 @@ public class WebController {
         model.addAttribute("studentCount", studentService.getAllStudents().size());
         model.addAttribute("staffCount", staffService.getAllStaff().size());
         model.addAttribute("rewardCount", rewardService.getAllRewards().size());
-        // Remove or update this line to use student points instead
-        // model.addAttribute("pointCount", pointService.getAllPoints().size());
-        
+        model.addAttribute("eventCount", eventService.getAllEvents().size());
+        model.addAttribute("clubCount", clubService.getAllClubs().size());
         return "login";
     }
     
@@ -1104,6 +1103,22 @@ public class WebController {
     
     model.addAttribute("student", student);
     return "students/profile";
+}
+@PostMapping("/students/rewards/cancel/{exchangeId}")
+public String cancelRewardExchange(@PathVariable Long exchangeId, HttpSession session, RedirectAttributes redirectAttributes) {
+    Student student = (Student) session.getAttribute("user");
+    if (student == null) {
+        return "redirect:/login";
+    }
+    
+    try {
+        rewardExchangeService.cancelRewardExchange(exchangeId);
+        redirectAttributes.addFlashAttribute("success", "Reward exchange cancelled successfully!");
+    } catch (Exception e) {
+        redirectAttributes.addFlashAttribute("error", "Error cancelling reward exchange: " + e.getMessage());
+    }
+    
+    return "redirect:/students/rewards/history";
 }
 
 

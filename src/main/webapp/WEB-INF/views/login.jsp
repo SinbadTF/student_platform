@@ -22,13 +22,13 @@
             margin-bottom: 15px;
         }
         .logo-img {
-            height: 85px; 
+            height: 90px; 
             opacity: 0.95; 
             transition: all 0.3s ease;
         }
         .logo-img:hover {
             opacity: 1;
-            transform: scale(1.05);
+            transform: scale(1.1);
         }
         .auth-card {
             border-radius: 12px;
