@@ -148,6 +148,7 @@
                                             <tr>
                                                 <th>Club Name</th>
                                                 <th>Description</th>
+                                                <th>Meeting Schedule</th>
                                                 <th>Members</th>
                                                 <th>Status</th>
                                                 <th>Actions</th>
@@ -173,6 +174,9 @@
                                                         </p>
                                                     </td>
                                                     <td>
+                                                        <span class="badge bg-info">${club.meetingScheduleTitle != null ? club.meetingScheduleTitle : 'No schedule set'}</span>
+                                                    </td>
+                                                    <td>
                                                         <span class="badge bg-primary">0</span>
                                                     </td>
                                                     <td>
@@ -180,13 +184,12 @@
                                                     </td>
                                                     <td>
                                                         <div class="btn-group" role="group">
-                                                            <button class="btn btn-sm btn-outline-primary" title="View">
-                                                                <i class="bi bi-eye"></i>
-                                                            </button>
-                                                            <button class="btn btn-sm btn-outline-warning" title="Edit">
+                                                            <a href="${pageContext.request.contextPath}/admin/clubs/edit/${club.id}" 
+                                                               class="btn btn-sm btn-outline-warning" title="Edit">
                                                                 <i class="bi bi-pencil"></i>
-                                                            </button>
-                                                            <button class="btn btn-sm btn-outline-danger" title="Delete">
+                                                            </a>
+                                                            <button class="btn btn-sm btn-outline-danger" title="Delete" 
+                                                                    onclick="confirmDelete(${club.id}, '${club.name}')">
                                                                 <i class="bi bi-trash"></i>
                                                             </button>
                                                         </div>
@@ -226,31 +229,24 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <form>
+                    <form action="${pageContext.request.contextPath}/admin/clubs/create" method="post" id="createClubForm">
                         <div class="mb-3">
                             <label for="clubName" class="form-label">Club Name</label>
-                            <input type="text" class="form-control" id="clubName" placeholder="Enter club name" required>
+                            <input type="text" class="form-control" id="clubName" name="name" placeholder="Enter club name" required>
                         </div>
                         <div class="mb-3">
                             <label for="clubDescription" class="form-label">Description</label>
-                            <textarea class="form-control" id="clubDescription" rows="3" placeholder="Enter club description"></textarea>
+                            <textarea class="form-control" id="clubDescription" name="description" rows="3" placeholder="Enter club description"></textarea>
                         </div>
                         <div class="mb-3">
-                            <label for="clubCategory" class="form-label">Category</label>
-                            <select class="form-select" id="clubCategory">
-                                <option value="">Select category</option>
-                                <option value="academic">Academic</option>
-                                <option value="sports">Sports</option>
-                                <option value="cultural">Cultural</option>
-                                <option value="technical">Technical</option>
-                                <option value="other">Other</option>
-                            </select>
+                            <label for="clubMeetingSchedule" class="form-label">Meeting Schedule Title</label>
+                            <input type="text" class="form-control" id="clubMeetingSchedule" name="meetingScheduleTitle" placeholder="e.g., Every Monday 2:00 PM, Weekly Friday 3:30 PM">
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary">Create Club</button>
+                    <button type="submit" form="createClubForm" class="btn btn-primary">Create Club</button>
                 </div>
             </div>
         </div>
@@ -260,5 +256,72 @@
     
     <!-- Bootstrap JS Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Success/Error Message Display -->
+    <script>
+        // Check for flash messages
+        <c:if test="${not empty success}">
+            // Show success message
+            document.addEventListener('DOMContentLoaded', function() {
+                var successAlert = document.createElement('div');
+                successAlert.className = 'alert alert-success alert-dismissible fade show position-fixed';
+                successAlert.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+                successAlert.innerHTML = '<i class="bi bi-check-circle me-2"></i>${success}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+                document.body.appendChild(successAlert);
+                
+                // Auto remove after 5 seconds
+                setTimeout(function() {
+                    if (successAlert.parentNode) {
+                        successAlert.remove();
+                    }
+                }, 5000);
+            });
+        </c:if>
+        
+        <c:if test="${not empty error}">
+            // Show error message
+            document.addEventListener('DOMContentLoaded', function() {
+                var errorAlert = document.createElement('div');
+                errorAlert.className = 'alert alert-danger alert-dismissible fade show position-fixed';
+                errorAlert.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+                errorAlert.innerHTML = '<i class="bi bi-exclamation-triangle me-2"></i>${error}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+                document.body.appendChild(errorAlert);
+                
+                // Auto remove after 5 seconds
+                setTimeout(function() {
+                    if (errorAlert.parentNode) {
+                        errorAlert.remove();
+                    }
+                }, 5000);
+            });
+        </c:if>
+        
+        // Form validation
+        document.getElementById('createClubForm').addEventListener('submit', function(e) {
+            var clubName = document.getElementById('clubName').value.trim();
+            if (clubName === '') {
+                e.preventDefault();
+                alert('Please enter a club name');
+                return false;
+            }
+        });
+        
+        // Clear form when modal is closed
+        document.getElementById('addClubModal').addEventListener('hidden.bs.modal', function() {
+            document.getElementById('createClubForm').reset();
+        });
+        
+        // Delete confirmation function
+        function confirmDelete(clubId, clubName) {
+            if (confirm('Are you sure you want to delete the club "' + clubName + '"? This action cannot be undone.')) {
+                // Create and submit delete form
+                var form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '${pageContext.request.contextPath}/admin/clubs/delete/' + clubId;
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+    </script>
 </body>
 </html>

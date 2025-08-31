@@ -81,90 +81,35 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr>
-                                        <td>Coding Workshop</td>
-                                        <td>Computer Science Club</td>
-                                        <td><span class="badge bg-primary">50</span></td>
-                                        <td>Learn basic programming concepts</td>
-                                        <td>
-                                            <button class="btn btn-sm btn-outline-success me-1" title="Edit">
-                                                <i class="bi bi-pencil"></i>
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-danger" title="Delete">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>Web Development Bootcamp</td>
-                                        <td>Computer Science Club</td>
-                                        <td><span class="badge bg-primary">75</span></td>
-                                        <td>Build responsive websites</td>
-                                        <td>
-                                            <button class="btn btn-sm btn-outline-success me-1" title="Edit">
-                                                <i class="bi bi-pencil"></i>
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-danger" title="Delete">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>Debate Competition</td>
-                                        <td>Debate Society</td>
-                                        <td><span class="badge bg-primary">60</span></td>
-                                        <td>Inter-college debate championship</td>
-                                        <td>
-                                            <button class="btn btn-sm btn-outline-success me-1" title="Edit">
-                                                <i class="bi bi-pencil"></i>
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-danger" title="Delete">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>Public Speaking Session</td>
-                                        <td>Debate Society</td>
-                                        <td><span class="badge bg-primary">40</span></td>
-                                        <td>Improve presentation skills</td>
-                                        <td>
-                                            <button class="btn btn-sm btn-outline-success me-1" title="Edit">
-                                                <i class="bi bi-pencil"></i>
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-danger" title="Delete">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>Art Exhibition</td>
-                                        <td>Art Club</td>
-                                        <td><span class="badge bg-primary">55</span></td>
-                                        <td>Showcase student artwork</td>
-                                        <td>
-                                            <button class="btn btn-sm btn-outline-success me-1" title="Edit">
-                                                <i class="bi bi-pencil"></i>
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-danger" title="Delete">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>Painting Workshop</td>
-                                        <td>Art Club</td>
-                                        <td><span class="badge bg-primary">45</span></td>
-                                        <td>Learn various painting techniques</td>
-                                        <td>
-                                            <button class="btn btn-sm btn-outline-success me-1" title="Edit">
-                                                <i class="bi bi-pencil"></i>
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-danger" title="Delete">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
+                                    <c:choose>
+                                        <c:when test="${activities != null && !activities.isEmpty()}">
+                                            <c:forEach var="activity" items="${activities}">
+                                                <tr>
+                                                    <td>${activity.title}</td>
+                                                    <td>${activity.club != null ? activity.club.name : 'No club assigned'}</td>
+                                                    <td><span class="badge bg-primary">${activity.points}</span></td>
+                                                    <td>${activity.description != null ? activity.description : 'No description available'}</td>
+                                                    <td>
+                                                        <button class="btn btn-sm btn-outline-success me-1" title="Edit">
+                                                            <i class="bi bi-pencil"></i>
+                                                        </button>
+                                                        <button class="btn btn-sm btn-outline-danger" title="Delete">
+                                                            <i class="bi bi-trash"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            </c:forEach>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <tr>
+                                                <td colspan="5" class="text-center py-4">
+                                                    <i class="bi bi-calendar-event text-muted" style="font-size: 2rem;"></i>
+                                                    <h6 class="text-muted mt-2">No activities found</h6>
+                                                    <p class="text-muted">Create your first activity to get started!</p>
+                                                </td>
+                                            </tr>
+                                        </c:otherwise>
+                                    </c:choose>
                                 </tbody>
                             </table>
                         </div>
@@ -183,34 +128,33 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <form>
+                    <form action="${pageContext.request.contextPath}/admin/activities/create" method="post" id="createActivityForm">
                         <div class="mb-3">
                             <label for="activityTitle" class="form-label">Activity Title</label>
-                            <input type="text" class="form-control" id="activityTitle" required>
+                            <input type="text" class="form-control" id="activityTitle" name="title" placeholder="Enter activity title" required>
                         </div>
                         <div class="mb-3">
                             <label for="activityClub" class="form-label">Club</label>
-                            <select class="form-select" id="activityClub" required>
+                            <select class="form-select" id="activityClub" name="club.id" required>
                                 <option value="">Select Club</option>
-                                <option value="Computer Science Club">Computer Science Club</option>
-                                <option value="Debate Society">Debate Society</option>
-                                <option value="Art Club">Art Club</option>
-                                <option value="Sports Club">Sports Club</option>
+                                <c:forEach var="club" items="${clubs}">
+                                    <option value="${club.id}">${club.name}</option>
+                                </c:forEach>
                             </select>
                         </div>
                         <div class="mb-3">
                             <label for="activityPoints" class="form-label">Points</label>
-                            <input type="number" class="form-control" id="activityPoints" min="1" required>
+                            <input type="number" class="form-control" id="activityPoints" name="points" min="1" placeholder="Enter points" required>
                         </div>
                         <div class="mb-3">
                             <label for="activityDescription" class="form-label">Description</label>
-                            <textarea class="form-control" id="activityDescription" rows="3" required></textarea>
+                            <textarea class="form-control" id="activityDescription" name="description" rows="3" placeholder="Enter activity description" required></textarea>
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-success">Add Activity</button>
+                    <button type="submit" form="createActivityForm" class="btn btn-success">Add Activity</button>
                 </div>
             </div>
         </div>
@@ -218,5 +162,75 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Success/Error Message Display -->
+    <script>
+        // Check for flash messages
+        <c:if test="${not empty success}">
+            // Show success message
+            document.addEventListener('DOMContentLoaded', function() {
+                var successAlert = document.createElement('div');
+                successAlert.className = 'alert alert-success alert-dismissible fade show position-fixed';
+                successAlert.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+                successAlert.innerHTML = '<i class="bi bi-check-circle me-2"></i>${success}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+                document.body.appendChild(successAlert);
+                
+                // Auto remove after 5 seconds
+                setTimeout(function() {
+                    if (successAlert.parentNode) {
+                        successAlert.remove();
+                    }
+                }, 5000);
+            });
+        </c:if>
+        
+        <c:if test="${not empty error}">
+            // Show error message
+            document.addEventListener('DOMContentLoaded', function() {
+                var errorAlert = document.createElement('div');
+                errorAlert.className = 'alert alert-danger alert-dismissible fade show position-fixed';
+                errorAlert.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+                errorAlert.innerHTML = '<i class="bi bi-exclamation-triangle me-2"></i>${error}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+                document.body.appendChild(errorAlert);
+                
+                // Auto remove after 5 seconds
+                setTimeout(function() {
+                    if (errorAlert.parentNode) {
+                        errorAlert.remove();
+                    }
+                }, 5000);
+            });
+        </c:if>
+        
+        // Form validation
+        document.getElementById('createActivityForm').addEventListener('submit', function(e) {
+            var activityTitle = document.getElementById('activityTitle').value.trim();
+            var activityClub = document.getElementById('activityClub').value;
+            var activityPoints = document.getElementById('activityPoints').value;
+            
+            if (activityTitle === '') {
+                e.preventDefault();
+                alert('Please enter an activity title');
+                return false;
+            }
+            
+            if (activityClub === '') {
+                e.preventDefault();
+                alert('Please select a club');
+                return false;
+            }
+            
+            if (activityPoints === '' || activityPoints <= 0) {
+                e.preventDefault();
+                alert('Please enter valid points (greater than 0)');
+                return false;
+            }
+        });
+        
+        // Clear form when modal is closed
+        document.getElementById('addActivityModal').addEventListener('hidden.bs.modal', function() {
+            document.getElementById('createActivityForm').reset();
+        });
+    </script>
 </body>
 </html>
