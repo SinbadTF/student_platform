@@ -55,6 +55,9 @@
                         <a class="nav-link" href="/students/rewards/history">My Redemptions</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="/students/spinwheel">🎯 Lucky Spin</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="/students/clubs">Clubs</a>
                     </li>
                     <li class="nav-item">
