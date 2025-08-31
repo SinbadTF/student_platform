@@ -168,6 +168,16 @@
                                     </div>
                                 </div>
                             </div>
+                            <div class="col-md-4">
+                                <div class="card h-100 border-0 shadow-sm">
+                                    <div class="card-body text-center">
+                                        <i class="bi bi-calendar-check text-danger" style="font-size: 2rem;"></i>
+                                        <h5 class="mt-3">Manage Attendance</h5>
+                                        <p>View, add, edit, or delete attendance records</p>
+                                        <a href="/admin/attendances" class="btn btn-danger">Attendance Management</a>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -261,6 +271,7 @@
                 </div>
             </div>
         </div>
+      
     </div>
     
     <jsp:include page="../layout/footer.jsp" />

@@ -2,7 +2,6 @@ package studentplatform.student_platform.controller;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -11,6 +10,7 @@ import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.HashMap;
+import java.time.Month;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -24,7 +24,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import jakarta.servlet.http.HttpSession;
-import org.springframework.transaction.annotation.Transactional;
 import jakarta.validation.Valid;
 import studentplatform.student_platform.model.Reward;
 import studentplatform.student_platform.model.RewardExchange;
@@ -36,15 +35,21 @@ import studentplatform.student_platform.service.RewardService;
 import studentplatform.student_platform.service.RewardExchangeService;
 import studentplatform.student_platform.service.StaffService;
 import studentplatform.student_platform.service.StudentService;
-
+import studentplatform.student_platform.util.DateTimeUtil;
 import studentplatform.student_platform.model.Admin;
+import studentplatform.student_platform.model.Attendance;
 import studentplatform.student_platform.model.Club;
 import studentplatform.student_platform.model.ClubMembership;
 import studentplatform.student_platform.model.Event;
 import studentplatform.student_platform.model.Activity;
 
 import studentplatform.student_platform.model.EventParticipation;
+<<<<<<< Updated upstream
 
+=======
+import studentplatform.student_platform.service.AttendanceService;
+import studentplatform.student_platform.service.ClubService;
+>>>>>>> Stashed changes
 import studentplatform.student_platform.service.EventService;
 import studentplatform.student_platform.service.ClubService;
 import studentplatform.student_platform.service.ActivityService;
@@ -61,22 +66,35 @@ public class WebController {
     private final AdminService adminService;
 
     private final EventService eventService;
+<<<<<<< Updated upstream
     private final ClubService clubService;
     private final ActivityService activityService;
+=======
+    private final AttendanceService attendanceService;
+>>>>>>> Stashed changes
     
     @Autowired
     public WebController(StudentService studentService, StaffService staffService, 
                          RewardService rewardService, RewardExchangeService rewardExchangeService,
+<<<<<<< Updated upstream
                          AdminService adminService,
                          EventService eventService, ClubService clubService, ActivityService activityService) {
+=======
+                         AdminService adminService, ClubService clubService,
+                         EventService eventService, AttendanceService attendanceService) {
+>>>>>>> Stashed changes
         this.studentService = studentService;
         this.staffService = staffService;
         this.rewardService = rewardService;
         this.rewardExchangeService = rewardExchangeService;
         this.adminService = adminService;
         this.eventService = eventService;
+<<<<<<< Updated upstream
         this.clubService = clubService;
         this.activityService = activityService;
+=======
+        this.attendanceService = attendanceService;
+>>>>>>> Stashed changes
     }
 
     // Update the home method
@@ -1270,4 +1288,123 @@ public class WebController {
     return "students/profile";
 }
 
+    // Admin Attendance Management
+    @GetMapping("/admin/attendances")
+    public String attendances(Model model, HttpSession session) {
+        Admin admin = (Admin) session.getAttribute("user");
+        if (admin == null) {
+            return "redirect:/login";
+        }
+        
+        List<Attendance> attendances = attendanceService.getAllAttendances();
+        
+        // Convert LocalDateTime to Date for JSP compatibility
+        attendances.forEach(attendance -> {
+            if (attendance.getCreatedAt() != null) {
+                model.addAttribute("createdAt_" + attendance.getId(), 
+                    DateTimeUtil.toDate(attendance.getCreatedAt()));
+            }
+            if (attendance.getUpdatedAt() != null) {
+                model.addAttribute("updatedAt_" + attendance.getId(), 
+                    DateTimeUtil.toDate(attendance.getUpdatedAt()));
+            }
+        });
+        
+        model.addAttribute("attendances", attendances);
+        return "admin/attendances/list";
+    }
+    
+    @GetMapping("/admin/attendances/create")
+    public String createAttendanceForm(Model model, HttpSession session) {
+        Admin admin = (Admin) session.getAttribute("user");
+        if (admin == null) {
+            return "redirect:/login";
+        }
+        
+        model.addAttribute("attendance", new Attendance());
+        model.addAttribute("students", studentService.getAllStudents());
+        model.addAttribute("months", Month.values());
+        model.addAttribute("currentYear", java.time.LocalDate.now().getYear());
+        return "admin/attendances/form";
+    }
+    
+    @PostMapping("/admin/attendances/save")
+    public String saveAttendance(@RequestParam("studentId") Long studentId,
+                               @RequestParam("month") Month month,
+                               @RequestParam("year") Integer year,
+                               @RequestParam("attendancePercentage") Double attendancePercentage,
+                               HttpSession session) {
+        Admin admin = (Admin) session.getAttribute("user");
+        if (admin == null) {
+            return "redirect:/login";
+        }
+        
+        // Validate attendance percentage (0-100)
+        if (attendancePercentage < 0 || attendancePercentage > 100) {
+            return "redirect:/admin/attendances/create?error=Invalid attendance percentage";
+        }
+        
+        // Get student
+        Optional<Student> studentOpt = studentService.getStudentById(studentId);
+        if (!studentOpt.isPresent()) {
+            return "redirect:/admin/attendances/create?error=Student not found";
+        }
+        
+        // Create or update attendance record
+        attendanceService.createOrUpdateAttendance(
+            studentOpt.get(), month, year, attendancePercentage, admin);
+        
+        return "redirect:/admin/attendances";
+    }
+    
+    @GetMapping("/admin/attendances/edit/{id}")
+    public String editAttendanceForm(@PathVariable Long id, Model model, HttpSession session) {
+        Admin admin = (Admin) session.getAttribute("user");
+        if (admin == null) {
+            return "redirect:/login";
+        }
+        
+        return attendanceService.getAttendanceById(id)
+                .map(attendance -> {
+                    model.addAttribute("attendance", attendance);
+                    model.addAttribute("students", studentService.getAllStudents());
+                    model.addAttribute("months", Month.values());
+                    model.addAttribute("currentYear", java.time.LocalDate.now().getYear());
+                    return "admin/attendances/form";
+                })
+                .orElse("redirect:/admin/attendances");
+    }
+    
+    @GetMapping("/admin/attendances/delete/{id}")
+    public String deleteAttendance(@PathVariable Long id, HttpSession session) {
+        Admin admin = (Admin) session.getAttribute("user");
+        if (admin == null) {
+            return "redirect:/login";
+        }
+        
+        attendanceService.deleteAttendance(id);
+        return "redirect:/admin/attendances";
+    }
+    
+    @GetMapping("/admin/attendances/award-points/{id}")
+    public String awardAttendancePoints(@PathVariable Long id, HttpSession session) {
+        Admin admin = (Admin) session.getAttribute("user");
+        if (admin == null) {
+            return "redirect:/login";
+        }
+        
+        attendanceService.awardPointsForAttendance(id);
+        return "redirect:/admin/attendances";
+    }
+    
+    @GetMapping("/admin/attendances/calculate-points")
+    public String calculateAttendancePoints(HttpSession session) {
+        Admin admin = (Admin) session.getAttribute("user");
+        if (admin == null) {
+            return "redirect:/login";
+        }
+        
+        attendanceService.calculateAndAwardPoints();
+        return "redirect:/admin/attendances";
+    }
 }
