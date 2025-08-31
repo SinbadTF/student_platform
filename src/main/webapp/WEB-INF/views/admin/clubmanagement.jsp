@@ -1,5 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
 <!DOCTYPE html>
 <html>
 <head>
@@ -139,7 +140,8 @@
                                                                         <i class="bi bi-pencil"></i>
                                                                     </a>
                                                                     <button class="btn btn-sm btn-outline-danger" title="Delete" 
-                                                                            onclick="confirmDelete(${club.id}, '${club.name}')">
+                                                                            onclick="confirmDelete(${club.id}, '${club.name}')"
+                                                                            data-club-name="${club.name}">
                                                                         <i class="bi bi-trash"></i>
                                                                     </button>
                                                                 </div>
@@ -265,13 +267,36 @@
         
         // Delete confirmation function
         function confirmDelete(clubId, clubName) {
+            console.log('confirmDelete called with clubId:', clubId, 'clubName:', clubName);
+            
             if (confirm('Are you sure you want to delete the club "' + clubName + '"? This action cannot be undone.')) {
+                console.log('User confirmed deletion');
+                
                 // Create and submit delete form
                 var form = document.createElement('form');
                 form.method = 'POST';
                 form.action = '${pageContext.request.contextPath}/admin/clubs/delete/' + clubId;
+                
+                console.log('Form action:', form.action);
+                
+                // Add CSRF token if needed
+                var csrfToken = document.querySelector('meta[name="_csrf"]');
+                if (csrfToken) {
+                    var csrfInput = document.createElement('input');
+                    csrfInput.type = 'hidden';
+                    csrfInput.name = '_csrf';
+                    csrfInput.value = csrfToken.getAttribute('content');
+                    form.appendChild(csrfInput);
+                    console.log('CSRF token added');
+                } else {
+                    console.log('No CSRF token found');
+                }
+                
                 document.body.appendChild(form);
+                console.log('Form submitted');
                 form.submit();
+            } else {
+                console.log('User cancelled deletion');
             }
         }
     </script>

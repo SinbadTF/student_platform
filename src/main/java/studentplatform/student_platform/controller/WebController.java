@@ -39,6 +39,7 @@ import studentplatform.student_platform.service.StudentService;
 
 import studentplatform.student_platform.model.Admin;
 import studentplatform.student_platform.model.Club;
+import studentplatform.student_platform.model.ClubMembership;
 import studentplatform.student_platform.model.Event;
 import studentplatform.student_platform.model.Activity;
 
@@ -643,15 +644,25 @@ public class WebController {
     
     @PostMapping("/admin/clubs/delete/{id}")
     public String deleteClub(@PathVariable Long id, HttpSession session, RedirectAttributes redirectAttributes) {
+        System.out.println("=== DELETE CLUB REQUEST ===");
+        System.out.println("Club ID: " + id);
+        
         Admin admin = (Admin) session.getAttribute("user");
         if (admin == null) {
+            System.out.println("No admin in session, redirecting to login");
             return "redirect:/login";
         }
         
+        System.out.println("Admin: " + admin.getUsername() + " (ID: " + admin.getId() + ")");
+        
         try {
+            System.out.println("Attempting to delete club...");
             clubService.deleteClub(id);
+            System.out.println("Club deleted successfully");
             redirectAttributes.addFlashAttribute("success", "Club deleted successfully!");
         } catch (Exception e) {
+            System.err.println("Error deleting club: " + e.getMessage());
+            e.printStackTrace();
             redirectAttributes.addFlashAttribute("error", "Failed to delete club: " + e.getMessage());
         }
         
@@ -847,6 +858,134 @@ public class WebController {
         return "clubs/list";
     }
     
+    @GetMapping("/students/clubs")
+    public String studentClubsView(Model model, HttpSession session) {
+        Student student = (Student) session.getAttribute("user");
+        if (student == null) {
+            return "redirect:/login";
+        }
+        model.addAttribute("clubs", clubService.getAllClubs());
+        model.addAttribute("student", student);
+        model.addAttribute("clubService", clubService);
+        return "students/clubview";
+    }
+    
+    @GetMapping("/students/debug")
+    public String debugPage(Model model, HttpSession session) {
+        Student student = (Student) session.getAttribute("user");
+        if (student == null) {
+            return "redirect:/login";
+        }
+        
+        // Test database connection
+        try {
+            List<Club> clubs = clubService.getAllClubs();
+            System.out.println("Found " + clubs.size() + " clubs in database");
+            model.addAttribute("clubs", clubs);
+        } catch (Exception e) {
+            System.err.println("Error getting clubs: " + e.getMessage());
+            e.printStackTrace();
+            model.addAttribute("clubs", new ArrayList<>());
+        }
+        
+        model.addAttribute("student", student);
+        return "students/debug";
+    }
+    
+    @PostMapping("/students/clubs/join/{clubId}")
+    public String joinClub(@PathVariable Long clubId, HttpSession session, RedirectAttributes redirectAttributes) {
+        System.out.println("=== JOIN CLUB REQUEST ===");
+        System.out.println("Club ID: " + clubId);
+        
+        Student student = (Student) session.getAttribute("user");
+        if (student == null) {
+            System.out.println("No student in session, redirecting to login");
+            return "redirect:/login";
+        }
+        
+        System.out.println("Student: " + student.getUsername() + " (ID: " + student.getId() + ")");
+        
+        try {
+            Optional<Club> clubOpt = clubService.getClubById(clubId);
+            if (clubOpt.isPresent()) {
+                Club club = clubOpt.get();
+                System.out.println("Club found: " + club.getName() + " (ID: " + club.getId() + ")");
+                
+                // Check if student is already a member
+                boolean isAlreadyMember = clubService.isStudentMemberOfClub(student, club);
+                System.out.println("Is already member: " + isAlreadyMember);
+                
+                if (isAlreadyMember) {
+                    System.out.println("Student is already a member, redirecting with error");
+                    redirectAttributes.addFlashAttribute("error", "You are already a member of this club!");
+                    return "redirect:/students/clubs";
+                }
+                
+                // Join the club
+                System.out.println("Joining club...");
+                ClubMembership membership = clubService.joinClub(student, club);
+                System.out.println("Membership created with ID: " + membership.getId());
+                
+                // Redirect to member page
+                String redirectUrl = "redirect:/students/clubs/member/" + membership.getId();
+                System.out.println("Redirecting to: " + redirectUrl);
+                return redirectUrl;
+            } else {
+                System.out.println("Club not found for ID: " + clubId);
+                redirectAttributes.addFlashAttribute("error", "Club not found!");
+                return "redirect:/students/clubs";
+            }
+        } catch (Exception e) {
+            System.err.println("Error joining club: " + e.getMessage());
+            e.printStackTrace();
+            redirectAttributes.addFlashAttribute("error", "Error joining club: " + e.getMessage());
+            return "redirect:/students/clubs";
+        }
+    }
+    
+    @GetMapping("/students/clubs/member/{membershipId}")
+    public String memberPage(@PathVariable Long membershipId, Model model, HttpSession session) {
+        System.out.println("=== MEMBER PAGE REQUEST ===");
+        System.out.println("Membership ID: " + membershipId);
+        
+        Student student = (Student) session.getAttribute("user");
+        if (student == null) {
+            System.out.println("No student in session, redirecting to login");
+            return "redirect:/login";
+        }
+        
+        System.out.println("Student: " + student.getUsername() + " (ID: " + student.getId() + ")");
+        
+        try {
+            Optional<ClubMembership> membershipOpt = clubService.getMembershipById(membershipId);
+            if (membershipOpt.isPresent()) {
+                ClubMembership membership = membershipOpt.get();
+                Club club = membership.getClub();
+                
+                System.out.println("Membership found: " + membership.getId());
+                System.out.println("Club: " + club.getName());
+                
+                // Format the joined date for display
+                String formattedJoinedDate = membership.getJoinedAt().format(java.time.format.DateTimeFormatter.ofPattern("MMMM dd, yyyy 'at' hh:mm a"));
+                
+                model.addAttribute("membership", membership);
+                model.addAttribute("club", club);
+                model.addAttribute("student", student);
+                model.addAttribute("formattedJoinedDate", formattedJoinedDate);
+                
+                System.out.println("Returning member.jsp");
+                return "students/member";
+            } else {
+                System.err.println("Membership not found for ID: " + membershipId);
+                return "redirect:/students/clubs";
+            }
+        } catch (Exception e) {
+            System.err.println("Error loading member page: " + e.getMessage());
+            e.printStackTrace();
+            return "redirect:/students/clubs";
+        }
+    }
+    
     @GetMapping("/events")
     public String studentEvents(Model model) {
         try {
@@ -1025,7 +1164,8 @@ public class WebController {
                     
                     // Add clubs and events data
                     List<Club> clubs = clubService.getAllClubs();
-                    model.addAttribute("clubsCount", clubs.size());
+                    List<ClubMembership> studentMemberships = clubService.getActiveMembershipsByStudent(student);
+                    model.addAttribute("clubsCount", studentMemberships.size());
                     model.addAttribute("eventsCount", eventService.getAllEvents().size());
                     model.addAttribute("clubs", clubs);
                     

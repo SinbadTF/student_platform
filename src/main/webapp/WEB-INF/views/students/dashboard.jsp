@@ -146,7 +146,7 @@
                 <div class="card-header bg-white border-0 py-3">
                     <div class="d-flex justify-content-between align-items-center">
                         <h5 class="mb-0"><i class="bi bi-people text-info me-2"></i> Clubs & Activities</h5>
-                        <a href="/clubs" class="btn btn-sm btn-outline-info">View All</a>
+                        <a href="/students/clubs" class="btn btn-sm btn-outline-info">View All</a>
                     </div>
                 </div>
                 <div class="card-body">
@@ -218,10 +218,10 @@
     const pointsChart = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: ${pointsChartLabels},
+            labels: <c:out value="${pointsChartLabels}" escapeXml="false"/>,
             datasets: [{
                 label: 'Points Earned',
-                data: ${pointsChartData},
+                data: <c:out value="${pointsChartData}" escapeXml="false"/>,
                 backgroundColor: 'rgba(13, 110, 253, 0.2)',
                 borderColor: 'rgba(13, 110, 253, 1)',
                 borderWidth: 2,
