@@ -151,20 +151,7 @@
                 </div>
                 <div class="card-body">
                     <div class="row">
-                        <c:forEach items="${clubs}" var="club" end="3">
-                            <div class="col-md-3">
-                                <div class="card h-100 border-0 shadow-sm">
-                                    <div class="card-body text-center">
-                                        <div class="bg-info bg-opacity-10 rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
-                                            <i class="bi bi-people text-info" style="font-size: 1.5rem;"></i>
-                                        </div>
-                                        <h5 class="card-title">${club.name}</h5>
-                                        <p class="card-text small">${club.description}</p>
-                                        <a href="/clubs/join/${club.id}" class="btn btn-sm btn-outline-info">Join Club</a>
-                                    </div>
-                                </div>
-                            </div>
-                        </c:forEach>
+                        
                         <c:if test="${empty clubs}">
                             <div class="col-12 text-center py-4">
                                 <p>No clubs available at the moment</p>
@@ -274,5 +261,3 @@
         }
     });
 </script>
-
-<%@ include file="../layout/footer.jsp" %>
