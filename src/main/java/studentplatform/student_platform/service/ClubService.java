@@ -66,11 +66,24 @@ public class ClubService {
     
     // Club Membership Methods
     public ClubMembership joinClub(Student student, Club club) {
-        // Check if student is already a member
-        if (clubMembershipRepository.existsByStudentAndClub(student, club)) {
-            throw new IllegalStateException("Student is already a member of this club");
+        // Check if student already has an active membership
+        Optional<ClubMembership> existingMembership = clubMembershipRepository.findByStudentAndClub(student, club);
+        
+        if (existingMembership.isPresent()) {
+            ClubMembership membership = existingMembership.get();
+            
+            // If membership exists but is inactive, reactivate it
+            if (membership.getStatus() == ClubMembership.MembershipStatus.INACTIVE) {
+                membership.setStatus(ClubMembership.MembershipStatus.ACTIVE);
+                membership.setJoinedAt(LocalDateTime.now()); // Update join date
+                return clubMembershipRepository.save(membership);
+            } else if (membership.getStatus() == ClubMembership.MembershipStatus.ACTIVE) {
+                // If already active, throw error
+                throw new IllegalStateException("Student is already a member of this club");
+            }
         }
         
+        // Create new membership if none exists
         ClubMembership membership = new ClubMembership();
         membership.setStudent(student);
         membership.setClub(club);
@@ -101,10 +114,23 @@ public class ClubService {
     }
     
     public boolean isStudentMemberOfClub(Student student, Club club) {
-        return clubMembershipRepository.existsByStudentAndClub(student, club);
+        Optional<ClubMembership> membershipOpt = clubMembershipRepository.findByStudentAndClub(student, club);
+        return membershipOpt.isPresent() && membershipOpt.get().getStatus() == ClubMembership.MembershipStatus.ACTIVE;
     }
     
     public Optional<ClubMembership> getMembershipById(Long id) {
         return clubMembershipRepository.findById(id);
+    }
+    
+    public void quitClub(Student student, Club club) {
+        Optional<ClubMembership> membershipOpt = clubMembershipRepository.findByStudentAndClub(student, club);
+        if (membershipOpt.isPresent()) {
+            ClubMembership membership = membershipOpt.get();
+            // Set status to INACTIVE instead of deleting to maintain history
+            membership.setStatus(ClubMembership.MembershipStatus.INACTIVE);
+            clubMembershipRepository.save(membership);
+        } else {
+            throw new IllegalStateException("Student is not a member of this club");
+        }
     }
 }

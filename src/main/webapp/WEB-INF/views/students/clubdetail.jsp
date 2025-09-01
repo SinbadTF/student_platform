@@ -24,6 +24,21 @@
         </div>
     </div>
 
+    <!-- Success/Error Messages -->
+    <c:if test="${not empty success}">
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle me-2"></i>${success}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </c:if>
+    
+    <c:if test="${not empty error}">
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>${error}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </c:if>
+
     <!-- Club Information Card -->
     <div class="row mb-4">
         <div class="col-lg-8">
@@ -82,33 +97,54 @@
                 <div class="card-body p-4">
                     <h5 class="fw-bold mb-3">Join This Club</h5>
                     
-                    <c:choose>
-                        <c:when test="${membershipStatus == true}">
-                            <div class="text-center">
-                                <div class="bg-success bg-opacity-10 rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
-                                    <i class="bi bi-check-circle text-success" style="font-size: 2rem;"></i>
-                                </div>
-                                <h6 class="text-success fw-bold">Already a Member!</h6>
-                                <p class="text-muted small">You're already part of this amazing community.</p>
-                                <button class="btn btn-secondary w-100" disabled>
-                                    <i class="bi bi-check-circle me-2"></i>Member
-                                </button>
-                            </div>
-                        </c:when>
-                        <c:otherwise>
-                            <div class="text-center">
-                                <div class="bg-primary bg-opacity-10 rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
-                                    <i class="bi bi-people-fill text-primary" style="font-size: 2rem;"></i>
-                                </div>
-                                <p class="text-muted small mb-3">Ready to join this community?</p>
-                                <form action="/students/clubs/join/${club.id}" method="post" onsubmit="return confirm('Are you sure you want to join ${club.name}?')">
-                                    <button type="submit" class="btn btn-success w-100">
-                                        <i class="bi bi-plus-circle me-2"></i>Join Club
-                                    </button>
-                                </form>
-                            </div>
-                        </c:otherwise>
-                    </c:choose>
+                                         <c:choose>
+                         <c:when test="${membershipStatus == true}">
+                             <div class="text-center">
+                                 <div class="bg-success bg-opacity-10 rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                                     <i class="bi bi-check-circle text-success" style="font-size: 2rem;"></i>
+                                 </div>
+                                 <h6 class="text-success fw-bold">Already a Member!</h6>
+                                 <p class="text-muted small">You're already part of this amazing community.</p>
+                                 <div class="d-grid gap-2">
+                                     <button class="btn btn-secondary w-100" disabled>
+                                         <i class="bi bi-check-circle me-2"></i>Member
+                                     </button>
+                                     <form action="/students/clubs/quit/${club.id}" method="post" onsubmit="return confirm('Are you sure you want to quit ${club.name}? This action cannot be undone.')">
+                                         <button type="submit" class="btn btn-danger w-100">
+                                             <i class="bi bi-box-arrow-right me-2"></i>Quit Club
+                                         </button>
+                                     </form>
+                                 </div>
+                             </div>
+                         </c:when>
+                         <c:when test="${canRejoin == true}">
+                             <div class="text-center">
+                                 <div class="bg-warning bg-opacity-10 rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                                     <i class="bi bi-arrow-clockwise text-warning" style="font-size: 2rem;"></i>
+                                 </div>
+                                 <h6 class="text-warning fw-bold">Rejoin This Club</h6>
+                                 <p class="text-muted small">You were previously a member. Ready to come back?</p>
+                                 <form action="/students/clubs/join/${club.id}" method="post" onsubmit="return confirm('Are you sure you want to rejoin ${club.name}?')">
+                                     <button type="submit" class="btn btn-warning w-100">
+                                         <i class="bi bi-arrow-clockwise me-2"></i>Rejoin Club
+                                     </button>
+                                 </form>
+                             </div>
+                         </c:when>
+                         <c:otherwise>
+                             <div class="text-center">
+                                 <div class="bg-primary bg-opacity-10 rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                                     <i class="bi bi-people-fill text-primary" style="font-size: 2rem;"></i>
+                                 </div>
+                                 <p class="text-muted small mb-3">Ready to join this community?</p>
+                                 <form action="/students/clubs/join/${club.id}" method="post" onsubmit="return confirm('Are you sure you want to join ${club.name}?')">
+                                     <button type="submit" class="btn btn-success w-100">
+                                         <i class="bi bi-plus-circle me-2"></i>Join Club
+                                     </button>
+                                 </form>
+                             </div>
+                         </c:otherwise>
+                     </c:choose>
                 </div>
             </div>
         </div>
@@ -310,5 +346,31 @@
 
 .rounded-3 {
     border-radius: 0.75rem !important;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
+    border-color: #bd2130;
+}
+
+.btn-warning {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: #000;
+}
+
+.btn-warning:hover {
+    background-color: #e0a800;
+    border-color: #d39e00;
+    color: #000;
+}
+
+.d-grid.gap-2 {
+    gap: 0.5rem !important;
 }
 </style>
