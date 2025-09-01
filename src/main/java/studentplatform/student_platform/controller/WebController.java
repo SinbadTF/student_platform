@@ -959,6 +959,55 @@ public class WebController {
         }
     }
     
+    @PostMapping("/students/clubs/quit/{clubId}")
+    public String quitClub(@PathVariable Long clubId, HttpSession session, RedirectAttributes redirectAttributes) {
+        System.out.println("=== QUIT CLUB REQUEST ===");
+        System.out.println("Club ID: " + clubId);
+        
+        Student student = (Student) session.getAttribute("user");
+        if (student == null) {
+            System.out.println("No student in session, redirecting to login");
+            return "redirect:/login";
+        }
+        
+        System.out.println("Student: " + student.getUsername() + " (ID: " + student.getId() + ")");
+        
+        try {
+            Optional<Club> clubOpt = clubService.getClubById(clubId);
+            if (clubOpt.isPresent()) {
+                Club club = clubOpt.get();
+                System.out.println("Club found: " + club.getName() + " (ID: " + club.getId() + ")");
+                
+                // Check if student is actually a member
+                boolean isMember = clubService.isStudentMemberOfClub(student, club);
+                System.out.println("Is member: " + isMember);
+                
+                if (!isMember) {
+                    System.out.println("Student is not a member, redirecting with error");
+                    redirectAttributes.addFlashAttribute("error", "You are not a member of this club!");
+                    return "redirect:/students/clubs";
+                }
+                
+                // Quit the club
+                System.out.println("Quitting club...");
+                clubService.quitClub(student, club);
+                System.out.println("Student successfully quit the club");
+                
+                redirectAttributes.addFlashAttribute("success", "You have successfully quit " + club.getName());
+                return "redirect:/students/clubs";
+            } else {
+                System.out.println("Club not found for ID: " + clubId);
+                redirectAttributes.addFlashAttribute("error", "Club not found!");
+                return "redirect:/students/clubs";
+            }
+        } catch (Exception e) {
+            System.err.println("Error quitting club: " + e.getMessage());
+            e.printStackTrace();
+            redirectAttributes.addFlashAttribute("error", "Error quitting club: " + e.getMessage());
+            return "redirect:/students/clubs";
+        }
+    }
+    
     @GetMapping("/students/clubs/member/{membershipId}")
     public String memberPage(@PathVariable Long membershipId, Model model, HttpSession session) {
         System.out.println("=== MEMBER PAGE REQUEST ===");
@@ -997,6 +1046,50 @@ public class WebController {
             }
         } catch (Exception e) {
             System.err.println("Error loading member page: " + e.getMessage());
+            e.printStackTrace();
+            return "redirect:/students/clubs";
+        }
+    }
+    
+    @GetMapping("/students/clubs/detail/{clubId}")
+    public String clubDetail(@PathVariable Long clubId, Model model, HttpSession session) {
+        System.out.println("=== CLUB DETAIL PAGE REQUEST ===");
+        System.out.println("Club ID: " + clubId);
+        
+        Student student = (Student) session.getAttribute("user");
+        if (student == null) {
+            System.out.println("No student in session, redirecting to login");
+            return "redirect:/login";
+        }
+        
+        System.out.println("Student: " + student.getUsername() + " (ID: " + student.getId() + ")");
+        
+        try {
+            Optional<Club> clubOpt = clubService.getClubById(clubId);
+            if (clubOpt.isPresent()) {
+                Club club = clubOpt.get();
+                
+                System.out.println("Club found: " + club.getName());
+                
+                // Check if student has any membership (active or inactive) for this club
+                Optional<ClubMembership> membershipOpt = clubService.getMembershipByStudentAndClub(student, club);
+                boolean hasAnyMembership = membershipOpt.isPresent();
+                boolean isActiveMember = clubService.isStudentMemberOfClub(student, club);
+                
+                model.addAttribute("club", club);
+                model.addAttribute("student", student);
+                model.addAttribute("membershipStatus", isActiveMember);
+                model.addAttribute("hasAnyMembership", hasAnyMembership);
+                model.addAttribute("canRejoin", hasAnyMembership && !isActiveMember);
+                
+                System.out.println("Returning clubdetail.jsp");
+                return "students/clubdetail";
+            } else {
+                System.err.println("Club not found for ID: " + clubId);
+                return "redirect:/students/clubs";
+            }
+        } catch (Exception e) {
+            System.err.println("Error loading club detail page: " + e.getMessage());
             e.printStackTrace();
             return "redirect:/students/clubs";
         }

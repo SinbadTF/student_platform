@@ -89,23 +89,16 @@
                         </c:if>
                         
                         <div class="d-flex justify-content-between align-items-center">
-                            <button class="btn btn-outline-primary btn-sm" 
-                                    onclick="showClubDetails('${club.id}', '${club.name}', '${club.description}', '${club.meetingScheduleTitle}')">
+                            <a href="/students/clubs/detail/${club.id}" class="btn btn-outline-primary btn-sm">
                                 <i class="bi bi-eye me-1"></i>View Details
-                            </button>
+                            </a>
                             <c:choose>
                                 <c:when test="${membershipStatus[club.id] == true}">
                                     <button class="btn btn-secondary btn-sm" disabled>
                                         <i class="bi bi-check-circle me-1"></i>Already Joined
                                     </button>
                                 </c:when>
-                                <c:otherwise>
-                                    <form action="/students/clubs/join/${club.id}" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to join ${club.name}?')">
-                                        <button type="submit" class="btn btn-success btn-sm">
-                                            <i class="bi bi-plus-circle me-1"></i>Join Club
-                                        </button>
-                                    </form>
-                                </c:otherwise>
+                           
                             </c:choose>
                         </div>
                     </div>
@@ -132,40 +125,7 @@
     </div>
 </div>
 
-<!-- Club Details Modal -->
-<div class="modal fade" id="clubDetailsModal" tabindex="-1" aria-labelledby="clubDetailsModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content border-0 shadow">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="clubDetailsModalLabel">
-                    <i class="bi bi-people-fill me-2"></i>Club Details
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body p-4">
-                <div class="row">
-                    <div class="col-md-8">
-                        <h4 id="modalClubName" class="fw-bold mb-3"></h4>
-                        <p id="modalClubDescription" class="text-muted mb-3"></p>
-                        <div id="modalClubSchedule" class="mb-3"></div>
-                    </div>
-                    <div class="col-md-4 text-center">
-                        <div class="bg-primary bg-opacity-10 rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 100px; height: 100px;">
-                            <i class="bi bi-people-fill text-primary" style="font-size: 3rem;"></i>
-                        </div>
-                        <div id="modalJoinSection">
-                            <form action="/students/clubs/join/" method="post" id="modalJoinForm" onsubmit="return confirm('Are you sure you want to join this club?')">
-                                <button type="submit" class="btn btn-success w-100" id="modalJoinButton">
-                                    <i class="bi bi-plus-circle me-2"></i>Join This Club
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+
 
 <script>
 // Club membership status data (populated from server)
@@ -206,53 +166,7 @@ document.getElementById('sortSelect').addEventListener('change', function() {
     cards.forEach(card => container.appendChild(card));
 });
 
-// Show club details in modal
-function showClubDetails(clubId, name, description, schedule) {
-    document.getElementById('modalClubName').textContent = name;
-    document.getElementById('modalClubDescription').textContent = description || 'No description available';
-    
-    const scheduleElement = document.getElementById('modalClubSchedule');
-    if (schedule && schedule.trim() !== '') {
-        scheduleElement.innerHTML = `
-            <div class="alert alert-info">
-                <i class="bi bi-calendar-event me-2"></i>
-                <strong>Meeting Schedule:</strong> ${schedule}
-            </div>
-        `;
-    } else {
-        scheduleElement.innerHTML = '';
-    }
-    
-    // Check if student is already a member of this club
-    const isAlreadyMember = checkIfAlreadyMember(clubId);
-    
-    // Update the modal join section based on membership status
-    const modalJoinSection = document.getElementById('modalJoinSection');
-    if (isAlreadyMember) {
-        modalJoinSection.innerHTML = `
-            <button class="btn btn-secondary w-100" disabled>
-                <i class="bi bi-check-circle me-2"></i>Already Joined
-            </button>
-        `;
-    } else {
-        modalJoinSection.innerHTML = `
-            <form action="/students/clubs/join/${clubId}" method="post" onsubmit="return confirm('Are you sure you want to join this club?')">
-                <button type="submit" class="btn btn-success w-100">
-                    <i class="bi bi-plus-circle me-2"></i>Join This Club
-                </button>
-            </form>
-        `;
-    }
-    
-    new bootstrap.Modal(document.getElementById('clubDetailsModal')).show();
-}
 
-// Function to check if student is already a member (this will be populated by server-side data)
-function checkIfAlreadyMember(clubId) {
-    // This will be populated with server-side data
-    const membershipStatus = window.clubMemberships || {};
-    return membershipStatus[clubId] || false;
-}
 
 // Add hover effect to cards
 document.addEventListener('DOMContentLoaded', function() {
