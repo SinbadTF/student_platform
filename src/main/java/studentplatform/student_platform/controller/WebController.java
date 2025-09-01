@@ -1000,6 +1000,46 @@ public class WebController {
         }
     }
     
+    @GetMapping("/students/clubs/detail/{clubId}")
+    public String clubDetail(@PathVariable Long clubId, Model model, HttpSession session) {
+        System.out.println("=== CLUB DETAIL PAGE REQUEST ===");
+        System.out.println("Club ID: " + clubId);
+        
+        Student student = (Student) session.getAttribute("user");
+        if (student == null) {
+            System.out.println("No student in session, redirecting to login");
+            return "redirect:/login";
+        }
+        
+        System.out.println("Student: " + student.getUsername() + " (ID: " + student.getId() + ")");
+        
+        try {
+            Optional<Club> clubOpt = clubService.getClubById(clubId);
+            if (clubOpt.isPresent()) {
+                Club club = clubOpt.get();
+                
+                System.out.println("Club found: " + club.getName());
+                
+                // Check if student is already a member of this club
+                boolean membershipStatus = clubService.isStudentMemberOfClub(student, club);
+                
+                model.addAttribute("club", club);
+                model.addAttribute("student", student);
+                model.addAttribute("membershipStatus", membershipStatus);
+                
+                System.out.println("Returning clubdetail.jsp");
+                return "students/clubdetail";
+            } else {
+                System.err.println("Club not found for ID: " + clubId);
+                return "redirect:/students/clubs";
+            }
+        } catch (Exception e) {
+            System.err.println("Error loading club detail page: " + e.getMessage());
+            e.printStackTrace();
+            return "redirect:/students/clubs";
+        }
+    }
+    
     @GetMapping("/events")
     public String studentEvents(Model model) {
         try {
