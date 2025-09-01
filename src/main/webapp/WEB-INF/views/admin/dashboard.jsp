@@ -105,6 +105,20 @@
                     </div>
                 </div>
             </div>
+            
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm rounded-3 h-100">
+                    <div class="card-body text-center">
+                        <div class="bg-light rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                            <i class="bi bi-people-fill text-primary" style="font-size: 2rem;"></i>
+                        </div>
+                        <h5 class="card-title">Attendance</h5>
+                        <h2 class="display-6 fw-bold text-primary">${attendanceCount != null ? attendanceCount : 0}</h2>
+                        <a href="${pageContext.request.contextPath}/admin/attendances" 
+                        class="btn btn-sm btn-outline-primary mt-2">Manage</a>
+                    </div>
+                </div>
+            </div>
         </div>
         
         <!-- Quick Actions -->

@@ -44,12 +44,11 @@ import studentplatform.student_platform.model.Event;
 import studentplatform.student_platform.model.Activity;
 
 import studentplatform.student_platform.model.EventParticipation;
-<<<<<<< Updated upstream
 
-=======
+
 import studentplatform.student_platform.service.AttendanceService;
 import studentplatform.student_platform.service.ClubService;
->>>>>>> Stashed changes
+
 import studentplatform.student_platform.service.EventService;
 import studentplatform.student_platform.service.ClubService;
 import studentplatform.student_platform.service.ActivityService;
@@ -66,35 +65,32 @@ public class WebController {
     private final AdminService adminService;
 
     private final EventService eventService;
-<<<<<<< Updated upstream
     private final ClubService clubService;
     private final ActivityService activityService;
-=======
+
     private final AttendanceService attendanceService;
->>>>>>> Stashed changes
+
     
     @Autowired
     public WebController(StudentService studentService, StaffService staffService, 
                          RewardService rewardService, RewardExchangeService rewardExchangeService,
-<<<<<<< Updated upstream
                          AdminService adminService,
-                         EventService eventService, ClubService clubService, ActivityService activityService) {
-=======
-                         AdminService adminService, ClubService clubService,
-                         EventService eventService, AttendanceService attendanceService) {
->>>>>>> Stashed changes
+                         EventService eventService, ClubService clubService, ActivityService activityService,
+                         
+                         AttendanceService attendanceService) {
+
         this.studentService = studentService;
         this.staffService = staffService;
         this.rewardService = rewardService;
         this.rewardExchangeService = rewardExchangeService;
         this.adminService = adminService;
         this.eventService = eventService;
-<<<<<<< Updated upstream
+
         this.clubService = clubService;
         this.activityService = activityService;
-=======
+
         this.attendanceService = attendanceService;
->>>>>>> Stashed changes
+
     }
 
     // Update the home method
