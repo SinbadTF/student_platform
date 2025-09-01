@@ -42,13 +42,13 @@ import studentplatform.student_platform.model.Club;
 import studentplatform.student_platform.model.ClubMembership;
 import studentplatform.student_platform.model.Event;
 import studentplatform.student_platform.model.Activity;
-
+import studentplatform.student_platform.model.ActivityParticipation;
 import studentplatform.student_platform.model.EventParticipation;
 
 
 import studentplatform.student_platform.service.AttendanceService;
 import studentplatform.student_platform.service.ClubService;
-
+import studentplatform.student_platform.service.ActivityParticipationService;
 import studentplatform.student_platform.service.EventService;
 import studentplatform.student_platform.service.ClubService;
 import studentplatform.student_platform.service.ActivityService;
@@ -67,6 +67,7 @@ public class WebController {
     private final EventService eventService;
     private final ClubService clubService;
     private final ActivityService activityService;
+    private final ActivityParticipationService activityParticipationService;
 
     private final AttendanceService attendanceService;
 
@@ -76,7 +77,7 @@ public class WebController {
                          RewardService rewardService, RewardExchangeService rewardExchangeService,
                          AdminService adminService,
                          EventService eventService, ClubService clubService, ActivityService activityService,
-                         
+                         ActivityParticipationService activityParticipationService,
                          AttendanceService attendanceService) {
 
         this.studentService = studentService;
@@ -88,6 +89,7 @@ public class WebController {
 
         this.clubService = clubService;
         this.activityService = activityService;
+        this.activityParticipationService = activityParticipationService;
 
         this.attendanceService = attendanceService;
 
@@ -1183,6 +1185,16 @@ public class WebController {
                     model.addAttribute("eventsCount", eventService.getAllEvents().size());
                     model.addAttribute("clubs", clubs);
                     
+                    // Get club-specific activities for student's joined clubs
+                    Map<Club, List<Activity>> clubActivities = new HashMap<>();
+                    for (ClubMembership membership : studentMemberships) {
+                        Club club = membership.getClub();
+                        List<Activity> activities = activityService.getActivitiesByClub(club);
+                        clubActivities.put(club, activities);
+                    }
+                    model.addAttribute("clubActivities", clubActivities);
+                    model.addAttribute("studentMemberships", studentMemberships);
+                    
                     // Format events with formatted dates for JSP compatibility
                     List<Event> events = eventService.getAllEvents();
                     model.addAttribute("upcomingEvents", events);
@@ -1283,6 +1295,86 @@ public class WebController {
     model.addAttribute("student", student);
     return "students/profile";
 }
+
+    @GetMapping("/students/activities")
+    public String studentActivitiesView(Model model, HttpSession session) {
+        Student student = (Student) session.getAttribute("user");
+        if (student == null) {
+            return "redirect:/login";
+        }
+        
+        // Get student's club memberships
+        List<ClubMembership> memberships = clubService.getActiveMembershipsByStudent(student);
+        
+        // Get activities for each club the student is a member of
+        Map<Club, List<Activity>> clubActivities = new HashMap<>();
+        for (ClubMembership membership : memberships) {
+            Club club = membership.getClub();
+            List<Activity> activities = activityService.getActivitiesByClub(club);
+            clubActivities.put(club, activities);
+        }
+        
+        model.addAttribute("student", student);
+        model.addAttribute("memberships", memberships);
+        model.addAttribute("clubActivities", clubActivities);
+        
+        return "students/activities";
+    }
+    
+    @PostMapping("/students/activities/join/{activityId}")
+    public String joinActivity(@PathVariable Long activityId, HttpSession session, RedirectAttributes redirectAttributes) {
+        Student student = (Student) session.getAttribute("user");
+        if (student == null) {
+            return "redirect:/login";
+        }
+        
+        try {
+            Optional<Activity> activityOpt = activityService.getActivityById(activityId);
+            if (activityOpt.isEmpty()) {
+                redirectAttributes.addFlashAttribute("error", "Activity not found");
+                return "redirect:/students/activities";
+            }
+            
+            Activity activity = activityOpt.get();
+            
+            // Check if student is a member of the club that offers this activity
+            Club activityClub = activity.getClub();
+            if (activityClub != null) {
+                boolean isMember = clubService.getActiveMembershipsByStudent(student).stream()
+                        .anyMatch(m -> m.getClub().getId().equals(activityClub.getId()));
+                
+                if (!isMember) {
+                    redirectAttributes.addFlashAttribute("error", "You must be a member of " + activityClub.getName() + " to join this activity");
+                    return "redirect:/students/activities";
+                }
+            }
+            
+            // Join the activity
+            activityParticipationService.participateInActivity(student, activity);
+            redirectAttributes.addFlashAttribute("success", "Successfully joined the activity. Waiting for approval.");
+            
+        } catch (IllegalStateException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Failed to join activity: " + e.getMessage());
+        }
+        
+        return "redirect:/students/activities";
+    }
+    
+    @GetMapping("/students/activities/participations")
+    public String studentParticipations(Model model, HttpSession session) {
+        Student student = (Student) session.getAttribute("user");
+        if (student == null) {
+            return "redirect:/login";
+        }
+        
+        List<ActivityParticipation> participations = activityParticipationService.getParticipationsByStudent(student);
+        model.addAttribute("student", student);
+        model.addAttribute("participations", participations);
+        
+        return "students/participations";
+    }
 
     // Admin Attendance Management
     @GetMapping("/admin/attendances")

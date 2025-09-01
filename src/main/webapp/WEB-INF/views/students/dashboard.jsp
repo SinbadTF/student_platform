@@ -139,29 +139,73 @@
         </div>
     </div>
 
-    <!-- Clubs and Activities -->
-    <div class="row">
+    <!-- Clubs and Activities - Improved to fill space better -->
+    <div class="row mb-4">
         <div class="col-12">
             <div class="card border-0 shadow-sm rounded-3">
                 <div class="card-header bg-white border-0 py-3">
                     <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0"><i class="bi bi-people text-info me-2"></i> Clubs & Activities</h5>
-                        <a href="/students/clubs" class="btn btn-sm btn-outline-info">View All</a>
+                        <h5 class="mb-0"><i class="bi bi-people text-info me-2"></i>Clubs & Activities</h5>
+                        <div>
+                            <a href="/students/activities" class="btn btn-sm btn-info text-white me-2">Join Activities</a>
+                            <a href="/students/clubs" class="btn btn-sm btn-outline-info">View All Clubs</a>
+                        </div>
                     </div>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-4">
                     <div class="row">
-                        
-                        <c:if test="${empty clubs}">
-                            <div class="col-12 text-center py-4">
-                                <p>No clubs available at the moment</p>
-                            </div>
-                        </c:if>
+                        <c:choose>
+                            <c:when test="${not empty studentMemberships}">
+                                <c:forEach items="${studentMemberships}" var="membership">
+                                    <div class="col-md-6 mb-4">
+                                        <div class="card border-0 shadow-sm h-100">
+                                            <div class="card-header bg-info bg-opacity-10 py-3">
+                                                <h5 class="mb-0 text-info">${membership.club.name}</h5>
+                                            </div>
+                                            <div class="card-body">
+                                                <c:choose>
+                                                    <c:when test="${not empty clubActivities[membership.club]}">
+                                                        <div class="list-group">
+                                                            <c:forEach items="${clubActivities[membership.club]}" var="activity">
+                                                                <div class="list-group-item list-group-item-action d-flex align-items-center p-3 border-0 mb-2 bg-light rounded">
+                                                                    <div class="flex-grow-1">
+                                                                        <div class="d-flex w-100 justify-content-between">
+                                                                            <h6 class="mb-1 fw-bold">${activity.title}</h6>
+                                                                            <span class="badge bg-success rounded-pill">${activity.points} points</span>
+                                                                        </div>
+                                                                        <p class="mb-1 text-muted small">${activity.description}</p>
+                                                                    </div>
+                                                                    <a href="/students/activities/join/${activity.id}" class="btn btn-sm btn-outline-info ms-2">Join</a>
+                                                                </div>
+                                                            </c:forEach>
+                                                        </div>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <div class="text-center py-4">
+                                                            <i class="bi bi-calendar-x text-muted" style="font-size: 2rem;"></i>
+                                                            <p class="mt-3">No activities available for this club</p>
+                                                        </div>
+                                                    </c:otherwise>
+                                                </c:choose>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </c:forEach>
+                            </c:when>
+                            <c:otherwise>
+                                <div class="col-12 text-center py-5">
+                                    <i class="bi bi-people text-muted" style="font-size: 3rem;"></i>
+                                    <h5 class="mt-3">You haven't joined any clubs yet</h5>
+                                    <p class="text-muted">Join clubs to participate in activities and earn points</p>
+                                    <a href="/students/clubs" class="btn btn-primary mt-2">Browse Clubs</a>
+                                </div>
+                            </c:otherwise>
+                        </c:choose>
                     </div>
                 </div>
             </div>
         </div>
-    <!-- After the Clubs and Activities section, around line 198 -->
+    </div>
     
     <!-- Available Rewards Section -->
     <div class="row mt-4">
@@ -186,11 +230,9 @@
                                         <p class="card-text small">${reward.description}</p>
                                         <div class="d-flex justify-content-between align-items-center">
                                             <span class="badge bg-primary">${reward.pointValue} points</span>
-                                        
-
-                                <form action="/students/rewards/exchange/${reward.id}" method="post" style="display:inline;">
-                                    <button type="submit" class="btn btn-sm btn-outline-success">Redeem</button>
-                                </form> 
+                                            <form action="/students/rewards/exchange/${reward.id}" method="post" style="display:inline;">
+                                                <button type="submit" class="btn btn-sm btn-outline-success">Redeem</button>
+                                            </form> 
                                         </div>
                                     </div>
                                 </div>
@@ -208,7 +250,6 @@
         </div>
     </div>
 </div> <!-- This closes the main container -->
-</div>
 
 <!-- Chart.js for data visualization -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -250,14 +291,13 @@
                         display: true,
                         text: 'Points'
                     }
-                },
-                x: {
-                    title: {
-                        display: true,
-                        text: 'Month'
-                    }
                 }
             }
         }
     });
 </script>
+
+<%@ include file="../layout/footer.jsp" %>
+
+
+
