@@ -47,9 +47,9 @@
                 <!-- Header -->
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h2 class="mb-0">Activities Management</h2>
-                    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addActivityModal">
+                    <a href="${pageContext.request.contextPath}/admin/activities/create" class="btn btn-success">
                         <i class="bi bi-plus-circle me-2"></i>Add New Activity
-                    </button>
+                    </a>
                 </div>
 
                 <!-- Filter Section -->
@@ -90,12 +90,13 @@
                                                     <td><span class="badge bg-primary">${activity.points}</span></td>
                                                     <td>${activity.description != null ? activity.description : 'No description available'}</td>
                                                     <td>
-                                                        <button class="btn btn-sm btn-outline-success me-1" title="Edit">
+                                                        <a href="/admin/activities/edit/${activity.id}" class="btn btn-sm btn-outline-success me-1" title="Edit">
                                                             <i class="bi bi-pencil"></i>
-                                                        </button>
-                                                        <button class="btn btn-sm btn-outline-danger" title="Delete">
+                                                        </a>
+                                                        <a href="/admin/activities/delete/${activity.id}" class="btn btn-sm btn-outline-danger" title="Delete"
+                                                           onclick="return confirm('Are you sure you want to delete the activity \"${activity.title}\"? This action cannot be undone.')">
                                                             <i class="bi bi-trash"></i>
-                                                        </button>
+                                                        </a>
                                                     </td>
                                                 </tr>
                                             </c:forEach>
@@ -119,46 +120,7 @@
         </div>
     </div>
 
-    <!-- Add Activity Modal -->
-    <div class="modal fade" id="addActivityModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Add New Activity</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form action="${pageContext.request.contextPath}/admin/activities/create" method="post" id="createActivityForm">
-                        <div class="mb-3">
-                            <label for="activityTitle" class="form-label">Activity Title</label>
-                            <input type="text" class="form-control" id="activityTitle" name="title" placeholder="Enter activity title" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="activityClub" class="form-label">Club</label>
-                            <select class="form-select" id="activityClub" name="club.id" required>
-                                <option value="">Select Club</option>
-                                <c:forEach var="club" items="${clubs}">
-                                    <option value="${club.id}">${club.name}</option>
-                                </c:forEach>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="activityPoints" class="form-label">Points</label>
-                            <input type="number" class="form-control" id="activityPoints" name="points" min="1" placeholder="Enter points" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="activityDescription" class="form-label">Description</label>
-                            <textarea class="form-control" id="activityDescription" name="description" rows="3" placeholder="Enter activity description" required></textarea>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" form="createActivityForm" class="btn btn-success">Add Activity</button>
-                </div>
-            </div>
-        </div>
-    </div>
+
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -167,7 +129,6 @@
     <script>
         // Check for flash messages
         <c:if test="${not empty success}">
-            // Show success message
             document.addEventListener('DOMContentLoaded', function() {
                 var successAlert = document.createElement('div');
                 successAlert.className = 'alert alert-success alert-dismissible fade show position-fixed';
@@ -175,7 +136,6 @@
                 successAlert.innerHTML = '<i class="bi bi-check-circle me-2"></i>${success}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
                 document.body.appendChild(successAlert);
                 
-                // Auto remove after 5 seconds
                 setTimeout(function() {
                     if (successAlert.parentNode) {
                         successAlert.remove();
@@ -185,7 +145,6 @@
         </c:if>
         
         <c:if test="${not empty error}">
-            // Show error message
             document.addEventListener('DOMContentLoaded', function() {
                 var errorAlert = document.createElement('div');
                 errorAlert.className = 'alert alert-danger alert-dismissible fade show position-fixed';
@@ -193,7 +152,6 @@
                 errorAlert.innerHTML = '<i class="bi bi-exclamation-triangle me-2"></i>${error}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
                 document.body.appendChild(errorAlert);
                 
-                // Auto remove after 5 seconds
                 setTimeout(function() {
                     if (errorAlert.parentNode) {
                         errorAlert.remove();
@@ -201,36 +159,6 @@
                 }, 5000);
             });
         </c:if>
-        
-        // Form validation
-        document.getElementById('createActivityForm').addEventListener('submit', function(e) {
-            var activityTitle = document.getElementById('activityTitle').value.trim();
-            var activityClub = document.getElementById('activityClub').value;
-            var activityPoints = document.getElementById('activityPoints').value;
-            
-            if (activityTitle === '') {
-                e.preventDefault();
-                alert('Please enter an activity title');
-                return false;
-            }
-            
-            if (activityClub === '') {
-                e.preventDefault();
-                alert('Please select a club');
-                return false;
-            }
-            
-            if (activityPoints === '' || activityPoints <= 0) {
-                e.preventDefault();
-                alert('Please enter valid points (greater than 0)');
-                return false;
-            }
-        });
-        
-        // Clear form when modal is closed
-        document.getElementById('addActivityModal').addEventListener('hidden.bs.modal', function() {
-            document.getElementById('createActivityForm').reset();
-        });
     </script>
 </body>
 </html>

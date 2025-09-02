@@ -1,6 +1,18 @@
 <%@ include file="../layout/header.jsp" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-
+    <!-- Action Buttons -->
+    <div class="row">
+        <div class="col-12 text-center">
+            <div class="d-flex justify-content-left gap-3 flex-wrap">
+              
+                <a href="/students/clubs" class="btn btn-outline-primary">
+                    <i class="bi bi-people me-2"></i>Back to Club
+                </a>
+              
+            </div>
+        </div>
+    </div>
+</div>
 <!-- Welcome Member Page -->
 <div class="container py-4">
     <!-- Success Banner -->
@@ -12,7 +24,7 @@
                         <i class="bi bi-check-circle-fill" style="font-size: 4rem;"></i>
                     </div>
                     <h2 class="display-6 fw-bold">Welcome to ${club.name}!</h2>
-                    <p class="lead mb-0">You have successfully joined the club</p>
+                    <p class="lead mb-0">You have earned 100 points for joining the club</p>
                 </div>
             </div>
         </div>
@@ -137,11 +149,9 @@
                     <i class="bi bi-house me-2"></i>Go to Dashboard
                 </a>
                 <a href="/students/clubs" class="btn btn-outline-primary">
-                    <i class="bi bi-people me-2"></i>View All Clubs
+                    <i class="bi bi-people me-2"></i>Back to Club
                 </a>
-                <a href="/events" class="btn btn-outline-success">
-                    <i class="bi bi-calendar-event me-2"></i>Browse Events
-                </a>
+              
             </div>
         </div>
     </div>

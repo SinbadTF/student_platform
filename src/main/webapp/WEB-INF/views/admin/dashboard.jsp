@@ -80,32 +80,8 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="card border-0 shadow-sm rounded-3 h-100">
-                    <div class="card-body text-center">
-                        <div class="bg-light rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
-                            <i class="bi bi-calendar-event text-warning" style="font-size: 2rem;"></i>
-                        </div>
-                        <h5 class="card-title">Events</h5>
-                        <h2 class="display-6 fw-bold text-warning">${eventsCount != null ? eventsCount : 0}</h2>
-                        <a href="/admin/events" class="btn btn-sm btn-outline-warning mt-2">Manage</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card border-0 shadow-sm rounded-3 h-100">
-                    <div class="card-body text-center">
-                        <div class="bg-light rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
-                            <i class="bi bi-people-fill text-primary" style="font-size: 2rem;"></i>
-                        </div>
-                        <h5 class="card-title">Clubs</h5>
-                        <h2 class="display-6 fw-bold text-primary">${clubCount != null ? clubCount : 0}</h2>
-                        <a href="${pageContext.request.contextPath}/admin/clubs" 
-                        class="btn btn-sm btn-outline-primary mt-2">Manage</a>
-                    </div>
-                </div>
-            </div>
-            
+        
+     
             <div class="col-md-3">
                 <div class="card border-0 shadow-sm rounded-3 h-100">
                     <div class="card-body text-center">
@@ -242,7 +218,7 @@
             </div>
         </div>
         
-        <!-- Participation Management -->
+        <!-- Participation Management 
         <div class="row mb-4">
             <div class="col-12">
                 <div class="card border-0 shadow-sm rounded-3">
@@ -286,7 +262,7 @@
             </div>
         </div>
       
-    </div>
+    </div>-->
     
     <jsp:include page="../layout/footer.jsp" />
     

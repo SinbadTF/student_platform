@@ -166,6 +166,14 @@
                             <ul class="list-unstyled">
                                 <li class="mb-2">
                                     <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                   100 points will be earned for joining. 
+                                </li>
+                                <li class="mb-2">
+                                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                  100 points will be reduced once you quit the club.
+                                </li>
+                                <li class="mb-2">
+                                    <i class="bi bi-check-circle-fill text-success me-2"></i>
                                     Respect all club members and maintain a positive environment
                                 </li>
                                 <li class="mb-2">
@@ -180,10 +188,7 @@
                                     <i class="bi bi-check-circle-fill text-success me-2"></i>
                                     Contribute constructively to club discussions and activities
                                 </li>
-                                <li class="mb-2">
-                                    <i class="bi bi-check-circle-fill text-success me-2"></i>
-                                    Maintain academic integrity and ethical behavior
-                                </li>
+                              
                             </ul>
                         </div>
                         <div class="col-md-6">

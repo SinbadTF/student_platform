@@ -697,6 +697,34 @@ public class WebController {
         return "admin/activitymanagement";
     }
 
+    @GetMapping("/admin/activities/create")
+    public String createActivityForm(Model model, HttpSession session) {
+        Admin admin = (Admin) session.getAttribute("user");
+        if (admin == null) {
+            return "redirect:/login";
+        }
+        
+        model.addAttribute("activity", new Activity());
+        model.addAttribute("clubs", clubService.getAllClubs());
+        return "admin/activity-form";
+    }
+
+    @GetMapping("/admin/activities/edit/{id}")
+    public String editActivityForm(@PathVariable Long id, Model model, HttpSession session) {
+        Admin admin = (Admin) session.getAttribute("user");
+        if (admin == null) {
+            return "redirect:/login";
+        }
+        
+        return activityService.getActivityById(id)
+                .map(activity -> {
+                    model.addAttribute("activity", activity);
+                    model.addAttribute("clubs", clubService.getAllClubs());
+                    return "admin/activity-form";
+                })
+                .orElse("redirect:/admin/activitymanagement");
+    }
+
     @PostMapping("/admin/activities/create")
     public String createActivity(@Valid @ModelAttribute("activity") Activity activity, BindingResult result, 
                                HttpSession session, RedirectAttributes redirectAttributes) {
@@ -707,13 +735,13 @@ public class WebController {
         
         if (result.hasErrors()) {
             redirectAttributes.addFlashAttribute("error", "Please check the form data");
-            return "redirect:/admin/activitymanagement";
+            return "redirect:/admin/activities/create";
         }
         
         try {
             // Set the club if clubId is provided
             if (activity.getClub() != null && activity.getClub().getId() != null) {
-                Optional<Club> club = activityService.getClubById(activity.getClub().getId());
+                Optional<Club> club = clubService.getClubById(activity.getClub().getId());
                 if (club.isPresent()) {
                     activity.setClub(club.get());
                 }
@@ -728,6 +756,54 @@ public class WebController {
         return "redirect:/admin/activitymanagement";
     }
 
+    @PostMapping("/admin/activities/update")
+    public String updateActivity(@Valid @ModelAttribute("activity") Activity activity, BindingResult result, 
+                               HttpSession session, RedirectAttributes redirectAttributes) {
+        Admin admin = (Admin) session.getAttribute("user");
+        if (admin == null) {
+            return "redirect:/login";
+        }
+        
+        if (result.hasErrors()) {
+            redirectAttributes.addFlashAttribute("error", "Please check the form data");
+            return "redirect:/admin/activities/edit/" + activity.getId();
+        }
+        
+        try {
+            // Set the club if clubId is provided
+            if (activity.getClub() != null && activity.getClub().getId() != null) {
+                Optional<Club> club = clubService.getClubById(activity.getClub().getId());
+                if (club.isPresent()) {
+                    activity.setClub(club.get());
+                }
+            }
+            
+            activityService.updateActivity(activity);
+            redirectAttributes.addFlashAttribute("success", "Activity updated successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Failed to update activity: " + e.getMessage());
+        }
+        
+        return "redirect:/admin/activitymanagement";
+    }
+
+    @GetMapping("/admin/activities/delete/{id}")
+    public String deleteActivity(@PathVariable Long id, HttpSession session, RedirectAttributes redirectAttributes) {
+        Admin admin = (Admin) session.getAttribute("user");
+        if (admin == null) {
+            return "redirect:/login";
+        }
+        
+        try {
+            activityService.deleteActivity(id);
+            redirectAttributes.addFlashAttribute("success", "Activity deleted successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Failed to delete activity: " + e.getMessage());
+        }
+        
+        return "redirect:/admin/activitymanagement";
+    }
+
     @GetMapping("/admin/studentmonitoring")
     public String adminStudentMonitoring(Model model, HttpSession session) {
         Admin admin = (Admin) session.getAttribute("user");
@@ -735,7 +811,35 @@ public class WebController {
             return "redirect:/login";
         }
         
-        model.addAttribute("clubs", clubService.getAllClubs());
+        // Clubs list
+        List<Club> clubs = clubService.getAllClubs();
+        model.addAttribute("clubs", clubs);
+
+        // Collect all active memberships across clubs
+        List<ClubMembership> activeMemberships = new ArrayList<>();
+        for (Club club : clubs) {
+            try {
+                activeMemberships.addAll(clubService.getActiveMembershipsByClub(club));
+            } catch (Exception e) {
+                System.err.println("Error loading active memberships for club " + club.getId() + ": " + e.getMessage());
+            }
+        }
+        model.addAttribute("activeMemberships", activeMemberships);
+
+        // Pre-compute activity participation counts per student
+        Map<Long, Integer> activityCounts = new HashMap<>();
+        for (ClubMembership membership : activeMemberships) {
+            try {
+                Student mStudent = membership.getStudent();
+                if (mStudent != null) {
+                    int count = activityParticipationService.getParticipationsByStudent(mStudent).size();
+                    activityCounts.put(mStudent.getId(), count);
+                }
+            } catch (Exception e) {
+                // continue on errors
+            }
+        }
+        model.addAttribute("activityCounts", activityCounts);
         return "admin/studentmonitoring";
     }
 
@@ -880,9 +984,21 @@ public class WebController {
         if (student == null) {
             return "redirect:/login";
         }
-        model.addAttribute("clubs", clubService.getAllClubs());
+        List<Club> clubs = clubService.getAllClubs();
+        model.addAttribute("clubs", clubs);
         model.addAttribute("student", student);
         model.addAttribute("clubService", clubService);
+
+        // Build membership status map for UI and determine if student reached membership limit
+        Map<Long, Boolean> membershipStatus = new HashMap<>();
+        int activeMembershipCount = clubService.getActiveMembershipsByStudent(student).size();
+        boolean hasReachedLimit = activeMembershipCount >= 2;
+        for (Club club : clubs) {
+            boolean isMember = clubService.isStudentMemberOfClub(student, club);
+            membershipStatus.put(club.getId(), isMember);
+        }
+        model.addAttribute("membershipStatus", membershipStatus);
+        model.addAttribute("hasReachedLimit", hasReachedLimit);
         return "students/clubview";
     }
     
@@ -927,7 +1043,7 @@ public class WebController {
                 Club club = clubOpt.get();
                 System.out.println("Club found: " + club.getName() + " (ID: " + club.getId() + ")");
                 
-                // Check if student is already a member
+                // Check if student is already a member of this club
                 boolean isAlreadyMember = clubService.isStudentMemberOfClub(student, club);
                 System.out.println("Is already member: " + isAlreadyMember);
                 
@@ -936,11 +1052,27 @@ public class WebController {
                     redirectAttributes.addFlashAttribute("error", "You are already a member of this club!");
                     return "redirect:/students/clubs";
                 }
+
+                // Enforce maximum of two active club memberships per student
+                int activeMembershipCount = clubService.getActiveMembershipsByStudent(student).size();
+                if (activeMembershipCount >= 2) {
+                    System.out.println("Student reached max club limit (2), blocking join");
+                    redirectAttributes.addFlashAttribute("error", "You can join at most 2 clubs.");
+                    return "redirect:/students/clubs";
+                }
                 
                 // Join the club
                 System.out.println("Joining club...");
                 ClubMembership membership = clubService.joinClub(student, club);
                 System.out.println("Membership created with ID: " + membership.getId());
+                
+                // Award points for joining
+                try {
+                    studentService.addPointsToStudent(student.getId(), 100, "Joined club: " + club.getName());
+                    redirectAttributes.addFlashAttribute("success", "Joined " + club.getName() + " and earned 100 points!");
+                } catch (Exception pointsEx) {
+                    System.err.println("Error awarding points on join: " + pointsEx.getMessage());
+                }
                 
                 // Redirect to member page
                 String redirectUrl = "redirect:/students/clubs/member/" + membership.getId();
@@ -987,11 +1119,27 @@ public class WebController {
                     redirectAttributes.addFlashAttribute("error", "You are not a member of this club!");
                     return "redirect:/students/clubs";
                 }
+
+                // Prevent leaving if student has 0 points (no points to reduce)
+                Integer currentPoints = studentService.getStudentPoints(student.getId());
+                if (currentPoints != null && currentPoints == 0) {
+                    System.out.println("Student has 0 points; blocking leave action");
+                    redirectAttributes.addFlashAttribute("error", "You cannot leave the club. Your current points must be > 0.");
+                    return "redirect:/students/clubs";
+                }
                 
                 // Quit the club
                 System.out.println("Quitting club...");
                 clubService.quitClub(student, club);
                 System.out.println("Student successfully quit the club");
+                
+                // Subtract fixed 100 points for leaving
+                try {
+                    studentService.addPointsToStudent(student.getId(), -100, "Left club: " + club.getName());
+                    redirectAttributes.addFlashAttribute("success", "Left " + club.getName() + " and 100 points were deducted.");
+                } catch (Exception pointsEx) {
+                    System.err.println("Error deducting points on leave: " + pointsEx.getMessage());
+                }
                 
                 redirectAttributes.addFlashAttribute("success", "You have successfully quit " + club.getName());
                 return "redirect:/students/clubs";

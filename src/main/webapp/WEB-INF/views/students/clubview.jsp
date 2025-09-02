@@ -6,6 +6,19 @@
 
 <!-- Student Clubs View -->
 <div class="container py-4">
+    <!-- Flash Messages -->
+    <c:if test="${not empty success}">
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle me-2"></i>${success}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </c:if>
+    <c:if test="${not empty error}">
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>${error}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </c:if>
     <!-- Header -->
     <div class="row mb-4">
         <div class="col-12">
@@ -89,16 +102,29 @@
                         </c:if>
                         
                         <div class="d-flex justify-content-between align-items-center">
-                            <a href="/students/clubs/detail/${club.id}" class="btn btn-outline-primary btn-sm">
+                            <a href="/students/clubs/detail/${club.id}" class="btn btn-outline-primary btn-sm fancy-btn">
                                 <i class="bi bi-eye me-1"></i>View Details
                             </a>
                             <c:choose>
                                 <c:when test="${membershipStatus[club.id] == true}">
-                                    <button class="btn btn-secondary btn-sm" disabled>
-                                        <i class="bi bi-check-circle me-1"></i>Already Joined
+                                    <form action="/students/clubs/quit/${club.id}" method="post" style="display:inline;">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm fancy-btn">
+                                            <i class="bi bi-dash-circle me-1"></i>Leave Club
+                                        </button>
+                                    </form>
+                                </c:when>
+                                <c:when test="${hasReachedLimit}">
+                                    <button type="button" class="btn btn-secondary btn-sm fancy-btn" disabled>
+                                        <i class="bi bi-lock me-1"></i>Join Limit Reached
                                     </button>
                                 </c:when>
-                           
+                                <c:otherwise>
+                                    <form action="/students/clubs/join/${club.id}" method="post" style="display:inline;">
+                                        <button type="submit" class="btn btn-success btn-sm fancy-btn">
+                                            <i class="bi bi-plus-circle me-1"></i>Join Club
+                                        </button>
+                                    </form>
+                                </c:otherwise>
                             </c:choose>
                         </div>
                     </div>
@@ -185,6 +211,34 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <style>
+.fancy-btn {
+    border-radius: 999px;
+    padding: 0.35rem 0.9rem;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    transition: all 0.2s ease-in-out;
+}
+
+.fancy-btn i {
+    transition: transform 0.2s ease-in-out;
+}
+
+.fancy-btn:hover i {
+    transform: translateX(2px);
+}
+
+.btn-success.fancy-btn {
+    box-shadow: 0 8px 20px rgba(25, 135, 84, 0.15);
+}
+
+.btn-outline-danger.fancy-btn {
+    box-shadow: 0 8px 20px rgba(220, 53, 69, 0.08);
+}
+
+.btn-outline-primary.fancy-btn {
+    box-shadow: 0 8px 20px rgba(13, 110, 253, 0.08);
+}
+
 .hover-lift:hover {
     transform: translateY(-5px);
     transition: transform 0.3s ease;
