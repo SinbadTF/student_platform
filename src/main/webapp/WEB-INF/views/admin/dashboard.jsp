@@ -92,6 +92,18 @@
                     </div>
                 </div>
             </div>
+           <div class="col-md-3">
+                <div class="card border-0 shadow-sm rounded-3 h-100">
+                    <div class="card-body text-center">
+                        <div class="bg-light rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                            <i class="bi bi-circle-square text-info" style="font-size: 2rem;"></i>
+                        </div>
+                        <h5 class="card-title">Spinwheels</h5>
+                        <h2 class="display-6 fw-bold text-info">${spinWheelCount != null ? spinWheelCount : 0}</h2>
+                        <a href="/admin/spinwheels" class="btn btn-sm btn-outline-info mt-2">Manage</a>
+                    </div>
+                </div>
+            </div> 
             <div class="col-md-3">
                 <div class="card border-0 shadow-sm rounded-3 h-100">
                     <div class="card-body text-center">
@@ -165,6 +177,17 @@
                                         <h5 class="mt-3">Manage Clubs</h5>
                                         <p>View, add, edit, or delete club records</p>
                                         <a href="${pageContext.request.contextPath}/admin/clubs" class="btn btn-primary">Club Management</a>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <div class="card h-100 border-0 shadow-sm">
+                                    <div class="card-body text-center">
+                                        <i class="bi bi-arrow-repeat text-warning" style="font-size: 2rem;"></i>
+                                        <h5 class="mt-3">Manage Spinwheels</h5>
+                                        <p>Create and manage spinwheels for student engagement</p>
+                                        <a href="/admin/spinwheels" class="btn btn-warning text-white">Spinwheel Management</a>
                                     </div>
                                 </div>
                             </div>

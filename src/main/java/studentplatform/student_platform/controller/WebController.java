@@ -30,44 +30,62 @@ import studentplatform.student_platform.model.Reward;
 import studentplatform.student_platform.model.RewardExchange;
 import studentplatform.student_platform.model.Staff;
 import studentplatform.student_platform.model.Student;
+import studentplatform.student_platform.model.Club;
+import studentplatform.student_platform.model.Activity;
+import studentplatform.student_platform.model.Event;
 
 import studentplatform.student_platform.service.AdminService;
 import studentplatform.student_platform.service.RewardService;
 import studentplatform.student_platform.service.RewardExchangeService;
 import studentplatform.student_platform.service.StaffService;
 import studentplatform.student_platform.service.StudentService;
+import studentplatform.student_platform.service.ClubService;
+import studentplatform.student_platform.service.ActivityService;
 
 import studentplatform.student_platform.model.Admin;
-import studentplatform.student_platform.model.Club;
-import studentplatform.student_platform.model.Event;
-import studentplatform.student_platform.model.Activity;
+
 
 import studentplatform.student_platform.model.EventParticipation;
 
 import studentplatform.student_platform.service.EventService;
-import studentplatform.student_platform.service.ClubService;
-import studentplatform.student_platform.service.ActivityService;
 
-
+// Add spinwheel imports
+import studentplatform.student_platform.model.SpinWheel;
+import studentplatform.student_platform.model.SpinWheelItem;
+import studentplatform.student_platform.model.SpinWheelHistory;
+import studentplatform.student_platform.service.SpinWheelService;
+import studentplatform.student_platform.service.SpinWheelItemService;
+import studentplatform.student_platform.service.SpinWheelHistoryService;
+import studentplatform.student_platform.repository.SpinWheelHistoryRepository;
 
 @Controller
 public class WebController {
-
+    
     private final StudentService studentService;
     private final StaffService staffService;
     private final RewardService rewardService;
     private final RewardExchangeService rewardExchangeService;
     private final AdminService adminService;
-
     private final EventService eventService;
     private final ClubService clubService;
     private final ActivityService activityService;
+    private final SpinWheelService spinWheelService;
+    private final SpinWheelItemService spinWheelItemService;
+    private final SpinWheelHistoryService spinWheelHistoryService;
+    private final SpinWheelHistoryRepository spinWheelHistoryRepository;
     
     @Autowired
     public WebController(StudentService studentService, StaffService staffService, 
                          RewardService rewardService, RewardExchangeService rewardExchangeService,
                          AdminService adminService,
-                         EventService eventService, ClubService clubService, ActivityService activityService) {
+                         EventService eventService,
+                         ClubService clubService,
+                         ActivityService activityService,
+                         SpinWheelService spinWheelService,
+                         SpinWheelItemService spinWheelItemService,
+                         SpinWheelHistoryService spinWheelHistoryService,
+                         SpinWheelHistoryRepository spinWheelHistoryRepository) {
+        
         this.studentService = studentService;
         this.staffService = staffService;
         this.rewardService = rewardService;
@@ -76,25 +94,12 @@ public class WebController {
         this.eventService = eventService;
         this.clubService = clubService;
         this.activityService = activityService;
+        this.spinWheelService = spinWheelService;
+        this.spinWheelItemService = spinWheelItemService;
+        this.spinWheelHistoryService = spinWheelHistoryService;
+        this.spinWheelHistoryRepository = spinWheelHistoryRepository;
     }
 
-    // Update the home method
-    @GetMapping("/")
-    public String home(Model model, HttpSession session) {
-        // Check if user is logged in
-        if (session.getAttribute("userId") == null) {
-            return "redirect:/login";
-        }
-        
-        // Add counts for dashboard statistics
-        model.addAttribute("studentCount", studentService.getAllStudents().size());
-        model.addAttribute("staffCount", staffService.getAllStaff().size());
-        model.addAttribute("rewardCount", rewardService.getAllRewards().size());
-        model.addAttribute("eventCount", eventService.getAllEvents().size());
-   
-        return "login";
-    }
-    
     // Student Management
     @GetMapping("/students")
     public String students(Model model, @RequestParam(required = false) String keyword) {
@@ -1036,6 +1041,14 @@ public class WebController {
                     // Add rewards count
                     model.addAttribute("rewardsCount", availableRewards.size());
                     
+                    // Add spinwheel data
+                    List<SpinWheel> activeSpinWheels = spinWheelService.getActiveSpinWheels();
+                    model.addAttribute("activeSpinWheels", activeSpinWheels);
+                    
+                    // Check if student has spun today
+                    boolean hasSpunToday = spinWheelHistoryService.hasStudentSpunToday(student);
+                    model.addAttribute("hasSpunToday", hasSpunToday);
+                    
                     return "students/dashboard";
                 })
                 .orElse("redirect:/students");
@@ -1129,5 +1142,273 @@ public class WebController {
     model.addAttribute("student", student);
     return "students/profile";
 }
+
+    // ==================== SPINWHEEL ENDPOINTS ====================
+    
+    // Admin Spinwheel Management
+    @GetMapping("/admin/spinwheels")
+    public String adminSpinwheels(Model model, HttpSession session) {
+        Admin admin = (Admin) session.getAttribute("user");
+        if (admin == null) {
+            return "redirect:/login";
+        }
+        
+        List<SpinWheel> spinWheels = spinWheelService.getAllSpinWheels();
+        model.addAttribute("spinWheels", spinWheels);
+        return "admin/spinwheel";
+    }
+    
+    @GetMapping("/admin/spinwheels/create")
+    public String createSpinwheelForm(Model model, HttpSession session) {
+        Admin admin = (Admin) session.getAttribute("user");
+        if (admin == null) {
+            return "redirect:/login";
+        }
+        
+        SpinWheel spinWheel = new SpinWheel();
+        model.addAttribute("spinWheel", spinWheel);
+        return "admin/spinwheel-form";
+    }
+    
+    @GetMapping("/admin/spinwheels/edit/{id}")
+    public String editSpinwheelForm(@PathVariable Long id, Model model, HttpSession session) {
+        Admin admin = (Admin) session.getAttribute("user");
+        if (admin == null) {
+            return "redirect:/login";
+        }
+        
+        Optional<SpinWheel> spinWheelOpt = spinWheelService.getSpinWheelById(id);
+        if (spinWheelOpt.isPresent()) {
+            SpinWheel spinWheel = spinWheelOpt.get();
+            List<SpinWheelItem> items = spinWheelItemService.getItemsBySpinWheel(spinWheel);
+            model.addAttribute("spinWheel", spinWheel);
+            model.addAttribute("items", items);
+            return "admin/spinwheel-form";
+        }
+        return "redirect:/admin/spinwheels";
+    }
+    
+    @PostMapping("/admin/spinwheels/save")
+    public String saveSpinwheel(@ModelAttribute SpinWheel spinWheel, HttpSession session, RedirectAttributes redirectAttributes) {
+        Admin admin = (Admin) session.getAttribute("user");
+        if (admin == null) {
+            return "redirect:/login";
+        }
+        
+        try {
+            spinWheel.setCreatedBy(admin);
+            spinWheelService.saveSpinWheel(spinWheel);
+            redirectAttributes.addFlashAttribute("success", "Spinwheel saved successfully!");
+            return "redirect:/admin/spinwheels";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error saving spinwheel: " + e.getMessage());
+            return "redirect:/admin/spinwheels";
+        }
+    }
+    
+    @PostMapping("/admin/spinwheels/activate/{id}")
+    public String activateSpinwheel(@PathVariable Long id, HttpSession session, RedirectAttributes redirectAttributes) {
+        Admin admin = (Admin) session.getAttribute("user");
+        if (admin == null) {
+            return "redirect:/login";
+        }
+        
+        try {
+            spinWheelService.activateSpinWheel(id);
+            redirectAttributes.addFlashAttribute("success", "Spinwheel activated successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error activating spinwheel: " + e.getMessage());
+        }
+        return "redirect:/admin/spinwheels";
+    }
+    
+    @PostMapping("/admin/spinwheels/deactivate/{id}")
+    public String deactivateSpinwheel(@PathVariable Long id, HttpSession session, RedirectAttributes redirectAttributes) {
+        Admin admin = (Admin) session.getAttribute("user");
+        if (admin == null) {
+            return "redirect:/login";
+        }
+        
+        try {
+            spinWheelService.deactivateSpinWheel(id);
+            redirectAttributes.addFlashAttribute("success", "Spinwheel deactivated successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error deactivating spinwheel: " + e.getMessage());
+        }
+        return "redirect:/admin/spinwheels";
+    }
+    
+    @PostMapping("/admin/spinwheels/delete/{id}")
+    public String deleteSpinwheel(@PathVariable Long id, HttpSession session, RedirectAttributes redirectAttributes) {
+        Admin admin = (Admin) session.getAttribute("user");
+        if (admin == null) {
+            return "redirect:/login";
+        }
+        
+        try {
+            spinWheelService.deleteSpinWheel(id);
+            redirectAttributes.addFlashAttribute("success", "Spinwheel deleted successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error deleting spinwheel: " + e.getMessage());
+        }
+        return "redirect:/admin/spinwheels";
+    }
+    
+    // Spinwheel Item Management
+    @GetMapping("/admin/spinwheels/{spinWheelId}/items/create")
+    public String createSpinwheelItemForm(@PathVariable Long spinWheelId, Model model, HttpSession session) {
+        Admin admin = (Admin) session.getAttribute("user");
+        if (admin == null) {
+            return "redirect:/login";
+        }
+        
+        Optional<SpinWheel> spinWheelOpt = spinWheelService.getSpinWheelById(spinWheelId);
+        if (spinWheelOpt.isPresent()) {
+            SpinWheelItem item = new SpinWheelItem();
+            item.setSpinWheel(spinWheelOpt.get());
+            model.addAttribute("item", item);
+            model.addAttribute("spinWheel", spinWheelOpt.get());
+            return "admin/spinwheel-item-form";
+        }
+        return "redirect:/admin/spinwheels";
+    }
+    
+    @PostMapping("/admin/spinwheels/items/save")
+    public String saveSpinwheelItem(@ModelAttribute SpinWheelItem item, HttpSession session, RedirectAttributes redirectAttributes) {
+        Admin admin = (Admin) session.getAttribute("user");
+        if (admin == null) {
+            return "redirect:/login";
+        }
+        
+        try {
+            spinWheelItemService.saveSpinWheelItem(item);
+            redirectAttributes.addFlashAttribute("success", "Spinwheel item saved successfully!");
+            return "redirect:/admin/spinwheels/edit/" + item.getSpinWheel().getId();
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error saving item: " + e.getMessage());
+            return "redirect:/admin/spinwheels";
+        }
+    }
+    
+    @PostMapping("/admin/spinwheels/items/delete/{id}")
+    public String deleteSpinwheelItem(@PathVariable Long id, HttpSession session, RedirectAttributes redirectAttributes) {
+        Admin admin = (Admin) session.getAttribute("user");
+        if (admin == null) {
+            return "redirect:/login";
+        }
+        
+        try {
+            Optional<SpinWheelItem> itemOpt = spinWheelItemService.getSpinWheelItemById(id);
+            if (itemOpt.isPresent()) {
+                Long spinWheelId = itemOpt.get().getSpinWheel().getId();
+                spinWheelItemService.deleteSpinWheelItem(id);
+                redirectAttributes.addFlashAttribute("success", "Item deleted successfully!");
+                return "redirect:/admin/spinwheels/edit/" + spinWheelId;
+            }
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error deleting item: " + e.getMessage());
+        }
+        return "redirect:/admin/spinwheels";
+    }
+    
+    // Student Spinwheel Endpoints
+    @GetMapping("/students/spinwheel")
+    public String studentSpinwheelList(Model model, HttpSession session) {
+        Student student = (Student) session.getAttribute("user");
+        if (student == null) {
+            return "redirect:/login";
+        }
+        
+        List<SpinWheel> activeSpinWheels = spinWheelService.getActiveSpinWheels();
+        model.addAttribute("spinWheels", activeSpinWheels);
+        model.addAttribute("student", student);
+        return "students/spinwheel-list";
+    }
+    
+    @GetMapping("/students/spinwheel/{id}")
+    public String studentSpinwheel(@PathVariable Long id, Model model, HttpSession session) {
+        Student student = (Student) session.getAttribute("user");
+        if (student == null) {
+            return "redirect:/login";
+        }
+        
+        Optional<SpinWheel> spinWheelOpt = spinWheelService.getSpinWheelById(id);
+        if (spinWheelOpt.isPresent()) {
+            SpinWheel spinWheel = spinWheelOpt.get();
+            List<SpinWheelItem> items = spinWheelItemService.getItemsBySpinWheel(spinWheel);
+            
+            // Check if student has already spun today
+            boolean hasSpunToday = spinWheelHistoryService.hasStudentSpunToday(student);
+            
+            model.addAttribute("spinWheel", spinWheel);
+            model.addAttribute("items", items);
+            model.addAttribute("student", student);
+            model.addAttribute("hasSpunToday", hasSpunToday);
+            return "students/spinwheel-platform";
+        }
+        return "redirect:/students/spinwheel";
+    }
+    
+    @PostMapping("/students/spinwheel/{id}/spin")
+    public String spinWheel(@PathVariable Long id, HttpSession session, RedirectAttributes redirectAttributes) {
+        Student student = (Student) session.getAttribute("user");
+        if (student == null) {
+            return "redirect:/login";
+        }
+        
+        try {
+            Optional<SpinWheel> spinWheelOpt = spinWheelService.getSpinWheelById(id);
+            if (spinWheelOpt.isPresent()) {
+                SpinWheel spinWheel = spinWheelOpt.get();
+                
+                // Check if student has already spun today
+                if (spinWheelHistoryService.hasStudentSpunToday(student)) {
+                    redirectAttributes.addFlashAttribute("error", "You have already spun the wheel today. Come back tomorrow!");
+                    return "redirect:/students/spinwheel/" + id;
+                }
+                
+                // Get random item based on probability weights
+                List<SpinWheelItem> items = spinWheelItemService.getItemsBySpinWheel(spinWheel);
+                if (items.isEmpty()) {
+                    redirectAttributes.addFlashAttribute("error", "No items available on this spinwheel.");
+                    return "redirect:/students/spinwheel/" + id;
+                }
+                
+                SpinWheelItem selectedItem = selectRandomItem(items);
+                
+                // Record the spin and award points
+                SpinWheelHistory history = spinWheelHistoryService.recordSpin(student, spinWheel, selectedItem);
+                
+                // Update student in session
+                Student updatedStudent = studentService.getStudentById(student.getId()).orElse(student);
+                session.setAttribute("user", updatedStudent);
+                
+                redirectAttributes.addFlashAttribute("success", 
+                    "Congratulations! You won " + selectedItem.getPointValue() + " points with " + selectedItem.getLabel() + "!");
+                redirectAttributes.addFlashAttribute("spunItem", selectedItem);
+                
+                return "redirect:/students/spinwheel/" + id;
+            }
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error spinning wheel: " + e.getMessage());
+        }
+        
+        return "redirect:/students/spinwheel";
+    }
+    
+    // Helper method to select random item based on probability weights
+    private SpinWheelItem selectRandomItem(List<SpinWheelItem> items) {
+        int totalWeight = items.stream().mapToInt(SpinWheelItem::getProbabilityWeight).sum();
+        int random = (int) (Math.random() * totalWeight);
+        
+        for (SpinWheelItem item : items) {
+            random -= item.getProbabilityWeight();
+            if (random < 0) {
+                return item;
+            }
+        }
+        
+        return items.get(0); // Fallback to first item
+    }
 
 }
