@@ -1244,8 +1244,13 @@ public class WebController {
     }
     
     @GetMapping("/events")
-    public String studentEvents(Model model) {
+    public String studentEvents(Model model, HttpSession session) {
         try {
+            Student student = (Student) session.getAttribute("user");
+            if (student == null) {
+                return "redirect:/login";
+            }
+            
             List<Event> events = eventService.getAllEvents();
             LocalDateTime now = LocalDateTime.now();
             
@@ -1271,6 +1276,7 @@ public class WebController {
                 }
             });
             
+            model.addAttribute("student", student);
             model.addAttribute("events", events);
             model.addAttribute("eventTimeStatus", eventTimeStatus);
             model.addAttribute("currentTime", now);
@@ -1299,6 +1305,7 @@ public class WebController {
                     .map(event -> {
                         try {
                             model.addAttribute("event", event);
+                            model.addAttribute("student", student);
                             
                             // Check time window and registration state with proper null checks
                             LocalDateTime now = LocalDateTime.now();

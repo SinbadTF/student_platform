@@ -8,7 +8,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-    <jsp:include page="../layout/header.jsp" />
+    <jsp:include page="../layout/student_header.jsp" />
     
     <div class="container mt-4">
         <div class="d-flex justify-content-between mb-3">

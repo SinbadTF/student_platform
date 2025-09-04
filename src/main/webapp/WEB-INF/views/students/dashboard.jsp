@@ -1,6 +1,7 @@
-<%@ include file="../layout/header.jsp" %>
+<%@ include file="../layout/student_header.jsp" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+
 
 <!-- Modern Student Dashboard -->
 <div class="container py-4">
