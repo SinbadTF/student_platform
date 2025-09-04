@@ -17,7 +17,7 @@
     
     <div class="d-flex">
         <!-- Left Sidebar -->
-        <div class="bg-dark text-white" style="width: 250px; min-height: 100vh;">
+        <div class="bg-dark text-white position-fixed" style="width: 300px; min-height: 100vh; left: 0; top: 0; z-index: 1000;">
             <div class="p-3">
                 <h5 class="text-white mb-4">
                     <i class="bi bi-trophy me-2"></i>ClubPoints Admin
@@ -26,7 +26,7 @@
                 
                 <nav class="nav flex-column">
                     <a class="nav-link text-white-50 mb-2" href="${pageContext.request.contextPath}/admin/clubs">
-                        <i class="bi bi-people me-2"></i>Club Dashboard
+                        <i class="bi bi-trophy me-2"></i>Club Dashboard
                     </a>
                     <a class="nav-link text-white-50 mb-2" href="${pageContext.request.contextPath}/admin/clubmanagement">
                         <i class="bi bi-gear me-2"></i>Club Management
@@ -41,20 +41,20 @@
             </div>
         </div>
 
-        <!-- Main Content -->
-        <div class="flex-grow-1 p-4">
-            <div class="container-fluid">
+       <!-- Main Content -->
+       <div class="flex-grow-1" style="margin-left: 300px; padding-left: 20px;">
+        <div class="container-fluid py-4">
                 <!-- Header -->
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h2 class="mb-0">Student Monitoring</h2>
+                    <h2 class="mb-0"><i class="bi bi-mortarboard text-primary me-2"></i>Student Monitoring</h2>
                     <div class="d-flex align-items-center">
                         <div class="input-group me-3" style="width: 300px;">
                             <span class="input-group-text">
-                                <i class="bi bi-search"></i>
+                              
                             </span>
-                            <input type="text" class="form-control" placeholder="Search...">
+             
                         </div>
-                        <div class="dropdown">
+                       <!---- <div class="dropdown">
                             <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
                                 <i class="bi bi-person-circle"></i>
                             </button>
@@ -64,7 +64,7 @@
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="#">Logout</a></li>
                             </ul>
-                        </div>
+                        </div>-->
                     </div>
                 </div>
 
@@ -73,22 +73,28 @@
                     <div class="card-body">
                         <h5 class="card-title mb-4">Student Monitoring</h5>
                         
-                        <!-- Filter Section -->
-                        <div class="row mb-4">
-                            <div class="col-md-4">
-                                <label for="clubFilter" class="form-label">Select Club</label>
-                                <select class="form-select" id="clubFilter">
-                                    <option value="">All Clubs</option>
-                                    <c:forEach var="club" items="${clubs}">
-                                        <option value="${club.name}">${club.name}</option>
-                                    </c:forEach>
-                                </select>
-                            </div>
-                            <div class="col-md-4">
-                                <label for="studentSearch" class="form-label">Search Student</label>
-                                <input type="text" class="form-control" id="studentSearch" placeholder="Search by name or ID...">
-                            </div>
-                        </div>
+                       <!-- Filter Section -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <label for="clubFilter" class="form-label">Select Club</label>
+        <select class="form-select" id="clubFilter">
+            <option value="">All Clubs</option>
+            <c:forEach var="club" items="${clubs}">
+                <option value="${club.name}">${club.name}</option>
+            </c:forEach>
+        </select>
+    </div>
+    <div class="col-md-4">
+        <label for="studentSearchFilter" class="form-label">Search Student</label>
+        <input type="text" class="form-control" id="studentSearchFilter" placeholder="Search by name or ID...">
+    </div>
+    <div class="col-md-4 d-flex align-items-end justify-content-end">
+        <a href="${pageContext.request.contextPath}/admin/activity-participations" class="btn btn-info">
+            <i class="bi bi-check-circle"></i>Activity Approval
+        </a>
+    </div>
+</div>
+
 
                         <!-- Students Table -->
                         <div class="table-responsive">
@@ -159,12 +165,12 @@
     // Filter functionality
     document.addEventListener('DOMContentLoaded', function() {
         const clubFilter = document.getElementById('clubFilter');
-        const studentSearch = document.getElementById('studentSearch');
+        const studentSearchFilter = document.getElementById('studentSearchFilter');
         const tableRows = document.querySelectorAll('tbody tr');
         
         function filterTable() {
             const selectedClub = clubFilter.value.toLowerCase();
-            const searchTerm = studentSearch.value.toLowerCase();
+            const searchTerm = studentSearchFilter.value.toLowerCase();
             
             tableRows.forEach(row => {
                 if (row.cells.length < 5) return; // Skip empty state row
@@ -188,7 +194,7 @@
         
         // Add event listeners
         clubFilter.addEventListener('change', filterTable);
-        studentSearch.addEventListener('input', filterTable);
+        studentSearchFilter.addEventListener('input', filterTable);
     });
     </script>
 </body>

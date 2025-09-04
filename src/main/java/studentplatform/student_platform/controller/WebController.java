@@ -1,6 +1,10 @@
 package studentplatform.student_platform.controller;
 
 import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.Duration;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -581,6 +585,8 @@ public class WebController {
         }
         
         model.addAttribute("clubs", clubService.getAllClubs());
+        // Expose service so JSP can compute active member counts per club
+        model.addAttribute("clubService", clubService);
         return "admin/clubs";
     }
 
@@ -969,6 +975,54 @@ public class WebController {
         return "redirect:/admin/event-participations";
     }
     
+    // Activity participations moderation (Admin)
+    @GetMapping("/admin/activity-participations")
+    public String adminActivityParticipations(Model model, HttpSession session) {
+        Admin admin = (Admin) session.getAttribute("user");
+        if (admin == null) {
+            return "redirect:/login";
+        }
+        try {
+            List<ActivityParticipation> pending = activityParticipationService.getParticipationsByStatus(ActivityParticipation.ParticipationStatus.PENDING);
+            List<ActivityParticipation> approved = activityParticipationService.getParticipationsByStatus(ActivityParticipation.ParticipationStatus.APPROVED);
+            model.addAttribute("pendingParticipations", pending);
+            model.addAttribute("approvedParticipations", approved);
+        } catch (Exception e) {
+            model.addAttribute("pendingParticipations", new ArrayList<>());
+            model.addAttribute("approvedParticipations", new ArrayList<>());
+        }
+        return "admin/activity-participations";
+    }
+
+    @PostMapping("/admin/approve-activity-participation/{id}")
+    public String approveActivityParticipation(@PathVariable Long id, HttpSession session, RedirectAttributes redirectAttributes) {
+        Admin admin = (Admin) session.getAttribute("user");
+        if (admin == null) {
+            return "redirect:/login";
+        }
+        try {
+            activityParticipationService.approveParticipation(id, admin);
+            redirectAttributes.addFlashAttribute("success", "Participation approved and points awarded.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/admin/activity-participations";
+    }
+
+    @PostMapping("/admin/reject-activity-participation/{id}")
+    public String rejectActivityParticipation(@PathVariable Long id, HttpSession session, RedirectAttributes redirectAttributes) {
+        Admin admin = (Admin) session.getAttribute("user");
+        if (admin == null) {
+            return "redirect:/login";
+        }
+        try {
+            activityParticipationService.rejectParticipation(id, admin);
+            redirectAttributes.addFlashAttribute("success", "Participation rejected.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/admin/activity-participations";
+    }
 
 
     // Student Club and Event Interface
@@ -1550,23 +1604,98 @@ public class WebController {
         if (student == null) {
             return "redirect:/login";
         }
+        // Refresh student from DB to ensure latest points and details
+        Student freshStudent = studentService.getStudentById(student.getId()).orElse(student);
+        session.setAttribute("user", freshStudent);
         
         // Get student's club memberships
-        List<ClubMembership> memberships = clubService.getActiveMembershipsByStudent(student);
+        List<ClubMembership> memberships = clubService.getActiveMembershipsByStudent(freshStudent);
         
         // Get activities for each club the student is a member of
         Map<Club, List<Activity>> clubActivities = new HashMap<>();
+        Map<Long, Map<String, Object>> activityJoinStatus = new HashMap<>();
+        Map<Long, Boolean> joinedActivityMap = new HashMap<>();
+
+        // Build a quick lookup of activities the student has already joined (any status)
+        try {
+            List<ActivityParticipation> myParticipations = activityParticipationService.getParticipationsByStudent(freshStudent);
+            for (ActivityParticipation p : myParticipations) {
+                if (p.getActivity() != null) {
+                    joinedActivityMap.put(p.getActivity().getId(), true);
+                }
+            }
+        } catch (Exception ignored) {
+        }
         for (ClubMembership membership : memberships) {
             Club club = membership.getClub();
             List<Activity> activities = activityService.getActivitiesByClub(club);
             clubActivities.put(club, activities);
+            // Compute join window status per activity
+            for (Activity activity : activities) {
+                Map<String, Object> status = new HashMap<>();
+                boolean canJoin = false;
+                String primaryLabel = "Join Closed";
+                String secondaryLabel = null;
+                try {
+                    // Expecting formats: yyyy-MM-dd and HH:mm
+                    DateTimeFormatter dateFmt = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+                    DateTimeFormatter timeFmt = DateTimeFormatter.ofPattern("HH:mm");
+                    LocalDate date = LocalDate.parse(activity.getClubDate(), dateFmt);
+                    LocalTime start = LocalTime.parse(activity.getStartTime(), timeFmt);
+                    LocalTime end = LocalTime.parse(activity.getEndTime(), timeFmt);
+                    LocalDateTime startWindow = LocalDateTime.of(date, start).minusMinutes(30);
+                    LocalDateTime endJoinDeadline = LocalDateTime.of(date, end).minusMinutes(30);
+                    LocalDateTime now = LocalDateTime.now();
+//Available minutes calculate
+                    if (now.isBefore(startWindow)) {
+                        Duration untilOpen = Duration.between(now, startWindow).plusMinutes(1);
+                        primaryLabel = "Join available in " + formatDurationShort(untilOpen);
+                        canJoin = false;
+                    } else if (!now.isAfter(endJoinDeadline)) {
+                        // In join window
+                        Duration untilClose = Duration.between(now, endJoinDeadline);
+                        primaryLabel = "Join now";
+                        secondaryLabel = "Join closes in " + formatDurationShort(untilClose);
+                        canJoin = true;
+                    } else {
+                        // After deadline
+                        primaryLabel = "Join Disabled";
+                        canJoin = false;
+                    }
+                } catch (Exception e) {
+                    // If parsing fails, keep defaults (closed)
+                    primaryLabel = "Join Didabled";
+                    canJoin = false;
+                }
+
+                status.put("canJoin", canJoin);
+                status.put("primaryLabel", primaryLabel);
+                status.put("secondaryLabel", secondaryLabel);
+                activityJoinStatus.put(activity.getId(), status);
+            }
         }
         
-        model.addAttribute("student", student);
+        model.addAttribute("student", freshStudent);
         model.addAttribute("memberships", memberships);
         model.addAttribute("clubActivities", clubActivities);
+        model.addAttribute("activityJoinStatus", activityJoinStatus);
+        model.addAttribute("joinedActivityMap", joinedActivityMap);
         
         return "students/activities";
+    }
+
+    private String formatDurationShort(Duration duration) {
+        long totalSeconds = duration.getSeconds();
+        if (totalSeconds < 0) totalSeconds = 0;
+        long hours = totalSeconds / 3600;
+        long minutes = (totalSeconds % 3600) / 60;
+        if (hours > 0 && minutes > 0) {
+            return hours + "h " + minutes + "m";
+        } else if (hours > 0) {
+            return hours + "h";
+        } else {
+            return minutes + "m";
+        }
     }
     
     @PostMapping("/students/activities/join/{activityId}")

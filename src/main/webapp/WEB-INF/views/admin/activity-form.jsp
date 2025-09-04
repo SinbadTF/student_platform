@@ -15,7 +15,7 @@
     
     <div class="d-flex">
         <!-- Left Sidebar -->
-        <div class="bg-dark text-white" style="width: 250px; min-height: 100vh;">
+        <div class="bg-dark text-white position-fixed" style="width: 300px; min-height: 100vh; left: 0; top: 0; z-index: 1000;">
             <div class="p-3">
                 <h5 class="text-white mb-4">
                     <i class="bi bi-trophy me-2"></i>ClubPoints Admin
@@ -40,8 +40,8 @@
         </div>
 
         <!-- Main Content -->
-        <div class="flex-grow-1 p-4">
-            <div class="container-fluid">
+        <div class="flex-grow-1" style="margin-left: 300px; padding-left: 1px;">
+            <div class="container-fluid py-4">
                 <!-- Header -->
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h2 class="mb-0">${activity.id != null ? 'Edit' : 'Add'} Activity</h2>
@@ -103,6 +103,46 @@
                                 </div>
                             </div>
                             
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="clubDate" class="form-label">Club Date *</label>
+                                        <input type="date" class="form-control" id="clubDate" name="clubDate" 
+                                               value="${activity.clubDate != null ? activity.clubDate : ''}" 
+                                               required>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="startTime" class="form-label">Start Time *</label>
+                                        <input type="time" class="form-control" id="startTime" name="startTime" 
+                                               value="${activity.startTime != null ? activity.startTime : ''}" 
+                                               required>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="endTime" class="form-label">End Time *</label>
+                                        <input type="time" class="form-control" id="endTime" name="endTime" 
+                                               value="${activity.endTime != null ? activity.endTime : ''}" 
+                                               required>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="mb-3">
+                                        <label for="activityPlace" class="form-label">Activity Place *</label>
+                                        <input type="text" class="form-control" id="activityPlace" name="activityPlace" 
+                                               value="${activity.activityPlace != null ? activity.activityPlace : ''}" 
+                                               placeholder="e.g., Room 101, Auditorium, Gym" required>
+                                    </div>
+                                </div>
+                            </div>
+                            
                             <div class="d-flex justify-content-end gap-2">
                                 <a href="${pageContext.request.contextPath}/admin/activitymanagement" class="btn btn-secondary">
                                     Cancel
@@ -127,6 +167,10 @@
             var title = document.getElementById('title').value.trim();
             var club = document.getElementById('club').value;
             var points = document.getElementById('points').value;
+            var clubDate = document.getElementById('clubDate').value;
+            var startTime = document.getElementById('startTime').value;
+            var endTime = document.getElementById('endTime').value;
+            var activityPlace = document.getElementById('activityPlace').value.trim();
             
             if (title === '') {
                 e.preventDefault();
@@ -143,6 +187,37 @@
             if (points === '' || points <= 0) {
                 e.preventDefault();
                 alert('Please enter valid points (must be greater than 0)');
+                return false;
+            }
+            
+            if (clubDate === '') {
+                e.preventDefault();
+                alert('Please select a club date');
+                return false;
+            }
+            
+            if (startTime === '') {
+                e.preventDefault();
+                alert('Please select a start time');
+                return false;
+            }
+            
+            if (endTime === '') {
+                e.preventDefault();
+                alert('Please select an end time');
+                return false;
+            }
+            
+            if (activityPlace === '') {
+                e.preventDefault();
+                alert('Please enter an activity place');
+                return false;
+            }
+            
+            // Validate that end time is after start time
+            if (startTime >= endTime) {
+                e.preventDefault();
+                alert('End time must be after start time');
                 return false;
             }
             

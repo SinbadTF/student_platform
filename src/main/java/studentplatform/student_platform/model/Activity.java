@@ -45,6 +45,23 @@ public class Activity {
     @JoinColumn(name = "created_by_id")
     private Admin createdBy;
 
+    @NotBlank(message = "Club date is required")
+    @jakarta.persistence.Column(name = "club_date")
+    private String clubDate;
+
+    @NotBlank(message = "Start time is required")
+    @jakarta.persistence.Column(name = "start_time")
+    private String startTime;
+
+    @NotBlank(message = "End time is required")
+    @jakarta.persistence.Column(name = "end_time")
+    private String endTime;
+
+    @NotBlank(message = "Activity place is required")
+    @Size(max = 200, message = "Activity place cannot exceed 200 characters")
+    @jakarta.persistence.Column(name = "activity_place")
+    private String activityPlace;
+
     @Override
     public String toString() {
         return "Activity{" +
@@ -54,6 +71,10 @@ public class Activity {
                 ", points=" + points +
                 ", clubId=" + (club != null ? club.getId() : "null") +
                 ", createdById=" + (createdBy != null ? createdBy.getId() : "null") +
+                ", clubDate='" + clubDate + '\'' +
+                ", startTime='" + startTime + '\'' +
+                ", endTime='" + endTime + '\'' +
+                ", activityPlace='" + activityPlace + '\'' +
                 '}';
     }
 }

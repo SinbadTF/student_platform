@@ -17,6 +17,8 @@ public interface ActivityParticipationRepository extends JpaRepository<ActivityP
     List<ActivityParticipation> findByStudent(Student student);
 
     List<ActivityParticipation> findByActivity(Activity activity);
+    
+    void deleteByActivity(Activity activity);
 
     List<ActivityParticipation> findByStatus(ParticipationStatus status);
 
