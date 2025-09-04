@@ -2,7 +2,7 @@
 :root {
   
  
-  --primary: #1a56db;      /* Changed from #000000 to a richer blue */
+  --primary: #3d73e5;      /* Changed from #000000 to a richer blue */
   --primary-dark: #1e429f; /* Adjusted to match the new primary */
   --secondary: #38b2ac;    
   --success: #2f855a;      
@@ -14,12 +14,12 @@
   --gray: #6c757d;         
   --gray-light: #e9ecef;   
   --body-bg: #f8f9fa;  
-  --bg-primary: #1a56db;   /* Changed from #df3b3b to match primary */
+  --bg-primary: #bcc7e1;   /* Changed from #df3b3b to match primary */
   /* Texture Colors */
   --texture-primary: rgba(26, 86, 219, 0.05); /* Updated to match new primary */
   --texture-secondary: rgba(56, 178, 172, 0.05);
   --texture-light: rgba(236, 247, 255, 0.532);
-  --texture-white: rgba(178, 197, 251, 0.9);
+  --texture-white: rgba(137, 166, 248, 0.9);
   
   /* Spacing */
   --spacing-xs: 0.25rem;
@@ -34,6 +34,8 @@
   --border-radius-lg: 1rem;
   --border-radius-xl: 2rem;
 }
+
+
 
 body {
   font-family: 'Inter', 'Segoe UI', 'Arial', sans-serif;

@@ -35,7 +35,7 @@
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary" style="opacity: 0.9;">
         <div class="container">
             <div class="navbar-brand logo-container" href="/students/dashboard">
                 <img src="<c:url value='/resources/images/university_logo.png' />" alt="University Logo" class="logo-img">

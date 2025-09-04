@@ -57,25 +57,23 @@
                     <li class="nav-item">
                         <a class="nav-link" href="/staff/rewards/exchanges">Process Exchanges</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/staff/students">Manage Students</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/staff/profile">My Profile</a>
-                    </li>
+                    
+                    
                 </ul>
                 
-                <!-- User dropdown on the right -->
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-person-badge"></i> ${staff.firstName} ${staff.lastName}
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="/staff/profile">My Profile</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="/logout">Logout</a></li>
-                        </ul>
+                <ul class="navbar-nav ms-auto align-items-lg-center">
+    <li class="nav-item d-flex align-items-center me-3">
+        <span class="navbar-text text-white me-2">
+            <i class="bi bi-person-badge"></i> ${staff.firstName} ${staff.lastName}
+        </span>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/logout">
+            <i class="bi bi-box-arrow-right"></i> Logout
+        </a>
+    </li>
+</ul>
+                
                     </li>
                 </ul>
             </div>

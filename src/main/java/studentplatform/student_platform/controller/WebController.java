@@ -15,12 +15,15 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.HashMap;
 import java.time.Month;
+import java.beans.PropertyEditorSupport;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -127,14 +130,7 @@ public class WebController {
         return "students/list";
     }
     
-    @GetMapping("/students/create")
-    public String createStudentForm(Model model) {
-        Student student = new Student();
-        student.initializeNewStudent(); // Initialize default values
-        model.addAttribute("student", student);
-        return "students/form";
-    }
-    
+   
     @GetMapping("/students/edit/{id}")
     public String editStudentForm(@PathVariable Long id, Model model) {
         return studentService.getStudentById(id)
@@ -186,11 +182,7 @@ public class WebController {
         return "staff/list";
     }
     
-    @GetMapping("/staff/create")
-    public String createStaffForm(Model model) {
-        model.addAttribute("staff", new Staff());
-        return "staff/form";
-    }
+   
     
     @GetMapping("/staff/edit/{id}")
     public String editStaffForm(@PathVariable Long id, Model model) {
@@ -255,6 +247,7 @@ public class WebController {
     public String createRewardForm(Model model) {
         model.addAttribute("reward", new Reward());
         model.addAttribute("staffList", staffService.getAllStaff());
+        model.addAttribute("adminList", adminService.getAllAdmins());
         return "rewards/form";
     }
     
@@ -264,6 +257,7 @@ public class WebController {
                 .map(reward -> {
                     model.addAttribute("reward", reward);
                     model.addAttribute("staffList", staffService.getAllStaff());
+                    model.addAttribute("adminList", adminService.getAllAdmins());
                     return "rewards/form";
                 })
                 .orElse("redirect:/rewards");
@@ -948,8 +942,7 @@ public class WebController {
             return "redirect:/login";
         }
         
-        // TODO: Implement when ClubService is available
-        // clubService.rejectParticipation(id, admin);
+       
         return "redirect:/admin/club-participations";
     }
     
@@ -1444,6 +1437,22 @@ public class WebController {
         return "redirect:/admin/events";
     }
     
+    @InitBinder
+    public void initBinder(WebDataBinder binder) {
+        binder.registerCustomEditor(Staff.class, "issuedBy", new PropertyEditorSupport() {
+            @Override
+            public void setAsText(String text) {
+                if (text == null || text.isEmpty() || "-1".equals(text)) {
+                    setValue(null);
+                } else {
+                    Long staffId = Long.parseLong(text);
+                    Staff staff = staffService.getStaffById(staffId).orElse(null);
+                    setValue(staff);
+                }
+            }
+        });
+    }
+    
     // Update student dashboard to include clubs and events
     @GetMapping("/students/dashboard/{id}")
     public String studentDashboard(@PathVariable Long id, Model model) {
@@ -1780,7 +1789,8 @@ public class WebController {
     }
     
     @GetMapping("/admin/attendances/create")
-    public String createAttendanceForm(Model model, HttpSession session) {
+    public String createAttendanceForm(Model model, HttpSession session, 
+                                     @RequestParam(value = "error", required = false) String error) {
         Admin admin = (Admin) session.getAttribute("user");
         if (admin == null) {
             return "redirect:/login";
@@ -1790,6 +1800,7 @@ public class WebController {
         model.addAttribute("students", studentService.getAllStudents());
         model.addAttribute("months", Month.values());
         model.addAttribute("currentYear", java.time.LocalDate.now().getYear());
+        model.addAttribute("error", error);
         return "admin/attendances/form";
     }
     
@@ -1815,11 +1826,22 @@ public class WebController {
             return "redirect:/admin/attendances/create?error=Student not found";
         }
         
-        // Create or update attendance record
-        attendanceService.createOrUpdateAttendance(
-            studentOpt.get(), month, year, attendancePercentage, admin);
+        // Check if attendance record already exists
+        Optional<Attendance> existingAttendance = 
+            attendanceService.getAttendanceByStudentAndMonthAndYear(studentOpt.get(), month, year);
         
-        return "redirect:/admin/attendances";
+        if (existingAttendance.isPresent()) {
+            return "redirect:/admin/attendances/create?error=Attendance record already exists for this student in " + month + " " + year;
+        }
+        
+        try {
+            // Create or update attendance record
+            attendanceService.createOrUpdateAttendance(
+                studentOpt.get(), month, year, attendancePercentage, admin);
+            return "redirect:/admin/attendances";
+        } catch (Exception e) {
+            return "redirect:/admin/attendances/create?error=Could not create attendance record. An attendance record may already exist for this student in " + month + " " + year;
+        }
     }
     
     @GetMapping("/admin/attendances/edit/{id}")

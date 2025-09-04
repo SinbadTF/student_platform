@@ -4,12 +4,12 @@
 <html>
 <head>
     <title>Rewards Management</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
 </head>
 <body>
     <jsp:include page="../layout/header.jsp" />
     
     <div class="container mt-4">
-        <!-- Add Flash Messages Display -->
         <c:if test="${not empty success}">
             <div class="alert alert-success alert-dismissible fade show" role="alert">
                 ${success}
@@ -22,15 +22,13 @@
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         </c:if>
-        <!-- End Flash Messages Display -->
-        
-        <div class="row mb-3">
-            <div class="col-md-6">
+        <div class="row mb-3 d-flex align-items-center">
+            <div class="col-md-5">
                 <h2>Rewards Management</h2>
             </div>
-            <div class="col-md-6 text-right">
-                <div class="d-flex justify-content-end">
-                    <div class="form-check me-3 mt-2">
+            <div class="col-md-7">
+                <div class="d-flex justify-content-end align-items-center">
+                    <div class="form-check me-3">
                         <input class="form-check-input" type="checkbox" id="showInactive" 
                                ${showInactive ? 'checked' : ''} onchange="toggleInactive()">
                         <label class="form-check-label" for="showInactive">
@@ -42,9 +40,9 @@
                         <div class="input-group">
                             <input type="text" name="keyword" class="form-control" 
                                    placeholder="Search rewards..." value="${param.keyword}">
-                            <div class="input-group-append">
-                                <button class="btn btn-outline-secondary" type="submit">Search</button>
-                            </div>
+                            <button class="btn btn-outline-secondary" type="submit">
+                                <i class="bi bi-search"></i>
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -60,7 +58,7 @@
                     <th>Name</th>
                     <th>Description</th>
                     <th>Point Value</th>
-                    <th>Issued By</th>
+                    <th>Created by</th>
                     <th>Status</th>
                     <th>Actions</th>
                 </tr>
@@ -72,7 +70,16 @@
                         <td>${reward.name}</td>
                         <td>${reward.description}</td>
                         <td>${reward.pointValue}</td>
-                        <td>${reward.issuedBy != null ? reward.issuedBy.firstName : ''} ${reward.issuedBy != null ? reward.issuedBy.lastName : ''}</td>
+                        <td>
+                            <c:choose>
+                                <c:when test="${reward.issuedBy != null}">
+                                    <a href="/staff/view/${reward.issuedBy.id}">${reward.issuedBy.firstName} ${reward.issuedBy.lastName}</a>
+                                </c:when>
+                                <c:otherwise>
+                                    Admin
+                                </c:otherwise>
+                            </c:choose>
+                        </td>
                         <td>
                             <span class="badge ${reward.active ? 'bg-success' : 'bg-secondary'}">
                                 ${reward.active ? 'Active' : 'Inactive'}
@@ -98,7 +105,6 @@
         </table>
     </div>
     
-    <!-- Delete Confirmation Modal -->
     <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -117,7 +123,6 @@
         </div>
     </div>
     
-    <!-- Deactivate Confirmation Modal -->
     <div class="modal fade" id="deactivateModal" tabindex="-1" aria-labelledby="deactivateModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
