@@ -79,10 +79,9 @@
                                 <label for="clubFilter" class="form-label">Select Club</label>
                                 <select class="form-select" id="clubFilter">
                                     <option value="">All Clubs</option>
-                                    <option value="Computer Science Club">Computer Science Club</option>
-                                    <option value="Debate Society">Debate Society</option>
-                                    <option value="Art Club">Art Club</option>
-                                    <option value="Sports Club">Sports Club</option>
+                                    <c:forEach var="club" items="${clubs}">
+                                        <option value="${club.name}">${club.name}</option>
+                                    </c:forEach>
                                 </select>
                             </div>
                             <div class="col-md-4">
@@ -104,62 +103,31 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr>
-                                        <td><strong>S001</strong></td>
-                                        <td>John Doe</td>
-                                        <td>Computer Science Club, Debate Society</td>
-                                        <td><span class="badge bg-primary">2</span></td>
-                                        <td><span class="badge bg-success">110</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>S002</strong></td>
-                                        <td>Jane Smith</td>
-                                        <td>Computer Science Club, Art Club</td>
-                                        <td><span class="badge bg-primary">2</span></td>
-                                        <td><span class="badge bg-success">130</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>S003</strong></td>
-                                        <td>Mike Johnson</td>
-                                        <td>Debate Society, Sports Club</td>
-                                        <td><span class="badge bg-primary">2</span></td>
-                                        <td><span class="badge bg-success">100</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>S004</strong></td>
-                                        <td>Sarah Wilson</td>
-                                        <td>Computer Science Club</td>
-                                        <td><span class="badge bg-primary">2</span></td>
-                                        <td><span class="badge bg-success">125</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>S005</strong></td>
-                                        <td>David Brown</td>
-                                        <td>Art Club, Sports Club</td>
-                                        <td><span class="badge bg-primary">1</span></td>
-                                        <td><span class="badge bg-success">85</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>S006</strong></td>
-                                        <td>Emily Davis</td>
-                                        <td>Debate Society</td>
-                                        <td><span class="badge bg-primary">3</span></td>
-                                        <td><span class="badge bg-success">150</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>S007</strong></td>
-                                        <td>Robert Miller</td>
-                                        <td>Computer Science Club, Art Club, Sports Club</td>
-                                        <td><span class="badge bg-primary">3</span></td>
-                                        <td><span class="badge bg-success">175</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>S008</strong></td>
-                                        <td>Lisa Garcia</td>
-                                        <td>Art Club</td>
-                                        <td><span class="badge bg-primary">1</span></td>
-                                        <td><span class="badge bg-success">95</span></td>
-                                    </tr>
+                                    <c:forEach var="membership" items="${activeMemberships}">
+                                        <tr>
+                                            <td><strong><c:out value="${membership.student.studentId}"/></strong></td>
+                                            <td>
+                                                <c:out value="${membership.student.firstName}"/>
+                                                <c:out value=" ${membership.student.lastName}"/>
+                                            </td>
+                                            <td><c:out value="${membership.club.name}"/></td>
+                                            <td>
+                                                <span class="badge bg-primary">
+                                                    <c:out value="${activityCounts[membership.student.id] != null ? activityCounts[membership.student.id] : 0}"/>
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-success">
+                                                    <c:out value="${membership.student.points}"/>
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    </c:forEach>
+                                    <c:if test="${empty activeMemberships}">
+                                        <tr>
+                                            <td colspan="5" class="text-center text-muted">No active memberships found.</td>
+                                        </tr>
+                                    </c:if>
                                 </tbody>
                             </table>
                         </div>
@@ -186,5 +154,42 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+    // Filter functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const clubFilter = document.getElementById('clubFilter');
+        const studentSearch = document.getElementById('studentSearch');
+        const tableRows = document.querySelectorAll('tbody tr');
+        
+        function filterTable() {
+            const selectedClub = clubFilter.value.toLowerCase();
+            const searchTerm = studentSearch.value.toLowerCase();
+            
+            tableRows.forEach(row => {
+                if (row.cells.length < 5) return; // Skip empty state row
+                
+                const clubName = row.cells[2].textContent.toLowerCase();
+                const studentName = row.cells[1].textContent.toLowerCase();
+                const studentId = row.cells[0].textContent.toLowerCase();
+                
+                const clubMatch = selectedClub === '' || clubName.includes(selectedClub);
+                const searchMatch = searchTerm === '' || 
+                    studentName.includes(searchTerm) || 
+                    studentId.includes(searchTerm);
+                
+                if (clubMatch && searchMatch) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+        
+        // Add event listeners
+        clubFilter.addEventListener('change', filterTable);
+        studentSearch.addEventListener('input', filterTable);
+    });
+    </script>
 </body>
 </html>

@@ -8,6 +8,8 @@ import studentplatform.student_platform.model.SpinWheelItem;
 import studentplatform.student_platform.model.Student;
 import studentplatform.student_platform.repository.SpinWheelHistoryRepository;
 import studentplatform.student_platform.service.StudentService;
+import studentplatform.student_platform.model.PointTransaction;
+import studentplatform.student_platform.repository.PointTransactionRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -18,12 +20,15 @@ public class SpinWheelHistoryService {
 
     private final SpinWheelHistoryRepository spinWheelHistoryRepository;
     private final StudentService studentService;
+    private final PointTransactionRepository pointTransactionRepository;
 
     @Autowired
     public SpinWheelHistoryService(SpinWheelHistoryRepository spinWheelHistoryRepository, 
-                                   StudentService studentService) {
+                                   StudentService studentService,
+                                   PointTransactionRepository pointTransactionRepository) {
         this.spinWheelHistoryRepository = spinWheelHistoryRepository;
         this.studentService = studentService;
+        this.pointTransactionRepository = pointTransactionRepository;
     }
 
     public List<SpinWheelHistory> getAllSpinHistory() {
@@ -70,9 +75,22 @@ public class SpinWheelHistoryService {
         // Save the history record
         SpinWheelHistory savedHistory = spinWheelHistoryRepository.save(history);
 
-        // Award points to student
-        student.setPoints(student.getPoints() + resultItem.getPointValue());
+        // Award points to student and record a transaction
+        Integer current = student.getPoints() != null ? student.getPoints() : 0;
+        Integer awarded = resultItem.getPointValue();
+        Integer newBalance = current + awarded;
+        student.setPoints(newBalance);
         studentService.saveStudent(student);
+
+        PointTransaction tx = new PointTransaction();
+        tx.setStudent(student);
+        tx.setPointsAmount(awarded);
+        tx.setPointsBalance(newBalance);
+        tx.setReason("SpinWheel: " + (resultItem.getLabel() != null ? resultItem.getLabel() : "Reward"));
+        tx.setType(PointTransaction.TransactionType.EARNED);
+        tx.setSourceType(PointTransaction.SourceType.MANUAL);
+        tx.setSourceId(spinWheel.getId());
+        pointTransactionRepository.save(tx);
 
         return savedHistory;
     }

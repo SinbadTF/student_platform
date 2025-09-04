@@ -39,6 +39,8 @@ public class Club {
     @JoinColumn(name = "created_by_id")
     private Admin createdBy;
     
+    private java.time.LocalDateTime createdDate;
+    
     @Override
     public String toString() {
         return "Club{" +
@@ -47,6 +49,7 @@ public class Club {
                 ", description='" + description + '\'' +
                 ", meetingScheduleTitle='" + meetingScheduleTitle + '\'' +
                 ", createdById=" + (createdBy != null ? createdBy.getId() : "null") +
+                ", createdDate=" + createdDate +
                 '}';
     }
 }

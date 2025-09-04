@@ -2,7 +2,6 @@ package studentplatform.student_platform.controller;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -11,6 +10,7 @@ import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.HashMap;
+import java.time.Month;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -24,7 +24,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import jakarta.servlet.http.HttpSession;
-import org.springframework.transaction.annotation.Transactional;
 import jakarta.validation.Valid;
 import studentplatform.student_platform.model.Reward;
 import studentplatform.student_platform.model.RewardExchange;
@@ -39,14 +38,22 @@ import studentplatform.student_platform.service.RewardService;
 import studentplatform.student_platform.service.RewardExchangeService;
 import studentplatform.student_platform.service.StaffService;
 import studentplatform.student_platform.service.StudentService;
+import studentplatform.student_platform.util.DateTimeUtil;
 import studentplatform.student_platform.service.ClubService;
 import studentplatform.student_platform.service.ActivityService;
-
 import studentplatform.student_platform.model.Admin;
-
-
+import studentplatform.student_platform.model.Attendance;
+import studentplatform.student_platform.model.Club;
+import studentplatform.student_platform.model.ClubMembership;
+import studentplatform.student_platform.model.Event;
+import studentplatform.student_platform.model.Activity;
+import studentplatform.student_platform.model.ActivityParticipation;
 import studentplatform.student_platform.model.EventParticipation;
 
+
+import studentplatform.student_platform.service.AttendanceService;
+import studentplatform.student_platform.service.ClubService;
+import studentplatform.student_platform.service.ActivityParticipationService;
 import studentplatform.student_platform.service.EventService;
 
 // Add spinwheel imports
@@ -73,31 +80,35 @@ public class WebController {
     private final SpinWheelItemService spinWheelItemService;
     private final SpinWheelHistoryService spinWheelHistoryService;
     private final SpinWheelHistoryRepository spinWheelHistoryRepository;
+    private final ActivityParticipationService activityParticipationService;
+    private final AttendanceService attendanceService;
     
     @Autowired
     public WebController(StudentService studentService, StaffService staffService, 
                          RewardService rewardService, RewardExchangeService rewardExchangeService,
                          AdminService adminService,
-                         EventService eventService,
-                         ClubService clubService,
-                         ActivityService activityService,
+                         EventService eventService, ClubService clubService, ActivityService activityService,
                          SpinWheelService spinWheelService,
                          SpinWheelItemService spinWheelItemService,
                          SpinWheelHistoryService spinWheelHistoryService,
-                         SpinWheelHistoryRepository spinWheelHistoryRepository) {
-        
+                         SpinWheelHistoryRepository spinWheelHistoryRepository,
+                         ActivityParticipationService activityParticipationService,
+                         AttendanceService attendanceService) {
         this.studentService = studentService;
         this.staffService = staffService;
         this.rewardService = rewardService;
         this.rewardExchangeService = rewardExchangeService;
         this.adminService = adminService;
         this.eventService = eventService;
+
         this.clubService = clubService;
         this.activityService = activityService;
         this.spinWheelService = spinWheelService;
         this.spinWheelItemService = spinWheelItemService;
         this.spinWheelHistoryService = spinWheelHistoryService;
         this.spinWheelHistoryRepository = spinWheelHistoryRepository;
+        this.activityParticipationService = activityParticipationService;
+        this.attendanceService = attendanceService;
     }
 
     // Student Management
@@ -328,6 +339,9 @@ public class WebController {
         model.addAttribute("studentCount", studentService.getAllStudents().size());
         model.addAttribute("staffCount", staffService.getAllStaff().size());
         model.addAttribute("rewardCount", rewardService.getAllRewards().size());
+        model.addAttribute("eventsCount", eventService.getAllEvents().size());
+        model.addAttribute("spinWheelCount", spinWheelService.getAllSpinWheels().size());
+        model.addAttribute("attendanceCount", attendanceService.getAllAttendances().size());
         
         // Add pending registrations count
         model.addAttribute("pendingStudentCount", studentService.findByStatus(Student.AccountStatus.PENDING).size());
@@ -648,15 +662,25 @@ public class WebController {
     
     @PostMapping("/admin/clubs/delete/{id}")
     public String deleteClub(@PathVariable Long id, HttpSession session, RedirectAttributes redirectAttributes) {
+        System.out.println("=== DELETE CLUB REQUEST ===");
+        System.out.println("Club ID: " + id);
+        
         Admin admin = (Admin) session.getAttribute("user");
         if (admin == null) {
+            System.out.println("No admin in session, redirecting to login");
             return "redirect:/login";
         }
         
+        System.out.println("Admin: " + admin.getUsername() + " (ID: " + admin.getId() + ")");
+        
         try {
+            System.out.println("Attempting to delete club...");
             clubService.deleteClub(id);
+            System.out.println("Club deleted successfully");
             redirectAttributes.addFlashAttribute("success", "Club deleted successfully!");
         } catch (Exception e) {
+            System.err.println("Error deleting club: " + e.getMessage());
+            e.printStackTrace();
             redirectAttributes.addFlashAttribute("error", "Failed to delete club: " + e.getMessage());
         }
         
@@ -675,6 +699,34 @@ public class WebController {
         return "admin/activitymanagement";
     }
 
+    @GetMapping("/admin/activities/create")
+    public String createActivityForm(Model model, HttpSession session) {
+        Admin admin = (Admin) session.getAttribute("user");
+        if (admin == null) {
+            return "redirect:/login";
+        }
+        
+        model.addAttribute("activity", new Activity());
+        model.addAttribute("clubs", clubService.getAllClubs());
+        return "admin/activity-form";
+    }
+
+    @GetMapping("/admin/activities/edit/{id}")
+    public String editActivityForm(@PathVariable Long id, Model model, HttpSession session) {
+        Admin admin = (Admin) session.getAttribute("user");
+        if (admin == null) {
+            return "redirect:/login";
+        }
+        
+        return activityService.getActivityById(id)
+                .map(activity -> {
+                    model.addAttribute("activity", activity);
+                    model.addAttribute("clubs", clubService.getAllClubs());
+                    return "admin/activity-form";
+                })
+                .orElse("redirect:/admin/activitymanagement");
+    }
+
     @PostMapping("/admin/activities/create")
     public String createActivity(@Valid @ModelAttribute("activity") Activity activity, BindingResult result, 
                                HttpSession session, RedirectAttributes redirectAttributes) {
@@ -685,13 +737,13 @@ public class WebController {
         
         if (result.hasErrors()) {
             redirectAttributes.addFlashAttribute("error", "Please check the form data");
-            return "redirect:/admin/activitymanagement";
+            return "redirect:/admin/activities/create";
         }
         
         try {
             // Set the club if clubId is provided
             if (activity.getClub() != null && activity.getClub().getId() != null) {
-                Optional<Club> club = activityService.getClubById(activity.getClub().getId());
+                Optional<Club> club = clubService.getClubById(activity.getClub().getId());
                 if (club.isPresent()) {
                     activity.setClub(club.get());
                 }
@@ -706,6 +758,54 @@ public class WebController {
         return "redirect:/admin/activitymanagement";
     }
 
+    @PostMapping("/admin/activities/update")
+    public String updateActivity(@Valid @ModelAttribute("activity") Activity activity, BindingResult result, 
+                               HttpSession session, RedirectAttributes redirectAttributes) {
+        Admin admin = (Admin) session.getAttribute("user");
+        if (admin == null) {
+            return "redirect:/login";
+        }
+        
+        if (result.hasErrors()) {
+            redirectAttributes.addFlashAttribute("error", "Please check the form data");
+            return "redirect:/admin/activities/edit/" + activity.getId();
+        }
+        
+        try {
+            // Set the club if clubId is provided
+            if (activity.getClub() != null && activity.getClub().getId() != null) {
+                Optional<Club> club = clubService.getClubById(activity.getClub().getId());
+                if (club.isPresent()) {
+                    activity.setClub(club.get());
+                }
+            }
+            
+            activityService.updateActivity(activity);
+            redirectAttributes.addFlashAttribute("success", "Activity updated successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Failed to update activity: " + e.getMessage());
+        }
+        
+        return "redirect:/admin/activitymanagement";
+    }
+
+    @GetMapping("/admin/activities/delete/{id}")
+    public String deleteActivity(@PathVariable Long id, HttpSession session, RedirectAttributes redirectAttributes) {
+        Admin admin = (Admin) session.getAttribute("user");
+        if (admin == null) {
+            return "redirect:/login";
+        }
+        
+        try {
+            activityService.deleteActivity(id);
+            redirectAttributes.addFlashAttribute("success", "Activity deleted successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Failed to delete activity: " + e.getMessage());
+        }
+        
+        return "redirect:/admin/activitymanagement";
+    }
+
     @GetMapping("/admin/studentmonitoring")
     public String adminStudentMonitoring(Model model, HttpSession session) {
         Admin admin = (Admin) session.getAttribute("user");
@@ -713,7 +813,35 @@ public class WebController {
             return "redirect:/login";
         }
         
-        model.addAttribute("clubs", clubService.getAllClubs());
+        // Clubs list
+        List<Club> clubs = clubService.getAllClubs();
+        model.addAttribute("clubs", clubs);
+
+        // Collect all active memberships across clubs
+        List<ClubMembership> activeMemberships = new ArrayList<>();
+        for (Club club : clubs) {
+            try {
+                activeMemberships.addAll(clubService.getActiveMembershipsByClub(club));
+            } catch (Exception e) {
+                System.err.println("Error loading active memberships for club " + club.getId() + ": " + e.getMessage());
+            }
+        }
+        model.addAttribute("activeMemberships", activeMemberships);
+
+        // Pre-compute activity participation counts per student
+        Map<Long, Integer> activityCounts = new HashMap<>();
+        for (ClubMembership membership : activeMemberships) {
+            try {
+                Student mStudent = membership.getStudent();
+                if (mStudent != null) {
+                    int count = activityParticipationService.getParticipationsByStudent(mStudent).size();
+                    activityCounts.put(mStudent.getId(), count);
+                }
+            } catch (Exception e) {
+                // continue on errors
+            }
+        }
+        model.addAttribute("activityCounts", activityCounts);
         return "admin/studentmonitoring";
     }
 
@@ -850,6 +978,271 @@ public class WebController {
     public String studentClubs(Model model) {
         model.addAttribute("clubs", clubService.getAllClubs());
         return "clubs/list";
+    }
+    
+    @GetMapping("/students/clubs")
+    public String studentClubsView(Model model, HttpSession session) {
+        Student student = (Student) session.getAttribute("user");
+        if (student == null) {
+            return "redirect:/login";
+        }
+        List<Club> clubs = clubService.getAllClubs();
+        model.addAttribute("clubs", clubs);
+        model.addAttribute("student", student);
+        model.addAttribute("clubService", clubService);
+
+        // Build membership status map for UI and determine if student reached membership limit
+        Map<Long, Boolean> membershipStatus = new HashMap<>();
+        int activeMembershipCount = clubService.getActiveMembershipsByStudent(student).size();
+        boolean hasReachedLimit = activeMembershipCount >= 2;
+        for (Club club : clubs) {
+            boolean isMember = clubService.isStudentMemberOfClub(student, club);
+            membershipStatus.put(club.getId(), isMember);
+        }
+        model.addAttribute("membershipStatus", membershipStatus);
+        model.addAttribute("hasReachedLimit", hasReachedLimit);
+        return "students/clubview";
+    }
+    
+    @GetMapping("/students/debug")
+    public String debugPage(Model model, HttpSession session) {
+        Student student = (Student) session.getAttribute("user");
+        if (student == null) {
+            return "redirect:/login";
+        }
+        
+        // Test database connection
+        try {
+            List<Club> clubs = clubService.getAllClubs();
+            System.out.println("Found " + clubs.size() + " clubs in database");
+            model.addAttribute("clubs", clubs);
+        } catch (Exception e) {
+            System.err.println("Error getting clubs: " + e.getMessage());
+            e.printStackTrace();
+            model.addAttribute("clubs", new ArrayList<>());
+        }
+        
+        model.addAttribute("student", student);
+        return "students/debug";
+    }
+    
+    @PostMapping("/students/clubs/join/{clubId}")
+    public String joinClub(@PathVariable Long clubId, HttpSession session, RedirectAttributes redirectAttributes) {
+        System.out.println("=== JOIN CLUB REQUEST ===");
+        System.out.println("Club ID: " + clubId);
+        
+        Student student = (Student) session.getAttribute("user");
+        if (student == null) {
+            System.out.println("No student in session, redirecting to login");
+            return "redirect:/login";
+        }
+        
+        System.out.println("Student: " + student.getUsername() + " (ID: " + student.getId() + ")");
+        
+        try {
+            Optional<Club> clubOpt = clubService.getClubById(clubId);
+            if (clubOpt.isPresent()) {
+                Club club = clubOpt.get();
+                System.out.println("Club found: " + club.getName() + " (ID: " + club.getId() + ")");
+                
+                // Check if student is already a member of this club
+                boolean isAlreadyMember = clubService.isStudentMemberOfClub(student, club);
+                System.out.println("Is already member: " + isAlreadyMember);
+                
+                if (isAlreadyMember) {
+                    System.out.println("Student is already a member, redirecting with error");
+                    redirectAttributes.addFlashAttribute("error", "You are already a member of this club!");
+                    return "redirect:/students/clubs";
+                }
+
+                // Enforce maximum of two active club memberships per student
+                int activeMembershipCount = clubService.getActiveMembershipsByStudent(student).size();
+                if (activeMembershipCount >= 2) {
+                    System.out.println("Student reached max club limit (2), blocking join");
+                    redirectAttributes.addFlashAttribute("error", "You can join at most 2 clubs.");
+                    return "redirect:/students/clubs";
+                }
+                
+                // Join the club
+                System.out.println("Joining club...");
+                ClubMembership membership = clubService.joinClub(student, club);
+                System.out.println("Membership created with ID: " + membership.getId());
+                
+                // Award points for joining
+                try {
+                    studentService.addPointsToStudent(student.getId(), 100, "Joined club: " + club.getName());
+                    redirectAttributes.addFlashAttribute("success", "Joined " + club.getName() + " and earned 100 points!");
+                } catch (Exception pointsEx) {
+                    System.err.println("Error awarding points on join: " + pointsEx.getMessage());
+                }
+                
+                // Redirect to member page
+                String redirectUrl = "redirect:/students/clubs/member/" + membership.getId();
+                System.out.println("Redirecting to: " + redirectUrl);
+                return redirectUrl;
+            } else {
+                System.out.println("Club not found for ID: " + clubId);
+                redirectAttributes.addFlashAttribute("error", "Club not found!");
+                return "redirect:/students/clubs";
+            }
+        } catch (Exception e) {
+            System.err.println("Error joining club: " + e.getMessage());
+            e.printStackTrace();
+            redirectAttributes.addFlashAttribute("error", "Error joining club: " + e.getMessage());
+            return "redirect:/students/clubs";
+        }
+    }
+    
+    @PostMapping("/students/clubs/quit/{clubId}")
+    public String quitClub(@PathVariable Long clubId, HttpSession session, RedirectAttributes redirectAttributes) {
+        System.out.println("=== QUIT CLUB REQUEST ===");
+        System.out.println("Club ID: " + clubId);
+        
+        Student student = (Student) session.getAttribute("user");
+        if (student == null) {
+            System.out.println("No student in session, redirecting to login");
+            return "redirect:/login";
+        }
+        
+        System.out.println("Student: " + student.getUsername() + " (ID: " + student.getId() + ")");
+        
+        try {
+            Optional<Club> clubOpt = clubService.getClubById(clubId);
+            if (clubOpt.isPresent()) {
+                Club club = clubOpt.get();
+                System.out.println("Club found: " + club.getName() + " (ID: " + club.getId() + ")");
+                
+                // Check if student is actually a member
+                boolean isMember = clubService.isStudentMemberOfClub(student, club);
+                System.out.println("Is member: " + isMember);
+                
+                if (!isMember) {
+                    System.out.println("Student is not a member, redirecting with error");
+                    redirectAttributes.addFlashAttribute("error", "You are not a member of this club!");
+                    return "redirect:/students/clubs";
+                }
+
+                // Prevent leaving if student has 0 points (no points to reduce)
+                Integer currentPoints = studentService.getStudentPoints(student.getId());
+                if (currentPoints != null && currentPoints == 0) {
+                    System.out.println("Student has 0 points; blocking leave action");
+                    redirectAttributes.addFlashAttribute("error", "You cannot leave the club. Your current points must be > 0.");
+                    return "redirect:/students/clubs";
+                }
+                
+                // Quit the club
+                System.out.println("Quitting club...");
+                clubService.quitClub(student, club);
+                System.out.println("Student successfully quit the club");
+                
+                // Subtract fixed 100 points for leaving
+                try {
+                    studentService.addPointsToStudent(student.getId(), -100, "Left club: " + club.getName());
+                    redirectAttributes.addFlashAttribute("success", "Left " + club.getName() + " and 100 points were deducted.");
+                } catch (Exception pointsEx) {
+                    System.err.println("Error deducting points on leave: " + pointsEx.getMessage());
+                }
+                
+                redirectAttributes.addFlashAttribute("success", "You have successfully quit " + club.getName());
+                return "redirect:/students/clubs";
+            } else {
+                System.out.println("Club not found for ID: " + clubId);
+                redirectAttributes.addFlashAttribute("error", "Club not found!");
+                return "redirect:/students/clubs";
+            }
+        } catch (Exception e) {
+            System.err.println("Error quitting club: " + e.getMessage());
+            e.printStackTrace();
+            redirectAttributes.addFlashAttribute("error", "Error quitting club: " + e.getMessage());
+            return "redirect:/students/clubs";
+        }
+    }
+    
+    @GetMapping("/students/clubs/member/{membershipId}")
+    public String memberPage(@PathVariable Long membershipId, Model model, HttpSession session) {
+        System.out.println("=== MEMBER PAGE REQUEST ===");
+        System.out.println("Membership ID: " + membershipId);
+        
+        Student student = (Student) session.getAttribute("user");
+        if (student == null) {
+            System.out.println("No student in session, redirecting to login");
+            return "redirect:/login";
+        }
+        
+        System.out.println("Student: " + student.getUsername() + " (ID: " + student.getId() + ")");
+        
+        try {
+            Optional<ClubMembership> membershipOpt = clubService.getMembershipById(membershipId);
+            if (membershipOpt.isPresent()) {
+                ClubMembership membership = membershipOpt.get();
+                Club club = membership.getClub();
+                
+                System.out.println("Membership found: " + membership.getId());
+                System.out.println("Club: " + club.getName());
+                
+                // Format the joined date for display
+                String formattedJoinedDate = membership.getJoinedAt().format(java.time.format.DateTimeFormatter.ofPattern("MMMM dd, yyyy 'at' hh:mm a"));
+                
+                model.addAttribute("membership", membership);
+                model.addAttribute("club", club);
+                model.addAttribute("student", student);
+                model.addAttribute("formattedJoinedDate", formattedJoinedDate);
+                
+                System.out.println("Returning member.jsp");
+                return "students/member";
+            } else {
+                System.err.println("Membership not found for ID: " + membershipId);
+                return "redirect:/students/clubs";
+            }
+        } catch (Exception e) {
+            System.err.println("Error loading member page: " + e.getMessage());
+            e.printStackTrace();
+            return "redirect:/students/clubs";
+        }
+    }
+    
+    @GetMapping("/students/clubs/detail/{clubId}")
+    public String clubDetail(@PathVariable Long clubId, Model model, HttpSession session) {
+        System.out.println("=== CLUB DETAIL PAGE REQUEST ===");
+        System.out.println("Club ID: " + clubId);
+        
+        Student student = (Student) session.getAttribute("user");
+        if (student == null) {
+            System.out.println("No student in session, redirecting to login");
+            return "redirect:/login";
+        }
+        
+        System.out.println("Student: " + student.getUsername() + " (ID: " + student.getId() + ")");
+        
+        try {
+            Optional<Club> clubOpt = clubService.getClubById(clubId);
+            if (clubOpt.isPresent()) {
+                Club club = clubOpt.get();
+                
+                System.out.println("Club found: " + club.getName());
+                
+                // Check if student has any membership (active or inactive) for this club
+                Optional<ClubMembership> membershipOpt = clubService.getMembershipByStudentAndClub(student, club);
+                boolean hasAnyMembership = membershipOpt.isPresent();
+                boolean isActiveMember = clubService.isStudentMemberOfClub(student, club);
+                
+                model.addAttribute("club", club);
+                model.addAttribute("student", student);
+                model.addAttribute("membershipStatus", isActiveMember);
+                model.addAttribute("hasAnyMembership", hasAnyMembership);
+                model.addAttribute("canRejoin", hasAnyMembership && !isActiveMember);
+                
+                System.out.println("Returning clubdetail.jsp");
+                return "students/clubdetail";
+            } else {
+                System.err.println("Club not found for ID: " + clubId);
+                return "redirect:/students/clubs";
+            }
+        } catch (Exception e) {
+            System.err.println("Error loading club detail page: " + e.getMessage());
+            e.printStackTrace();
+            return "redirect:/students/clubs";
+        }
     }
     
     @GetMapping("/events")
@@ -1030,9 +1423,20 @@ public class WebController {
                     
                     // Add clubs and events data
                     List<Club> clubs = clubService.getAllClubs();
-                    model.addAttribute("clubsCount", clubs.size());
+                    List<ClubMembership> studentMemberships = clubService.getActiveMembershipsByStudent(student);
+                    model.addAttribute("clubsCount", studentMemberships.size());
                     model.addAttribute("eventsCount", eventService.getAllEvents().size());
                     model.addAttribute("clubs", clubs);
+                    
+                    // Get club-specific activities for student's joined clubs
+                    Map<Club, List<Activity>> clubActivities = new HashMap<>();
+                    for (ClubMembership membership : studentMemberships) {
+                        Club club = membership.getClub();
+                        List<Activity> activities = activityService.getActivitiesByClub(club);
+                        clubActivities.put(club, activities);
+                    }
+                    model.addAttribute("clubActivities", clubActivities);
+                    model.addAttribute("studentMemberships", studentMemberships);
                     
                     // Format events with formatted dates for JSP compatibility
                     List<Event> events = eventService.getAllEvents();
@@ -1044,6 +1448,22 @@ public class WebController {
                     // Add spinwheel data
                     List<SpinWheel> activeSpinWheels = spinWheelService.getActiveSpinWheels();
                     model.addAttribute("activeSpinWheels", activeSpinWheels);
+                    // Select a single spinwheel to show in dashboard (first active),
+                    // or fall back to any existing spinwheel so UI still shows
+                    SpinWheel selectedSpinWheel = (activeSpinWheels != null && !activeSpinWheels.isEmpty())
+                        ? activeSpinWheels.get(0)
+                        : null;
+                    if (selectedSpinWheel == null) {
+                        List<SpinWheel> allSpinWheels = spinWheelService.getAllSpinWheels();
+                        if (allSpinWheels != null && !allSpinWheels.isEmpty()) {
+                            selectedSpinWheel = allSpinWheels.get(0);
+                        }
+                    }
+                    model.addAttribute("selectedSpinWheel", selectedSpinWheel);
+                    if (selectedSpinWheel != null) {
+                        List<SpinWheelItem> selectedSpinWheelItems = spinWheelItemService.getItemsBySpinWheel(selectedSpinWheel);
+                        model.addAttribute("selectedSpinWheelItems", selectedSpinWheelItems);
+                    }
                     
                     // Check if student has spun today
                     boolean hasSpunToday = spinWheelHistoryService.hasStudentSpunToday(student);
@@ -1199,7 +1619,7 @@ public class WebController {
             spinWheel.setCreatedBy(admin);
             spinWheelService.saveSpinWheel(spinWheel);
             redirectAttributes.addFlashAttribute("success", "Spinwheel saved successfully!");
-            return "redirect:/admin/spinwheels";
+            return "redirect:/admin/dashboard";
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Error saving spinwheel: " + e.getMessage());
             return "redirect:/admin/spinwheels";
@@ -1411,4 +1831,205 @@ public class WebController {
         return items.get(0); // Fallback to first item
     }
 
+    // ==================== ACTIVITY ENDPOINTS ====================
+    
+    @GetMapping("/students/activities")
+    public String studentActivitiesView(Model model, HttpSession session) {
+        Student student = (Student) session.getAttribute("user");
+        if (student == null) {
+            return "redirect:/login";
+        }
+        
+        // Get student's club memberships
+        List<ClubMembership> memberships = clubService.getActiveMembershipsByStudent(student);
+        
+        // Get activities for each club the student is a member of
+        Map<Club, List<Activity>> clubActivities = new HashMap<>();
+        for (ClubMembership membership : memberships) {
+            Club club = membership.getClub();
+            List<Activity> activities = activityService.getActivitiesByClub(club);
+            clubActivities.put(club, activities);
+        }
+        
+        model.addAttribute("student", student);
+        model.addAttribute("memberships", memberships);
+        model.addAttribute("clubActivities", clubActivities);
+        
+        return "students/activities";
+    }
+    
+    @PostMapping("/students/activities/join/{activityId}")
+    public String joinActivity(@PathVariable Long activityId, HttpSession session, RedirectAttributes redirectAttributes) {
+        Student student = (Student) session.getAttribute("user");
+        if (student == null) {
+            return "redirect:/login";
+        }
+        
+        try {
+            Optional<Activity> activityOpt = activityService.getActivityById(activityId);
+            if (activityOpt.isEmpty()) {
+                redirectAttributes.addFlashAttribute("error", "Activity not found");
+                return "redirect:/students/activities";
+            }
+            
+            Activity activity = activityOpt.get();
+            
+            // Check if student is a member of the club that offers this activity
+            Club activityClub = activity.getClub();
+            if (activityClub != null) {
+                boolean isMember = clubService.getActiveMembershipsByStudent(student).stream()
+                        .anyMatch(m -> m.getClub().getId().equals(activityClub.getId()));
+                
+                if (!isMember) {
+                    redirectAttributes.addFlashAttribute("error", "You must be a member of " + activityClub.getName() + " to join this activity");
+                    return "redirect:/students/activities";
+                }
+            }
+            
+            // Join the activity
+            activityParticipationService.participateInActivity(student, activity);
+            redirectAttributes.addFlashAttribute("success", "Successfully joined the activity. Waiting for approval.");
+            
+        } catch (IllegalStateException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Failed to join activity: " + e.getMessage());
+        }
+        
+        return "redirect:/students/activities";
+    }
+    
+    @GetMapping("/students/activities/participations")
+    public String studentParticipations(Model model, HttpSession session) {
+        Student student = (Student) session.getAttribute("user");
+        if (student == null) {
+            return "redirect:/login";
+        }
+        
+        List<ActivityParticipation> participations = activityParticipationService.getParticipationsByStudent(student);
+        model.addAttribute("student", student);
+        model.addAttribute("participations", participations);
+        
+        return "students/participations";
+    }
+
+    // Admin Attendance Management
+    @GetMapping("/admin/attendances")
+    public String attendances(Model model, HttpSession session) {
+        Admin admin = (Admin) session.getAttribute("user");
+        if (admin == null) {
+            return "redirect:/login";
+        }
+        
+        List<Attendance> attendances = attendanceService.getAllAttendances();
+        
+        // Convert LocalDateTime to Date for JSP compatibility
+        attendances.forEach(attendance -> {
+            if (attendance.getCreatedAt() != null) {
+                model.addAttribute("createdAt_" + attendance.getId(), 
+                    DateTimeUtil.toDate(attendance.getCreatedAt()));
+            }
+            if (attendance.getUpdatedAt() != null) {
+                model.addAttribute("updatedAt_" + attendance.getId(), 
+                    DateTimeUtil.toDate(attendance.getUpdatedAt()));
+            }
+        });
+        
+        model.addAttribute("attendances", attendances);
+        return "admin/attendances/list";
+    }
+    
+    @GetMapping("/admin/attendances/create")
+    public String createAttendanceForm(Model model, HttpSession session) {
+        Admin admin = (Admin) session.getAttribute("user");
+        if (admin == null) {
+            return "redirect:/login";
+        }
+        
+        model.addAttribute("attendance", new Attendance());
+        model.addAttribute("students", studentService.getAllStudents());
+        model.addAttribute("months", Month.values());
+        model.addAttribute("currentYear", java.time.LocalDate.now().getYear());
+        return "admin/attendances/form";
+    }
+    
+    @PostMapping("/admin/attendances/save")
+    public String saveAttendance(@RequestParam("studentId") Long studentId,
+                               @RequestParam("month") Month month,
+                               @RequestParam("year") Integer year,
+                               @RequestParam("attendancePercentage") Double attendancePercentage,
+                               HttpSession session) {
+        Admin admin = (Admin) session.getAttribute("user");
+        if (admin == null) {
+            return "redirect:/login";
+        }
+        
+        // Validate attendance percentage (0-100)
+        if (attendancePercentage < 0 || attendancePercentage > 100) {
+            return "redirect:/admin/attendances/create?error=Invalid attendance percentage";
+        }
+        
+        // Get student
+        Optional<Student> studentOpt = studentService.getStudentById(studentId);
+        if (!studentOpt.isPresent()) {
+            return "redirect:/admin/attendances/create?error=Student not found";
+        }
+        
+        // Create or update attendance record
+        attendanceService.createOrUpdateAttendance(
+            studentOpt.get(), month, year, attendancePercentage, admin);
+        
+        return "redirect:/admin/attendances";
+    }
+    
+    @GetMapping("/admin/attendances/edit/{id}")
+    public String editAttendanceForm(@PathVariable Long id, Model model, HttpSession session) {
+        Admin admin = (Admin) session.getAttribute("user");
+        if (admin == null) {
+            return "redirect:/login";
+        }
+        
+        return attendanceService.getAttendanceById(id)
+                .map(attendance -> {
+                    model.addAttribute("attendance", attendance);
+                    model.addAttribute("students", studentService.getAllStudents());
+                    model.addAttribute("months", Month.values());
+                    model.addAttribute("currentYear", java.time.LocalDate.now().getYear());
+                    return "admin/attendances/form";
+                })
+                .orElse("redirect:/admin/attendances");
+    }
+    
+    @GetMapping("/admin/attendances/delete/{id}")
+    public String deleteAttendance(@PathVariable Long id, HttpSession session) {
+        Admin admin = (Admin) session.getAttribute("user");
+        if (admin == null) {
+            return "redirect:/login";
+        }
+        
+        attendanceService.deleteAttendance(id);
+        return "redirect:/admin/attendances";
+    }
+    
+    @GetMapping("/admin/attendances/award-points/{id}")
+    public String awardAttendancePoints(@PathVariable Long id, HttpSession session) {
+        Admin admin = (Admin) session.getAttribute("user");
+        if (admin == null) {
+            return "redirect:/login";
+        }
+        
+        attendanceService.awardPointsForAttendance(id);
+        return "redirect:/admin/attendances";
+    }
+    
+    @GetMapping("/admin/attendances/calculate-points")
+    public String calculateAttendancePoints(HttpSession session) {
+        Admin admin = (Admin) session.getAttribute("user");
+        if (admin == null) {
+            return "redirect:/login";
+        }
+        
+        attendanceService.calculateAndAwardPoints();
+        return "redirect:/admin/attendances";
+    }
 }

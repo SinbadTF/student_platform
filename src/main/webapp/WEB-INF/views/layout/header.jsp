@@ -37,7 +37,13 @@
                         <a class="nav-link" href="/staff"><i class="bi bi-person-badge-fill"></i> Staff</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="/admin/attendances"><i class="bi bi-calendar-check"></i> Attendance</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="/rewards"><i class="bi bi-award-fill"></i> Rewards</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/spinwheels"><i class="bi bi-arrow-repeat"></i> SpinWheel</a>
                     </li>
                 </ul>
                 

@@ -9,6 +9,10 @@ import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.time.format.DateTimeFormatter;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.beans.factory.annotation.Autowired;
+import studentplatform.student_platform.util.JspDateAdapter;
 
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
@@ -18,6 +22,9 @@ public class WebMvcConfig implements WebMvcConfigurer {
     
     @Autowired
     private LocalDateTimeConverter localDateTimeConverter;
+
+    @Autowired
+    private JspDateAdapter jspDateAdapter;
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
@@ -49,5 +56,17 @@ public class WebMvcConfig implements WebMvcConfigurer {
         DateTimeFormatterRegistrar registrar = new DateTimeFormatterRegistrar();
         registrar.setDateTimeFormatter(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
         registrar.registerFormatters(registry);
+    }
+
+    @ControllerAdvice
+    public static class GlobalModelAttributes {
+
+        @Autowired
+        private JspDateAdapter jspDateAdapter;
+
+        @ModelAttribute("dates")
+        public JspDateAdapter datesAdapter() {
+            return jspDateAdapter;
+        }
     }
 }

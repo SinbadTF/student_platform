@@ -260,7 +260,7 @@
                                                     </td>
                                                     <td>
                                                         <small class="text-muted">
-                                                            <fmt:formatDate value="${spinWheel.createdAt}" pattern="MMM dd, yyyy"/>
+                                                            <fmt:formatDate value="${dates.toDate(spinWheel.createdAt)}" pattern="MMM dd, yyyy"/>
                                                         </small>
                                                     </td>
                                                     <td>

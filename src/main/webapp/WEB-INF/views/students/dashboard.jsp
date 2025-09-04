@@ -137,62 +137,80 @@
                             </button>
                         </c:when>
                         <c:otherwise>
-                            <a href="/students/spinwheel" class="btn btn-gradient btn-lg px-5 py-3 shadow-lg spin-button">
-                                <i class="bi bi-arrow-repeat me-2"></i>Spin Now!
-                                <div class="button-shine"></div>
-                            </a>
+                            <c:choose>
+                                <c:when test="${selectedSpinWheel != null}">
+                                    <a href="/students/spinwheel/${selectedSpinWheel.id}" class="btn btn-gradient btn-lg px-5 py-3 shadow-lg spin-button">
+                                        <i class="bi bi-arrow-repeat me-2"></i>Spin Now!
+                                        <div class="button-shine"></div>
+                                    </a>
+                                </c:when>
+                                <c:otherwise>
+                                    <button class="btn btn-secondary btn-lg px-4 py-2" disabled>
+                                        <i class="bi bi-slash-circle me-2"></i>Spin Unavailable
+                                    </button>
+                                </c:otherwise>
+                            </c:choose>
                         </c:otherwise>
                     </c:choose>
                     
-                    <!-- Enhanced Stats Display -->
-                    <c:if test="${not empty activeSpinWheels}">
-                        <div class="mt-4 pt-4 border-top">
-                            <h6 class="text-muted mb-3 fw-semibold">📊 Spinwheel Stats</h6>
-                            <div class="row g-3">
-                                <div class="col-6">
-                                    <div class="stat-card bg-primary bg-opacity-10 rounded-3 p-3 stat-card-primary">
-                                        <div class="stat-icon mb-2">
-                                            <i class="bi bi-circle-square text-primary"></i>
-                                        </div>
-                                        <h4 class="text-primary mb-1 fw-bold">${activeSpinWheels.size()}</h4>
-                                        <small class="text-muted fw-medium">Available</small>
+                    <!-- Show a compact spinwheel UI even if spinning is unavailable -->
+                    <div class="mt-4 pt-4 border-top">
+                        <h6 class="text-muted mb-3 fw-semibold">📊 Today's Wheel Preview</h6>
+                        <div class="row align-items-start g-3">
+                            <div class="col-12 col-sm-6 d-flex justify-content-center position-relative">
+                                <canvas id="miniSpinwheel" width="220" height="220"></canvas>
+                                <c:if test="${hasSpunToday}">
+                                    <div class="position-absolute d-flex align-items-center justify-content-center"
+                                         style="inset: 0; background: rgba(255,255,255,0.6); border-radius: 8px;">
+                                        <span class="badge bg-secondary">Spin available tomorrow</span>
                                     </div>
-                                </div>
-                                <div class="col-6">
-                                    <div class="stat-card bg-success bg-opacity-10 rounded-3 p-3 stat-card-success">
-                                        <div class="stat-icon mb-2">
-                                            <i class="bi bi-gift text-success"></i>
-                                        </div>
-                                        <h4 class="text-success mb-1 fw-bold">
-                                            <c:set var="totalItems" value="0"/>
-                                            <c:forEach var="wheel" items="${activeSpinWheels}">
-                                                <c:set var="totalItems" value="${totalItems + wheel.items.size()}"/>
-                                            </c:forEach>
-                                            ${totalItems}
-                                        </h4>
-                                        <small class="text-muted fw-medium">Prizes</small>
-                                    </div>
-                                </div>
+                                </c:if>
                             </div>
-                            
-                            <!-- Quick Preview of Available Prizes -->
-                            <div class="mt-3">
-                                <small class="text-muted d-block mb-2">
-                                    <i class="bi bi-eye me-1"></i>Available Prizes Preview
-                                </small>
-                                <div class="prize-preview-container">
-                                    <c:forEach var="wheel" items="${activeSpinWheels}" end="2">
-                                        <c:forEach var="item" items="${wheel.items}" end="3">
-                                            <div class="prize-preview-item" 
-                                                 style="background-color: ${item.color != null ? item.color : '#007bff'};">
-                                                <span class="prize-preview-text">${item.pointValue}pts</span>
-                                            </div>
-                                        </c:forEach>
-                                    </c:forEach>
+                            <div class="col-12 col-sm-6">
+                                <div class="card border-0 shadow-sm">
+                                    <div class="card-header bg-white border-0 py-2">
+                                        <strong>Cycle Items</strong>
+                                    </div>
+                                    <div class="card-body p-2">
+                                        <c:choose>
+                                            <c:when test="${not empty selectedSpinWheelItems}">
+                                                <ul class="list-group list-group-flush small">
+                                                    <c:forEach var="it" items="${selectedSpinWheelItems}" end="7">
+                                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                            <div class="d-flex align-items-center">
+                                                                <span class="me-2 rounded-circle" style="display:inline-block;width:14px;height:14px;background:#007bff;"></span>
+                                                                <span class="fw-semibold"><c:out value='${it.label}'/></span>
+                                                            </div>
+                                                            <div>
+                                                                <span class="badge bg-primary me-1">${it.pointValue} pts</span>
+                                                                <span class="badge bg-light text-muted">w:${it.probabilityWeight}</span>
+                                                            </div>
+                                                        </li>
+                                                    </c:forEach>
+                                                </ul>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <div class="text-muted">No items configured yet.</div>
+                                            </c:otherwise>
+                                        </c:choose>
+                                        <div class="mt-2 text-end">
+                                            <a href="/students/spinwheel" class="btn btn-sm btn-outline-primary">Open Spinwheel</a>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </c:if>
+                        <div id="mini-spin-data" style="display:none;">
+                            <c:forEach var="item" items="${selectedSpinWheelItems}" end="7">
+                                <div data-item="1"
+                                     data-label="<c:out value='${item.label}'/>"
+                                     data-points="${item.pointValue}"
+                                     data-weight="${item.probabilityWeight}"
+                                     data-color="<c:out value='${item.color}'/>"
+                                     data-desc="<c:out value='${item.description}'/>"></div>
+                            </c:forEach>
+                        </div>
+                    </div>
                     
                     <!-- Daily Limit Info -->
                     <div class="mt-4 pt-3 border-top">
@@ -236,29 +254,73 @@
         </div>
     </div>
 
-    <!-- Clubs and Activities -->
-    <div class="row">
+    <!-- Clubs and Activities - Improved to fill space better -->
+    <div class="row mb-4">
         <div class="col-12">
             <div class="card border-0 shadow-sm rounded-3">
                 <div class="card-header bg-white border-0 py-3">
                     <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0"><i class="bi bi-people text-info me-2"></i> Clubs & Activities</h5>
-                        <a href="/clubs" class="btn btn-sm btn-outline-info">View All</a>
+                        <h5 class="mb-0"><i class="bi bi-people text-info me-2"></i>Clubs & Activities</h5>
+                        <div>
+                            <a href="/students/activities" class="btn btn-sm btn-info text-white me-2">Join Activities</a>
+                            <a href="/students/clubs" class="btn btn-sm btn-outline-info">View All Clubs</a>
+                        </div>
                     </div>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-4">
                     <div class="row">
-                        
-                        <c:if test="${empty clubs}">
-                            <div class="col-12 text-center py-4">
-                                <p>No clubs available at the moment</p>
-                            </div>
-                        </c:if>
+                        <c:choose>
+                            <c:when test="${not empty studentMemberships}">
+                                <c:forEach items="${studentMemberships}" var="membership">
+                                    <div class="col-md-6 mb-4">
+                                        <div class="card border-0 shadow-sm h-100">
+                                            <div class="card-header bg-info bg-opacity-10 py-3">
+                                                <h5 class="mb-0 text-info">${membership.club.name}</h5>
+                                            </div>
+                                            <div class="card-body">
+                                                <c:choose>
+                                                    <c:when test="${not empty clubActivities[membership.club]}">
+                                                        <div class="list-group">
+                                                            <c:forEach items="${clubActivities[membership.club]}" var="activity">
+                                                                <div class="list-group-item list-group-item-action d-flex align-items-center p-3 border-0 mb-2 bg-light rounded">
+                                                                    <div class="flex-grow-1">
+                                                                        <div class="d-flex w-100 justify-content-between">
+                                                                            <h6 class="mb-1 fw-bold">${activity.title}</h6>
+                                                                            <span class="badge bg-success rounded-pill">${activity.points} points</span>
+                                                                        </div>
+                                                                        <p class="mb-1 text-muted small">${activity.description}</p>
+                                                                    </div>
+                                                                    <a href="/students/activities/join/${activity.id}" class="btn btn-sm btn-outline-info ms-2">Join</a>
+                                                                </div>
+                                                            </c:forEach>
+                                                        </div>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <div class="text-center py-4">
+                                                            <i class="bi bi-calendar-x text-muted" style="font-size: 2rem;"></i>
+                                                            <p class="mt-3">No activities available for this club</p>
+                                                        </div>
+                                                    </c:otherwise>
+                                                </c:choose>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </c:forEach>
+                            </c:when>
+                            <c:otherwise>
+                                <div class="col-12 text-center py-5">
+                                    <i class="bi bi-people text-muted" style="font-size: 3rem;"></i>
+                                    <h5 class="mt-3">You haven't joined any clubs yet</h5>
+                                    <p class="text-muted">Join clubs to participate in activities and earn points</p>
+                                    <a href="/students/clubs" class="btn btn-primary mt-2">Browse Clubs</a>
+                                </div>
+                            </c:otherwise>
+                        </c:choose>
                     </div>
                 </div>
             </div>
         </div>
-    <!-- After the Clubs and Activities section, around line 198 -->
+    </div>
     
     <!-- Available Rewards Section -->
     <div class="row mt-4">
@@ -283,11 +345,9 @@
                                         <p class="card-text small">${reward.description}</p>
                                         <div class="d-flex justify-content-between align-items-center">
                                             <span class="badge bg-primary">${reward.pointValue} points</span>
-                                        
-
-                                <form action="/students/rewards/exchange/${reward.id}" method="post" style="display:inline;">
-                                    <button type="submit" class="btn btn-sm btn-outline-success">Redeem</button>
-                                </form> 
+                                            <form action="/students/rewards/exchange/${reward.id}" method="post" style="display:inline;">
+                                                <button type="submit" class="btn btn-sm btn-outline-success">Redeem</button>
+                                            </form> 
                                         </div>
                                     </div>
                                 </div>
@@ -305,7 +365,6 @@
         </div>
     </div>
 </div> <!-- This closes the main container -->
-</div>
 
 <!-- Chart.js for data visualization -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -315,10 +374,10 @@
     const pointsChart = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: ${pointsChartLabels},
+            labels: <c:out value="${pointsChartLabels}" escapeXml="false"/>,
             datasets: [{
                 label: 'Points Earned',
-                data: ${pointsChartData},
+                data: <c:out value="${pointsChartData}" escapeXml="false"/>,
                 backgroundColor: 'rgba(13, 110, 253, 0.2)',
                 borderColor: 'rgba(13, 110, 253, 1)',
                 borderWidth: 2,
@@ -347,14 +406,72 @@
                         display: true,
                         text: 'Points'
                     }
-                },
-                x: {
-                    title: {
-                        display: true,
-                        text: 'Month'
-                    }
                 }
             }
         }
     });
+</script>
+
+<%@ include file="../layout/footer.jsp" %>
+
+
+
+
+<script>
+// Render mini spinwheel preview on dashboard
+document.addEventListener('DOMContentLoaded', function() {
+    const canvas = document.getElementById('miniSpinwheel');
+    if (!canvas) return;
+    const dataNodes = document.querySelectorAll('#mini-spin-data [data-item]');
+    const items = Array.from(dataNodes).map(function(node) {
+        return {
+            label: node.getAttribute('data-label') || '',
+            pointValue: parseInt(node.getAttribute('data-points') || '0', 10),
+            probabilityWeight: parseFloat(node.getAttribute('data-weight') || '0'),
+            color: node.getAttribute('data-color') || '#007bff',
+            description: node.getAttribute('data-desc') || ''
+        };
+    });
+    if (items.length === 0) return;
+
+    // Lightweight draw without interaction
+    const ctx = canvas.getContext('2d');
+    const cx = canvas.width / 2;
+    const cy = canvas.height / 2;
+    const radius = Math.min(cx, cy) - 6;
+    const totalWeight = items.reduce((s, it) => s + (it.probabilityWeight || 1), 0) || items.length;
+    let startAngle = -Math.PI / 2;
+
+    items.forEach(function(it) {
+        const weight = (it.probabilityWeight || 1);
+        const slice = (weight / totalWeight) * Math.PI * 2;
+        const endAngle = startAngle + slice;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.arc(cx, cy, radius, startAngle, endAngle);
+        ctx.closePath();
+        ctx.fillStyle = it.color || '#007bff';
+        ctx.fill();
+
+        // label
+        const mid = (startAngle + endAngle) / 2;
+        const tx = cx + Math.cos(mid) * radius * 0.6;
+        const ty = cy + Math.sin(mid) * radius * 0.6;
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 12px Inter, Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText((it.pointValue || 0) + ' pts', tx, ty);
+        startAngle = endAngle;
+    });
+
+    // pointer
+    ctx.fillStyle = '#dc3545';
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - radius - 4);
+    ctx.lineTo(cx - 10, cy - radius + 16);
+    ctx.lineTo(cx + 10, cy - radius + 16);
+    ctx.closePath();
+    ctx.fill();
+});
 </script>

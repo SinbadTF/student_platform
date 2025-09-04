@@ -45,7 +45,16 @@ public class Admin {
     @NotBlank(message = "Password is required")
     @Size(min = 6, message = "Password must be at least 6 characters")
     private String password;
+    
+    private String phone;
+    
+    private String department;
 
+    // Getter method for full name
+    public String getName() {
+        return firstName + " " + lastName;
+    }
+    
     @Override
     public String toString() {
         return "Admin{" +

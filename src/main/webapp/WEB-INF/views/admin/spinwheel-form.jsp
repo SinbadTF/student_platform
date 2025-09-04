@@ -73,9 +73,14 @@
                             </c:choose>
                         </p>
                     </div>
-                    <a href="/admin/spinwheels" class="btn btn-outline-secondary">
-                        <i class="bi bi-arrow-left me-2"></i>Back to Spinwheels
-                    </a>
+                    <div class="btn-group">
+                        <a href="/admin/spinwheels" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-2"></i>Back to Spinwheels
+                        </a>
+                        <a href="/admin/dashboard" class="btn btn-outline-primary ms-2">
+                            <i class="bi bi-speedometer2 me-2"></i>Back to Dashboard
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -175,7 +180,7 @@
                                                 <div class="item-card p-3">
                                                     <div class="d-flex justify-content-between align-items-start mb-2">
                                                         <div class="d-flex align-items-center">
-                                                            <div class="color-preview" style="background-color: ${item.color != null ? item.color : '#007bff'}"></div>
+                                                            <div class="color-preview" style="background-color: #007bff;"></div>
                                                             <div>
                                                                 <h6 class="mb-1">${item.label}</h6>
                                                                 <c:if test="${not empty item.description}">
@@ -190,7 +195,7 @@
                                                     </div>
                                                     <div class="d-flex justify-content-between align-items-center">
                                                         <small class="text-muted">
-                                                            <i class="bi bi-palette me-1"></i>${item.color != null ? item.color : '#007bff'}
+                                                            <i class="bi bi-palette me-1"></i>#007bff
                                                         </small>
                                                         <div class="btn-group btn-group-sm">
                                                             <a href="/admin/spinwheels/items/edit/${item.id}" class="btn btn-outline-primary btn-sm">
