@@ -147,7 +147,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <h5 class="mb-0"><i class="bi bi-people text-info me-2"></i>Clubs & Activities</h5>
                         <div>
-                            <a href="/students/activities" class="btn btn-sm btn-info text-white me-2">Join Activities</a>
+                            <a href="/students/activities" class="btn btn-sm btn-info text-white me-2">View Activities</a>
                             <a href="/students/clubs" class="btn btn-sm btn-outline-info">View All Clubs</a>
                         </div>
                     </div>
@@ -175,7 +175,9 @@
                                                                         </div>
                                                                         <p class="mb-1 text-muted small">${activity.description}</p>
                                                                     </div>
-                                                                    <a href="/students/activities/join/${activity.id}" class="btn btn-sm btn-outline-info ms-2">Join</a>
+                                                                    <form action="/students/activities/join/${activity.id}" method="post" class="ms-2" style="display:inline;">
+                                                                        <button type="submit" class="btn btn-sm btn-outline-info">Join</button>
+                                                                    </form>
                                                                 </div>
                                                             </c:forEach>
                                                         </div>

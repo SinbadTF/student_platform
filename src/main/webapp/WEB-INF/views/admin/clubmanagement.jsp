@@ -18,7 +18,7 @@
     
     <div class="d-flex">
         <!-- Left Sidebar -->
-        <div class="bg-dark text-white" style="width: 250px; min-height: 100vh;">
+        <div class="bg-dark text-white position-fixed" style="width: 300px; min-height: 100vh; left: 0; top: 0; z-index: 1000;">
             <div class="p-3">
                 <h5 class="text-white mb-4">
                     <i class="bi bi-trophy me-2"></i>ClubPoints Admin
@@ -27,7 +27,7 @@
                 
                 <nav class="nav flex-column">
                     <a class="nav-link text-white-50 mb-2" href="${pageContext.request.contextPath}/admin/clubs">
-                        <i class="bi bi-people me-2"></i>Club Dashboard
+                        <i class="bi bi-trophy me-2"></i>Club Dashboard
                     </a>
                     <a class="nav-link text-white mb-2 active" href="${pageContext.request.contextPath}/admin/clubmanagement">
                         <i class="bi bi-gear me-2"></i>Club Management
@@ -42,9 +42,9 @@
             </div>
         </div>
         
-        <!-- Main Content -->
-        <div class="flex-grow-1">
-            <div class="container py-4">
+     <!-- Main Content -->
+     <div class="flex-grow-1" style="margin-left: 300px; padding-left: 1px;">
+        <div class="container-fluid py-4">
                 <!-- Header -->
                 <div class="row mb-4">
                     <div class="col-12">
@@ -73,7 +73,7 @@
                                             <span class="input-group-text bg-white border-end-0">
                                                 <i class="bi bi-search text-muted"></i>
                                             </span>
-                                            <input type="text" class="form-control border-start-0" placeholder="Search clubs...">
+                                            <input type="text" class="form-control border-start-0" placeholder="Search clubs..." id="clubSearchInput">
                                         </div>
                                     </div>
                                     <div>
@@ -299,6 +299,62 @@
                 console.log('User cancelled deletion');
             }
         }
+        
+        // Search functionality for clubs
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('clubSearchInput');
+            const tableBody = document.querySelector('tbody');
+            const tableRows = tableBody.querySelectorAll('tr');
+            
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase().trim();
+                
+                tableRows.forEach(row => {
+                    const clubName = row.querySelector('h6')?.textContent?.toLowerCase() || '';
+                    const description = row.querySelector('p')?.textContent?.toLowerCase() || '';
+                    const meetingSchedule = row.querySelector('.badge')?.textContent?.toLowerCase() || '';
+                    const createdBy = row.querySelector('small')?.textContent?.toLowerCase() || '';
+                    
+                    const matchesSearch = clubName.includes(searchTerm) || 
+                                        description.includes(searchTerm) || 
+                                        meetingSchedule.includes(searchTerm) || 
+                                        createdBy.includes(searchTerm);
+                    
+                    row.style.display = matchesSearch ? '' : 'none';
+                });
+                
+                // Show "no results" message if no matches
+                const visibleRows = Array.from(tableRows).filter(row => row.style.display !== 'none');
+                const noResultsRow = tableBody.querySelector('.no-results-row');
+                
+                if (visibleRows.length === 0 && !noResultsRow) {
+                    const noResults = document.createElement('tr');
+                    noResults.className = 'no-results-row';
+                    noResults.innerHTML = `
+                        <td colspan="5" class="text-center text-muted py-4">
+                            <i class="bi bi-search text-muted me-2"></i>
+                            No clubs found matching "${searchTerm}"
+                        </td>
+                    `;
+                    tableBody.appendChild(noResults);
+                } else if (visibleRows.length > 0 && noResultsRow) {
+                    noResultsRow.remove();
+                }
+            });
+            
+            // Clear search when input is cleared
+            searchInput.addEventListener('change', function() {
+                if (this.value === '') {
+                    tableRows.forEach(row => {
+                        row.style.display = '';
+                    });
+                    const noResultsRow = tableBody.querySelector('.no-results-row');
+                    if (noResultsRow) {
+                        noResultsRow.remove();
+                    }
+                }
+            });
+        });
     </script>
 </body>
 </html>

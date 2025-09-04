@@ -10,7 +10,10 @@ import studentplatform.student_platform.model.Student;
 import studentplatform.student_platform.repository.ActivityParticipationRepository;
 import studentplatform.student_platform.repository.ActivityRepository;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import org.springframework.scheduling.annotation.Scheduled;
 import java.util.List;
 import java.util.Optional;
 
@@ -53,6 +56,10 @@ public class ActivityParticipationService {
         return activityParticipationRepository.findByActivity(activity);
     }
     
+    public List<ActivityParticipation> getParticipationsByStatus(ParticipationStatus status) {
+        return activityParticipationRepository.findByStatus(status);
+    }
+
     public Optional<ActivityParticipation> getParticipationById(Long id) {
         return activityParticipationRepository.findById(id);
     }
@@ -81,5 +88,64 @@ public class ActivityParticipationService {
         participation.setApprovedBy(admin);
         
         return activityParticipationRepository.save(participation);
+    }
+
+    /**
+     * Scheduled task: Award points automatically for activities that have ended.
+     * Runs every minute. For each participation that is still PENDING and whose activity
+     * end time has passed, mark as APPROVED and credit points to the student once.
+     */
+    @Scheduled(fixedDelay = 60_000)
+    public void awardPointsForEndedActivities() {
+        try {
+            // Fetch all pending participations
+            List<ActivityParticipation> pending = activityParticipationRepository.findByStatus(ParticipationStatus.PENDING);
+            if (pending == null || pending.isEmpty()) {
+                return;
+            }
+
+            LocalDateTime now = LocalDateTime.now();
+            for (ActivityParticipation participation : pending) {
+                Activity activity = participation.getActivity();
+                if (activity == null) {
+                    continue;
+                }
+
+                try {
+                    String dateStr = activity.getClubDate();
+                    String endStr = activity.getEndTime();
+                    if (dateStr == null || endStr == null || dateStr.isBlank() || endStr.isBlank()) {
+                        continue;
+                    }
+
+                    LocalDate date = LocalDate.parse(dateStr);
+                    LocalTime end = LocalTime.parse(endStr);
+                    LocalDateTime endAt = LocalDateTime.of(date, end);
+
+                    if (now.isAfter(endAt)) {
+                        // Award if not yet awarded
+                        Integer already = participation.getPointsEarned();
+                        if (already == null || already == 0) {
+                            int points = activity.getPoints() != null ? activity.getPoints() : 0;
+                            participation.setStatus(ParticipationStatus.APPROVED);
+                            participation.setApprovedAt(now);
+                            participation.setApprovedBy(null);
+                            participation.setPointsEarned(points);
+                            activityParticipationRepository.save(participation);
+
+                            if (points > 0) {
+                                try {
+                                    studentService.addPointsToStudent(participation.getStudent().getId(), points, "Activity completed: " + activity.getTitle());
+                                } catch (Exception ignore) {}
+                            }
+                        }
+                    }
+                } catch (Exception ignore) {
+                    // Ignore parsing issues and continue
+                }
+            }
+        } catch (Exception ignoreOuter) {
+            // Swallow errors to keep scheduler resilient
+        }
     }
 }

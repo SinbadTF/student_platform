@@ -1,5 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -17,7 +18,7 @@
     
     <div class="d-flex">
         <!-- Left Sidebar -->
-        <div class="bg-dark text-white" style="width: 250px; min-height: 100vh;">
+        <div class="bg-dark text-white position-fixed" style="width: 300px; min-height: 100vh; left: 0; top: 0; z-index: 1000;">
             <div class="p-3">
                 <h5 class="text-white mb-4">
                     <i class="bi bi-trophy me-2"></i>ClubPoints Admin
@@ -27,7 +28,7 @@
                 <nav class="nav flex-column">
                     <a class="nav-link text-white mb-2 active" 
                     href="${pageContext.request.contextPath}/admin/clubs">
-                    <i class="bi bi-people me-2"></i>Club Dashboard
+                    <i class="bi bi-trophy me-2"></i>Club Dashboard
                  </a>
                     <a class="nav-link text-white-50 mb-2" 
                     href="${pageContext.request.contextPath}/admin/clubmanagement">
@@ -45,14 +46,14 @@
         </div>
         
         <!-- Main Content -->
-        <div class="flex-grow-1">
-            <div class="container py-4">
+        <div class="flex-grow-1" style="margin-left: 300px; padding-left: 1px;">
+            <div class="container-fluid py-4">
         <!-- Header -->
         <div class="row mb-4">
             <div class="col-12">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <h2 class="mb-1"><i class="bi bi-people-fill text-primary me-2"></i>Club Management</h2>
+                        <h2 class="mb-1"><i class="bi bi-trophy text-primary me-2"></i>Club Dashboard</h2>
                         <p class="text-muted mb-0">Manage all clubs and their activities</p>
                     </div>
                     <div>
@@ -77,40 +78,8 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-body text-center">
-                        <div class="bg-success bg-opacity-10 rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
-                            <i class="bi bi-check-circle text-success" style="font-size: 1.5rem;"></i>
-                        </div>
-                        <h4 class="fw-bold text-success">0</h4>
-                        <p class="text-muted mb-0">Active Clubs</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-body text-center">
-                        <div class="bg-warning bg-opacity-10 rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
-                            <i class="bi bi-hourglass-split text-warning" style="font-size: 1.5rem;"></i>
-                        </div>
-                        <h4 class="fw-bold text-warning">0</h4>
-                        <p class="text-muted mb-0">Pending Requests</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-body text-center">
-                        <div class="bg-info bg-opacity-10 rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
-                            <i class="bi bi-person-plus text-info" style="font-size: 1.5rem;"></i>
-                        </div>
-                        <h4 class="fw-bold text-info">0</h4>
-                        <p class="text-muted mb-0">Total Members</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+   
+    
 
         <!-- Actions Bar -->
         <div class="row mb-4">
@@ -177,7 +146,14 @@
                                                         <span class="badge bg-info">${club.meetingScheduleTitle != null ? club.meetingScheduleTitle : 'No schedule set'}</span>
                                                     </td>
                                                     <td>
-                                                        <span class="badge bg-primary">0</span>
+                                                        <span class="badge bg-primary">
+                                                            <c:choose>
+                                                                <c:when test="${not empty clubService}">
+                                                                    ${clubService.getActiveMembershipsByClub(club).size()}
+                                                                </c:when>
+                                                                <c:otherwise>0</c:otherwise>
+                                                            </c:choose>
+                                                        </span>
                                                     </td>
                                                     <td>
                                                         <span class="badge bg-success">Active</span>
@@ -189,7 +165,7 @@
                                                                 <i class="bi bi-pencil"></i>
                                                             </a>
                                                             <button class="btn btn-sm btn-outline-danger" title="Delete" 
-                                                                    onclick="confirmDelete(${club.id}, '${club.name}')">
+                                                                    data-club-id="${club.id}" data-name="${fn:escapeXml(club.name)}" onclick="confirmDelete(this)">
                                                                 <i class="bi bi-trash"></i>
                                                             </button>
                                                         </div>
@@ -258,44 +234,33 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
     <!-- Success/Error Message Display -->
+    <c:if test="${not empty success}">
+        <div id="flash-success" class="alert alert-success alert-dismissible fade show position-fixed" style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;">
+            <i class="bi bi-check-circle me-2"></i><c:out value='${success}'/>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <script>
+            setTimeout(function() {
+                var el = document.getElementById('flash-success');
+                if (el && el.parentNode) { el.remove(); }
+            }, 5000);
+        </script>
+    </c:if>
+    
+    <c:if test="${not empty error}">
+        <div id="flash-error" class="alert alert-danger alert-dismissible fade show position-fixed" style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;">
+            <i class="bi bi-exclamation-triangle me-2"></i><c:out value='${error}'/>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <script>
+            setTimeout(function() {
+                var el = document.getElementById('flash-error');
+                if (el && el.parentNode) { el.remove(); }
+            }, 5000);
+        </script>
+    </c:if>
+
     <script>
-        // Check for flash messages
-        <c:if test="${not empty success}">
-            // Show success message
-            document.addEventListener('DOMContentLoaded', function() {
-                var successAlert = document.createElement('div');
-                successAlert.className = 'alert alert-success alert-dismissible fade show position-fixed';
-                successAlert.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
-                successAlert.innerHTML = '<i class="bi bi-check-circle me-2"></i>${success}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
-                document.body.appendChild(successAlert);
-                
-                // Auto remove after 5 seconds
-                setTimeout(function() {
-                    if (successAlert.parentNode) {
-                        successAlert.remove();
-                    }
-                }, 5000);
-            });
-        </c:if>
-        
-        <c:if test="${not empty error}">
-            // Show error message
-            document.addEventListener('DOMContentLoaded', function() {
-                var errorAlert = document.createElement('div');
-                errorAlert.className = 'alert alert-danger alert-dismissible fade show position-fixed';
-                errorAlert.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
-                errorAlert.innerHTML = '<i class="bi bi-exclamation-triangle me-2"></i>${error}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
-                document.body.appendChild(errorAlert);
-                
-                // Auto remove after 5 seconds
-                setTimeout(function() {
-                    if (errorAlert.parentNode) {
-                        errorAlert.remove();
-                    }
-                }, 5000);
-            });
-        </c:if>
-        
         // Form validation
         document.getElementById('createClubForm').addEventListener('submit', function(e) {
             var clubName = document.getElementById('clubName').value.trim();
@@ -312,7 +277,9 @@
         });
         
         // Delete confirmation function
-        function confirmDelete(clubId, clubName) {
+        function confirmDelete(buttonEl) {
+            var clubId = buttonEl.getAttribute('data-club-id');
+            var clubName = buttonEl.getAttribute('data-name');
             if (confirm('Are you sure you want to delete the club "' + clubName + '"? This action cannot be undone.')) {
                 // Create and submit delete form
                 var form = document.createElement('form');

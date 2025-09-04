@@ -5,8 +5,10 @@ import org.springframework.stereotype.Service;
 import studentplatform.student_platform.model.Activity;
 import studentplatform.student_platform.model.Admin;
 import studentplatform.student_platform.model.Club;
+import studentplatform.student_platform.model.ActivityParticipation;
 import studentplatform.student_platform.repository.ActivityRepository;
 import studentplatform.student_platform.repository.ClubRepository;
+import studentplatform.student_platform.repository.ActivityParticipationRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,6 +21,9 @@ public class ActivityService {
 
     @Autowired
     private ClubRepository clubRepository;
+
+    @Autowired
+    private ActivityParticipationRepository activityParticipationRepository;
 
     public Activity createActivity(Activity activity, Admin admin) {
         activity.setCreatedBy(admin);
@@ -49,8 +54,13 @@ public class ActivityService {
         return activityRepository.save(activity);
     }
 
+    @org.springframework.transaction.annotation.Transactional
     public void deleteActivity(Long id) {
-        activityRepository.deleteById(id);
+        activityRepository.findById(id).ifPresent(activity -> {
+            // Delete dependent participations first to satisfy FK constraints
+            activityParticipationRepository.deleteByActivity(activity);
+            activityRepository.delete(activity);
+        });
     }
 
     public Optional<Club> getClubById(Long clubId) {

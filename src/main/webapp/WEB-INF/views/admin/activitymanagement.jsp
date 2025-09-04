@@ -17,7 +17,7 @@
     
     <div class="d-flex">
         <!-- Left Sidebar -->
-        <div class="bg-dark text-white" style="width: 250px; min-height: 100vh;">
+        <div class="bg-dark text-white position-fixed" style="width: 300px; min-height: 100vh; left: 0; top: 0; z-index: 1000;">
             <div class="p-3">
                 <h5 class="text-white mb-4">
                     <i class="bi bi-trophy me-2"></i>ClubPoints Admin
@@ -26,7 +26,7 @@
                 
                                 <nav class="nav flex-column">
                     <a class="nav-link text-white-50 mb-2" href="${pageContext.request.contextPath}/admin/clubs">
-                        <i class="bi bi-people me-2"></i>Club Dashboard
+                        <i class="bi bi-trophy me-2"></i>Club Dashboard
                     </a>
                     <a class="nav-link text-white-50 mb-2" href="${pageContext.request.contextPath}/admin/clubmanagement">
                         <i class="bi bi-gear me-2"></i>Club Management
@@ -41,12 +41,12 @@
             </div>
         </div>
 
-        <!-- Main Content -->
-        <div class="flex-grow-1 p-4">
-            <div class="container-fluid">
+          <!-- Main Content -->
+          <div class="flex-grow-1" style="margin-left: 300px; padding-left: 1px;">
+            <div class="container-fluid py-4">
                 <!-- Header -->
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h2 class="mb-0">Activities Management</h2>
+                    <h2 class="mb-0"><i class="bi bi-calendar text-primary me-2"></i>Activities Management</h2>
                     <a href="${pageContext.request.contextPath}/admin/activities/create" class="btn btn-success">
                         <i class="bi bi-plus-circle me-2"></i>Add New Activity
                     </a>
@@ -76,6 +76,9 @@
                                         <th>ACTIVITY TITLE</th>
                                         <th>CLUB</th>
                                         <th>POINTS</th>
+                                        <th>DATE</th>
+                                        <th>TIME</th>
+                                        <th>PLACE</th>
                                         <th>DESCRIPTION</th>
                                         <th>ACTIONS</th>
                                     </tr>
@@ -88,13 +91,23 @@
                                                     <td>${activity.title}</td>
                                                     <td>${activity.club != null ? activity.club.name : 'No club assigned'}</td>
                                                     <td><span class="badge bg-primary">${activity.points}</span></td>
+                                                    <td>${activity.clubDate != null ? activity.clubDate : 'Not set'}</td>
+                                                    <td>
+                                                        <c:if test="${activity.startTime != null && activity.endTime != null}">
+                                                            ${activity.startTime} - ${activity.endTime}
+                                                        </c:if>
+                                                        <c:if test="${activity.startTime == null || activity.endTime == null}">
+                                                            Not set
+                                                        </c:if>
+                                                    </td>
+                                                    <td>${activity.activityPlace != null ? activity.activityPlace : 'Not set'}</td>
                                                     <td>${activity.description != null ? activity.description : 'No description available'}</td>
                                                     <td>
                                                         <a href="/admin/activities/edit/${activity.id}" class="btn btn-sm btn-outline-success me-1" title="Edit">
                                                             <i class="bi bi-pencil"></i>
                                                         </a>
                                                         <a href="/admin/activities/delete/${activity.id}" class="btn btn-sm btn-outline-danger" title="Delete"
-                                                           onclick="return confirm('Are you sure you want to delete the activity \"${activity.title}\"? This action cannot be undone.')">
+                                                           onclick="return confirm('Are you sure you want to delete the activity &quot;${activity.title}&quot;? This action cannot be undone.')">
                                                             <i class="bi bi-trash"></i>
                                                         </a>
                                                     </td>
@@ -103,7 +116,7 @@
                                         </c:when>
                                         <c:otherwise>
                                             <tr>
-                                                <td colspan="5" class="text-center py-4">
+                                                <td colspan="8" class="text-center py-4">
                                                     <i class="bi bi-calendar-event text-muted" style="font-size: 2rem;"></i>
                                                     <h6 class="text-muted mt-2">No activities found</h6>
                                                     <p class="text-muted">Create your first activity to get started!</p>
