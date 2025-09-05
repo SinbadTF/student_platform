@@ -37,9 +37,9 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary" style="opacity: 0.9;">
         <div class="container">
-            <div class="navbar-brand logo-container" href="/students/dashboard">
+            <a href="/students/dashboard" class="navbar-brand logo-container">
                 <img src="<c:url value='/resources/images/university_logo.png' />" alt="University Logo" class="logo-img">
-            </div>
+            </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
