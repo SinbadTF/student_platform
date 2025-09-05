@@ -11,7 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <link href="<c:url value='/resources/css/main.css' />" rel="stylesheet">
+    <link href="<c:url value='/resources/css/main.css?v=${System.currentTimeMillis()}' />" rel="stylesheet">
     <style>
         .logo-container {
             display: inline-flex;
@@ -35,7 +35,7 @@
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary" style="opacity: 0.9;">
         <div class="container">
             <div class="navbar-brand logo-container" href="/students/dashboard">
                 <img src="<c:url value='/resources/images/university_logo.png' />" alt="University Logo" class="logo-img">
@@ -58,7 +58,7 @@
                         <a class="nav-link" href="/students/clubs">Clubs</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/students/events">Events</a>
+                        <a class="nav-link" href="/events">Events</a>
                     </li>
                 </ul>
                 <ul class="navbar-nav ms-auto">
@@ -68,7 +68,6 @@
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li><a class="dropdown-item" href="/students/profile">My Profile</a></li>
-                            <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="/logout">Logout</a></li>
                         </ul>
                     </li>

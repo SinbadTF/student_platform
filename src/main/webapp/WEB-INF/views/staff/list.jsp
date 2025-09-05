@@ -6,7 +6,7 @@
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>Staff Management</h2>
-        <a href="/staff/create" class="btn btn-primary">Add New Staff</a>
+        
     </div>
     
     <div class="card mb-4">

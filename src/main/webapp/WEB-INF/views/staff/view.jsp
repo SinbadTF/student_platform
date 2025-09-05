@@ -61,23 +61,21 @@
                     <thead>
                         <tr>
                             <th>Reward ID</th>
-                            <th>Student</th>
                             <th>Points</th>
-                            <th>Reason</th>
-                            <th>Date Issued</th>
+                            <th>Description</th>
+                           
                         </tr>
                     </thead>
                     <tbody>
-                        <c:forEach items="${staff.rewardsIssued}" var="reward">
+                        <c:forEach items="${staff.rewards}" var="reward">
                             <tr>
                                 <td>${reward.id}</td>
-                                <td>${reward.student.firstName} ${reward.student.lastName}</td>
-                                <td>${reward.points}</td>
-                                <td>${reward.reason}</td>
-                                <td><fmt:formatDate value="${reward.dateIssued}" pattern="yyyy-MM-dd" /></td>
+                                <td>${reward.pointValue}</td>
+                                <td>${reward.description}</td>
+                                
                             </tr>
                         </c:forEach>
-                        <c:if test="${empty staff.rewardsIssued}">
+                        <c:if test="${empty staff.rewards}">
                             <tr>
                                 <td colspan="5" class="text-center">No rewards issued yet</td>
                             </tr>

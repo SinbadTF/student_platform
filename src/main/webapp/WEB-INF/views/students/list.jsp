@@ -3,7 +3,7 @@
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2>Student Management</h2>
-    <a href="/students/create" class="btn btn-primary">Add New Student</a>
+    
 </div>
 
 <div class="card">

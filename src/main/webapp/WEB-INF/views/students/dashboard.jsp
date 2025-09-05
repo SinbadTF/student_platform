@@ -1,13 +1,14 @@
-<%@ include file="../layout/header.jsp" %>
+<%@ include file="../layout/student_header.jsp" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+
 
 <!-- Modern Student Dashboard -->
 <div class="container py-4">
     <!-- Welcome Banner -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card bg-primary text-white shadow-lg rounded-3 border-0">
+            <div class="card bg-primary text-white shadow-lg rounded-3 border-0" style="opacity: 0.8;">
                 <div class="card-body p-4">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
@@ -103,7 +104,7 @@
                     </div>
                     <h5 class="card-title">Lucky Spin</h5>
                     <p class="card-text">Try your luck and win rewards!</p>
-                    <a href="/students/lucky-spin" class="btn btn-warning text-white">Spin Now</a>
+                    <a href="${pageContext.request.contextPath}/students/lucky-spin" class="btn btn-warning text-white">Spin Now</a>
                 </div>
             </div>
 
@@ -138,7 +139,7 @@
                     </c:if>
                 </ul>
                 <div class="text-center mt-3">
-                    <a href="/events" class="btn btn-sm btn-outline-secondary">View All Events</a>
+                    <a href="${pageContext.request.contextPath}/events" class="btn btn-sm btn-outline-secondary">View All Events</a>
                 </div>
             </div>
         </div>
@@ -150,8 +151,8 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <h5 class="mb-0"><i class="bi bi-people text-info me-2"></i>Clubs & Activities</h5>
                         <div>
-                            <a href="/students/activities" class="btn btn-sm btn-info text-white me-2">View Activities</a>
-                            <a href="/students/clubs" class="btn btn-sm btn-outline-info">View All Clubs</a>
+                            <a href="${pageContext.request.contextPath}/students/activities" class="btn btn-sm btn-info text-white me-2">View Activities</a>
+                            <a href="${pageContext.request.contextPath}/students/clubs" class="btn btn-sm btn-outline-info">View All Clubs</a>
                         </div>
                     </div>
                 </div>
@@ -202,7 +203,7 @@
                                     <i class="bi bi-people text-muted" style="font-size: 3rem;"></i>
                                     <h5 class="mt-3">You haven't joined any clubs yet</h5>
                                     <p class="text-muted">Join clubs to participate in activities and earn points</p>
-                                    <a href="/students/clubs" class="btn btn-primary mt-2">Browse Clubs</a>
+                                    <a href="${pageContext.request.contextPath}/students/clubs" class="btn btn-primary mt-2">Browse Clubs</a>
                                 </div>
                             </c:otherwise>
                         </c:choose>
@@ -219,7 +220,7 @@
                 <div class="card-header bg-white border-0 py-3">
                     <div class="d-flex justify-content-between align-items-center">
                         <h5 class="mb-0"><i class="bi bi-gift text-success me-2"></i> Available Rewards</h5>
-                        <a href="/students/rewards/catalog" class="btn btn-sm btn-outline-success">View All Rewards</a>
+                        <a href="${pageContext.request.contextPath}/students/rewards/catalog" class="btn btn-sm btn-outline-success">View All Rewards</a>
                     </div>
                 </div>
                 <div class="card-body">
@@ -235,7 +236,7 @@
                                         <p class="card-text small">${reward.description}</p>
                                         <div class="d-flex justify-content-between align-items-center">
                                             <span class="badge bg-primary">${reward.pointValue} points</span>
-                                            <form action="/students/rewards/exchange/${reward.id}" method="post" style="display:inline;">
+                                            <form action="${pageContext.request.contextPath}/students/rewards/exchange/${reward.id}" method="post" style="display:inline;">
                                                 <button type="submit" class="btn btn-sm btn-outline-success">Redeem</button>
                                             </form> 
                                         </div>
@@ -246,7 +247,7 @@
                         <c:if test="${empty availableRewards}">
                             <div class="col-12 text-center py-4">
                                 <p>No rewards available for your current points (${student.points})</p>
-                                <a href="/students/rewards/catalog" class="btn btn-sm btn-outline-primary">View All Rewards</a>
+                                <a href="${pageContext.request.contextPath}/students/rewards/catalog" class="btn btn-sm btn-outline-primary">View All Rewards</a>
                             </div>
                         </c:if>
                     </div>

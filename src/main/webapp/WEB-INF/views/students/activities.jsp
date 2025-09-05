@@ -1,4 +1,4 @@
-<%@ include file="../layout/header.jsp" %>
+<%@ include file="../layout/student_header.jsp" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
@@ -50,7 +50,7 @@
                     <p class="lead text-muted">Join activities from your clubs to earn points and engage with your community</p>
                 </div>
                 <div>
-                    <a href="/students/dashboard/${student.id}" class="btn btn-outline-primary">
+                    <a href="${pageContext.request.contextPath}/students/dashboard/${student.id}" class="btn btn-outline-primary">
                         <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
                     </a>
                 </div>
@@ -97,7 +97,7 @@
                             <i class="bi bi-exclamation-circle text-warning" style="font-size: 3rem;"></i>
                             <h4 class="mt-3">You haven't joined any clubs yet</h4>
                             <p class="text-muted">Join a club to participate in their activities</p>
-                            <a href="/students/clubs" class="btn btn-primary mt-2">
+                            <a href="${pageContext.request.contextPath}/students/clubs" class="btn btn-primary mt-2">
                                 <i class="bi bi-people me-2"></i>Browse Clubs
                             </a>
                         </div>
@@ -139,6 +139,8 @@
                                                                     </c:otherwise>
                                                                 </c:choose>
                                                             </p>
+                                                            
+                                                            
                                                             
                                                             <!-- Activity Details -->
                                                             <div class="mb-3">
@@ -192,7 +194,7 @@
                                                                             </button>
                                                                         </c:when>
                                                                         <c:otherwise>
-                                                                            <form action="/students/activities/join/${activity.id}" method="post" class="d-inline">
+                                                                            <form action="${pageContext.request.contextPath}/students/activities/join/${activity.id}" method="post" class="d-inline">
                                                                                 <c:set var="plCard" value="${activityJoinStatus[activity.id].primaryLabel}"/>
                                                                                 <button type="submit" class="btn btn-primary btn-sm" 
                                                                                         <c:if test="${!activityJoinStatus[activity.id].canJoin}">disabled</c:if>>

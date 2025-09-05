@@ -7,6 +7,7 @@ import studentplatform.student_platform.repository.AdminRepository;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -25,6 +26,11 @@ public class AdminService {
     
     public Optional<Admin> getAdminById(Long id) {
         return adminRepository.findById(id);
+    }
+    
+    // Add method to get all admins
+    public List<Admin> getAllAdmins() {
+        return adminRepository.findAll();
     }
     
     public Admin saveAdmin(Admin admin) {

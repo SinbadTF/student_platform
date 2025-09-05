@@ -62,7 +62,7 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-start mb-3">
                             <h5 class="card-title">${reward.name}</h5>
-                            <span class="badge bg-primary">${reward.pointValue} points</span>
+                            <span class="badge bg-primary style="opacity: 0.8";>${reward.pointValue} points</span>
                         </div>
                         <p class="card-text">${reward.description}</p>
                         <c:if test="${not empty reward.issuedBy}">

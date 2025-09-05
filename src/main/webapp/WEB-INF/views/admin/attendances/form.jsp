@@ -23,6 +23,14 @@
                 <h2><i class="bi bi-calendar-check"></i> ${attendance.id == null ? 'Create New Attendance Record' : 'Edit Attendance Record'}</h2>
             </div>
             <div class="card-body">
+                <!-- Add error message display -->
+                <c:if test="${not empty error}">
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i> ${error}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                </c:if>
+                
                 <form:form action="/admin/attendances/save" method="post" modelAttribute="attendance">
                     <form:hidden path="id" />
                     

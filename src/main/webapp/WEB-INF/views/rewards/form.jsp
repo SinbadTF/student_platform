@@ -34,12 +34,15 @@
             </div>
             
             <div class="form-group">
-                <label for="issuedBy">Issued By</label>
+                <label for="issuedBy">Created By</label>
                 <form:select path="issuedBy" class="form-control">
                     <form:option value="" label="-- Select Staff --" />
                     <c:forEach var="staffMember" items="${staffList}">
                         <form:option value="${staffMember.id}" label="${staffMember.firstName} ${staffMember.lastName}" />
                     </c:forEach>
+                    <c:if test="${not empty adminList}">
+                        <form:option value="-1" label="Admin" />
+                    </c:if>
                 </form:select>
                 <form:errors path="issuedBy" cssClass="text-danger" />
             </div>

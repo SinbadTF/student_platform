@@ -18,7 +18,7 @@
     <!-- Page Header -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card bg-primary text-white shadow-lg rounded-3 border-0">
+            <div class="card bg-primary text-white shadow-lg rounded-3 border-0" style="opacity: 0.8;">
                 <div class="card-body p-4">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>

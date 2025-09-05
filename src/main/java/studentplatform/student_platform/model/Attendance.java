@@ -9,6 +9,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
@@ -18,7 +19,9 @@ import java.time.LocalDateTime;
 import java.time.Month;
 
 @Entity
-@Table(name = "attendances")
+@Table(name = "attendances", uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"student_id", "month", "year"})
+})
 @Getter
 @Setter
 @NoArgsConstructor

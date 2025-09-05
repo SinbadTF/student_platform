@@ -1033,7 +1033,6 @@ public class WebController {
         eventService.rejectParticipation(id, admin);
         return "redirect:/admin/event-participations";
     }
-    
     // Activity participations moderation (Admin)
     @GetMapping("/admin/activity-participations")
     public String adminActivityParticipations(Model model, HttpSession session) {
@@ -1391,7 +1390,7 @@ public class WebController {
         }
     }
     
-    @GetMapping("/events")
+ @GetMapping("/events")
     public String studentEvents(Model model, HttpSession session, jakarta.servlet.http.HttpServletRequest request) {
         try {
             Student student = (Student) session.getAttribute("user");
@@ -1477,6 +1476,7 @@ public class WebController {
                 eventJoinStatus.put(event.getId(), join);
                 eventStatus.put(event.getId(), status);
             }
+
 
             model.addAttribute("events", events);
             model.addAttribute("eventJoinStatus", eventJoinStatus);
@@ -1607,8 +1607,8 @@ public class WebController {
         eventService.checkPendingPointAwards();
         return "redirect:/admin/events";
     }
-    
-    // Get event participation status (for debugging)
+  
+// Get event participation status (for debugging)
     @GetMapping("/admin/event-participation-status")
     public String getEventParticipationStatus(HttpSession session, Model model) {
         Admin admin = (Admin) session.getAttribute("user");
@@ -1624,9 +1624,7 @@ public class WebController {
             model.addAttribute("error", "Error getting status: " + e.getMessage());
             return "admin/event-participation-status";
         }
-    }
-    
-    // Update student dashboard to include clubs and events
+    }    // Update student dashboard to include clubs and events
     @GetMapping("/students/dashboard/{id}")
     public String studentDashboard(@PathVariable Long id, Model model) {
         return studentService.getStudentById(id)

@@ -43,34 +43,6 @@
             </div>
         </div>
         
-        <div class="mt-4">
-            <h3>Students Awarded</h3>
-            <c:if test="${not empty pointsAwarded}">
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>Student</th>
-                            <th>Points</th>
-                            <th>Date Awarded</th>
-                            <th>Reason</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <c:forEach var="point" items="${pointsAwarded}">
-                            <tr>
-                                <td><a href="/students/view/${point.student.id}">${point.student.firstName} ${point.student.lastName}</a></td>
-                                <td>${point.value}</td>
-                                <td><fmt:formatDate value="${point.issuedAt}" pattern="yyyy-MM-dd HH:mm" /></td>
-                                <td>${point.reason}</td>
-                            </tr>
-                        </c:forEach>
-                    </tbody>
-                </table>
-            </c:if>
-            <c:if test="${empty pointsAwarded}">
-                <p>No students have been awarded this reward yet.</p>
-            </c:if>
-        </div>
     </div>
     
     <jsp:include page="../layout/footer.jsp" />
