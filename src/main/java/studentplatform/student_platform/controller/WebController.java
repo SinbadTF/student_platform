@@ -1606,7 +1606,16 @@ public class WebController {
         model.addAttribute("student", student);
         return "students/profile";
     }
-    
+        @GetMapping("/students/dashboard")
+    public String studentDashboardCurrent(Model model, HttpSession session) {
+        Student student = (Student) session.getAttribute("user");
+        if (student == null) {
+            return "redirect:/login";
+        }
+        
+        // Redirect to the dashboard with the student's ID
+        return "redirect:/students/dashboard/" + student.getId();
+    }
     @PostMapping("/students/profile/update")
     public String updateStudentProfile(
             @RequestParam String firstName,
