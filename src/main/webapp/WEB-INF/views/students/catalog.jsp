@@ -123,7 +123,7 @@
                 <i class="bi bi-search text-muted" style="font-size: 3rem;"></i>
                 <h4 class="mt-3">No rewards found</h4>
                 <p class="text-muted">Try adjusting your search or filter criteria</p>
-                <a href="/students/rewards/catalog" class="btn btn-outline-primary mt-2">View All Rewards</a>
+                <a href="${pageContext.request.contextPath}/students/rewards/catalog" class="btn btn-outline-primary mt-2">View All Rewards</a>
             </div>
         </c:if>
     </div>

@@ -50,7 +50,7 @@
                     <p class="lead text-muted">Join events to earn points and engage with your community</p>
                 </div>
                 <div>
-                    <a href="/students/dashboard/${student.id}" class="btn btn-outline-primary">
+                    <a href="${pageContext.request.contextPath}/students/dashboard/${student.id}" class="btn btn-outline-primary">
                         <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
                     </a>
                 </div>
@@ -164,7 +164,7 @@
                                                 </button>
                                             </c:when>
                                             <c:when test="${eventJoinStatus[event.id].canJoin}">
-                                                <form action="/events/register/${event.id}" method="post" class="d-inline">
+                                                <form action="${pageContext.request.contextPath}/events/register/${event.id}" method="post" class="d-inline">
                                                     <button type="submit" class="btn btn-primary btn-sm">
                                                         <i class="bi bi-plus-circle me-1"></i>Join
                                                     </button>
@@ -310,7 +310,7 @@
                             </button>
                             <c:choose>
                                 <c:when test="${eventJoinStatus[event.id].canJoin}">
-                                    <form action="/events/register/${event.id}" method="post" class="d-inline">
+                                    <form action="${pageContext.request.contextPath}/events/register/${event.id}" method="post" class="d-inline">
                                         <button type="submit" class="btn btn-primary">
                                             <i class="bi bi-plus-circle me-1"></i>Join Event
                                         </button>
@@ -333,7 +333,7 @@
     <!-- My Event Participations Button -->
     <div class="row mt-4">
         <div class="col-12 text-center">
-            <a href="/students/eventparticipation" class="btn btn-outline-primary">
+            <a href="${pageContext.request.contextPath}/students/eventparticipation" class="btn btn-outline-primary">
                 <i class="bi bi-calendar-check me-2"></i>View My Event Participations
             </a>
         </div>

@@ -31,7 +31,7 @@
                         <i class="bi bi-check-circle"></i>Event Participations
                     </a>
            
-                <a href="/admin/events/create" class="btn btn-warning"><i class="bi bi-plus-lg"></i> Create New Event</a>
+                <a href="${pageContext.request.contextPath}/admin/events/create" class="btn btn-warning"><i class="bi bi-plus-lg"></i> Create New Event</a>
             </div>
         </div>
 
@@ -60,9 +60,9 @@
                                     <td>${event.endTime}</td>
                                     <td>${event.pointValue}</td>
                                     <td class="text-end">
-                                        <a href="/admin/events/view/${event.id}" class="btn btn-sm btn-outline-info">View</a>
-                                        <a href="/admin/events/edit/${event.id}" class="btn btn-sm btn-outline-warning ms-1">Edit</a>
-                                        <a href="/admin/events/delete/${event.id}" class="btn btn-sm btn-outline-danger ms-1" onclick="return confirm('Delete this event?');">Delete</a>
+                                        <a href="${pageContext.request.contextPath}/admin/events/view/${event.id}" class="btn btn-sm btn-outline-info">View</a>
+                                        <a href="${pageContext.request.contextPath}/admin/events/edit/${event.id}" class="btn btn-sm btn-outline-warning ms-1">Edit</a>
+                                        <a href="${pageContext.request.contextPath}/admin/events/delete/${event.id}" class="btn btn-sm btn-outline-danger ms-1" onclick="return confirm('Delete this event?');">Delete</a>
                                     </td>
                                 </tr>
                             </c:forEach>
@@ -75,7 +75,7 @@
                     <div class="mb-2"><i class="bi bi-calendar-x" style="font-size: 3rem; color: #adb5bd;"></i></div>
                     <h5 class="mb-2">No events yet</h5>
                     <p class="text-muted mb-3">Create your first event to get started.</p>
-                    <a href="/admin/events/create" class="btn btn-warning"><i class="bi bi-plus-lg"></i> Create New Event</a>
+                    <a href="${pageContext.request.contextPath}/admin/events/create" class="btn btn-warning"><i class="bi bi-plus-lg"></i> Create New Event</a>
                 </div>
             </c:otherwise>
         </c:choose>

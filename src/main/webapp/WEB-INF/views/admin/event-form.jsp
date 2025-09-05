@@ -21,7 +21,7 @@
                 <h2><i class="bi bi-calendar-event"></i> ${event.id == null ? 'Create New Event' : 'Edit Event'}</h2>
             </div>
             <div class="card-body">
-                <form:form action="/admin/events/save" method="post" modelAttribute="event" id="eventForm">
+                <form:form action="${pageContext.request.contextPath}/admin/events/save" method="post" modelAttribute="event" id="eventForm">
                     <form:hidden path="id" />
                     
                     <div class="mb-3">
@@ -78,7 +78,7 @@
                     
                     <div class="mt-4">
                         <button type="submit" class="btn btn-warning">Save Event</button>
-                        <a href="/admin/events" class="btn btn-secondary ms-2">Cancel</a>
+                        <a href="${pageContext.request.contextPath}/admin/events" class="btn btn-secondary ms-2">Cancel</a>
                     </div>
                 </form:form>
             </div>

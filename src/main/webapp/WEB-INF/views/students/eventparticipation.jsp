@@ -15,7 +15,7 @@
                     <p class="lead text-muted">Track your event participation status and points earned</p>
                 </div>
                 <div>
-                    <a href="/events" class="btn btn-outline-primary">
+                    <a href="${pageContext.request.contextPath}/events" class="btn btn-outline-primary">
                         <i class="bi bi-arrow-left me-2"></i>Back to Events
                     </a>
                 </div>
@@ -34,7 +34,7 @@
                                 <i class="bi bi-calendar-x text-muted" style="font-size: 3rem;"></i>
                                 <h4 class="mt-3">No event participations yet</h4>
                                 <p class="text-muted">Join events to see them listed here</p>
-                                <a href="/events" class="btn btn-primary mt-2">
+                                <a href="${pageContext.request.contextPath}/events" class="btn btn-primary mt-2">
                                     <i class="bi bi-calendar-plus me-2"></i>Browse Events
                                 </a>
                             </div>

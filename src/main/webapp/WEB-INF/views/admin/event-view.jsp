@@ -18,8 +18,8 @@
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h2 class="mb-0">${event.name}</h2>
             <div>
-                <a href="/admin/events/edit/${event.id}" class="btn btn-warning">Edit</a>
-                <a href="/admin/events" class="btn btn-secondary ms-2">Back</a>
+                <a href="${pageContext.request.contextPath}/admin/events/edit/${event.id}" class="btn btn-warning">Edit</a>
+                <a href="${pageContext.request.contextPath}/admin/events" class="btn btn-secondary ms-2">Back</a>
             </div>
         </div>
 

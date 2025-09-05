@@ -119,7 +119,7 @@
                     <i class="bi bi-award-fill text-info" style="font-size: 3rem;"></i>
                     <h5 class="card-title mt-3">Rewards</h5>
                     <p class="card-text">Manage available rewards for students</p>
-                    <a href="/rewards" class="btn btn-info text-white">View Rewards</a>
+                    <a href="${pageContext.request.contextPath}/rewards" class="btn btn-info text-white">View Rewards</a>
                 </div>
             </div>
         </div>
@@ -129,7 +129,7 @@
                     <i class="bi bi-star-fill text-warning" style="font-size: 3rem;"></i>
                     <h5 class="card-title mt-3">Points</h5>
                     <p class="card-text">Track and manage student points</p>
-                    <a href="/points" class="btn btn-warning text-white">View Points</a>
+                    <a href="${pageContext.request.contextPath}/points" class="btn btn-warning text-white">View Points</a>
                 </div>
             </div>
         </div>
@@ -145,7 +145,7 @@
                 <div class="card-body">
                     <div class="row text-center">
                         <div class="col-md-3">
-                            <a href="/students/create" class="btn btn-outline-primary btn-lg w-100 mb-2">
+                            <a href="${pageContext.request.contextPath}/students/create" class="btn btn-outline-primary btn-lg w-100 mb-2">
                                 <i class="bi bi-person-plus-fill"></i> Add New Student
                             </a>
                         </div>

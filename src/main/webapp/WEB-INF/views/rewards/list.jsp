@@ -167,7 +167,7 @@
         
         function toggleInactive() {
             const showInactive = document.getElementById('showInactive').checked;
-            window.location.href = '/rewards?showInactive=' + showInactive;
+            window.location.href = '${pageContext.request.contextPath}/rewards?showInactive=' + showInactive;
         }
     </script>
 </body>
