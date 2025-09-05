@@ -27,8 +27,15 @@ public interface EventParticipationRepository extends JpaRepository<EventPartici
 
     Optional<EventParticipation> findByStudentAndEvent(Student student, Event event);
 
+    boolean existsByStudentIdAndEventId(Long studentId, Long eventId);
+
+    List<EventParticipation> findByPointsAwardedFalse();
+
     @Query("SELECT ep FROM EventParticipation ep WHERE ep.status = :status AND ep.pointsAwarded = false")
     List<EventParticipation> findApprovedParticipationsWithoutPoints(@Param("status") ParticipationStatus status);
+
+    @Query("SELECT ep FROM EventParticipation ep WHERE ep.pointsAwarded = false AND (ep.event.endTime < :now OR ep.event.endTime = :now)")
+    List<EventParticipation> findByPointsAwardedFalseAndEventEndTimeBeforeOrEventEndTimeEquals(@Param("now") java.time.LocalDateTime now);
 }
 
 

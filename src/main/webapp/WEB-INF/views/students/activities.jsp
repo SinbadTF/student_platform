@@ -176,7 +176,7 @@
                                                                 </span>
                                                                 <div class="btn-group" role="group">
                                                                     <button type="button" class="btn btn-outline-info btn-sm" 
-                                                                            data-bs-toggle="modal" data-bs-target="#activityModal${activity.id}">
+                                                                            data-bs-toggle="modal" data-bs-target="#activityModal-${activity.id}">
                                                                         <i class="bi bi-eye me-1"></i>Details
                                                                     </button>
                                                                     <c:choose>
@@ -250,11 +250,11 @@
         <c:if test="${not empty clubActivities[membership.club]}">
             <c:forEach items="${clubActivities[membership.club]}" var="activity">
                 <!-- Activity Modal ${activity.id} -->
-                <div class="modal fade" id="activityModal${activity.id}" tabindex="-1" aria-labelledby="activityModalLabel${activity.id}" aria-hidden="true">
+                <div class="modal fade" id="activityModal-${activity.id}" tabindex="-1" aria-labelledby="activityModalLabel-${activity.id}" aria-hidden="true">
                     <div class="modal-dialog modal-lg">
                         <div class="modal-content">
                             <div class="modal-header bg-primary text-white">
-                                <h5 class="modal-title" id="activityModalLabel${activity.id}">
+                                <h5 class="modal-title" id="activityModalLabel-${activity.id}">
                                     <i class="bi bi-calendar-event me-2"></i>${activity.title}
                                 </h5>
                                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -439,6 +439,15 @@
                 section.style.display = '';
             } else {
                 section.style.display = 'none';
+            }
+        });
+    });
+
+    // Ensure modals are appended to body to avoid parent stacking/overflow issues
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.modal').forEach(function(modal) {
+            if (modal.parentElement !== document.body) {
+                document.body.appendChild(modal);
             }
         });
     });

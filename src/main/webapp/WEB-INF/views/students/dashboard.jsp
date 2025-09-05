@@ -107,40 +107,43 @@
                 </div>
             </div>
 
-            <!-- Upcoming Events -->
-            <div class="card border-0 shadow-sm rounded-3">
-                <div class="card-header bg-white border-0 py-3">
-                    <h5 class="mb-0"><i class="bi bi-calendar-event text-danger me-2"></i> Upcoming Events</h5>
-                </div>
-                <div class="card-body">
-                    <ul class="list-group list-group-flush">
-                        <c:forEach items="${upcomingEvents}" var="event" end="2">
-                            <li class="list-group-item px-0 py-3 border-bottom">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <h6 class="mb-1">${event.name}</h6>
-                                        <small class="text-muted"><i class="bi bi-calendar me-1"></i> ${event.startTime.toLocalDate()}</small>
-                                    </div>
-                                    <a href="/events/participate/${event.id}" class="btn btn-sm btn-outline-primary">Join</a>
+            
+    </div>
+ 
+
+    <!-- Clubs and Activities - Improved to fill space better -->
+    <div class="row mb-4">
+        <!-- Upcoming Events -->
+        <div class="card border-0 shadow-sm rounded-3">
+            <div class="card-header bg-white border-0 py-3">
+                <h5 class="mb-0"><i class="bi bi-calendar-event text-danger me-2"></i> Upcoming Events</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <c:forEach items="${upcomingEvents}" var="event" end="2">
+                        <li class="list-group-item px-0 py-3 border-bottom">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">${event.name}</h6>
+                                    <small class="text-muted"><i class="bi bi-calendar me-1"></i> ${event.startTime.toLocalDate()}</small>
                                 </div>
-                            </li>
-                        </c:forEach>
-                        <c:if test="${empty upcomingEvents}">
-                            <li class="list-group-item px-0 py-3 text-center">
-                                No upcoming events
-                            </li>
-                        </c:if>
-                    </ul>
-                    <div class="text-center mt-3">
-                        <a href="/events" class="btn btn-sm btn-outline-secondary">View All Events</a>
-                    </div>
+
+                            </div>
+                        </li>
+                    </c:forEach>
+                    <c:if test="${empty upcomingEvents}">
+                        <li class="list-group-item px-0 py-3 text-center">
+                            No upcoming events
+                        </li>
+                    </c:if>
+                </ul>
+                <div class="text-center mt-3">
+                    <a href="/events" class="btn btn-sm btn-outline-secondary">View All Events</a>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Clubs and Activities - Improved to fill space better -->
-    <div class="row mb-4">
+</div>
         <div class="col-12">
             <div class="card border-0 shadow-sm rounded-3">
                 <div class="card-header bg-white border-0 py-3">
@@ -207,10 +210,10 @@
                 </div>
             </div>
         </div>
-    </div>
+  
     
     <!-- Available Rewards Section -->
-    <div class="row mt-4">
+  
         <div class="col-12">
             <div class="card border-0 shadow-sm rounded-3">
                 <div class="card-header bg-white border-0 py-3">

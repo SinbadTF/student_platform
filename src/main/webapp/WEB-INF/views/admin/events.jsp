@@ -16,20 +16,21 @@
     </head>
 <body>
     <jsp:include page="../layout/header.jsp" />
-
+    <div>
+        <a href="${pageContext.request.contextPath}/admin/dashboard" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+        </a>
+    </div>
     <div class="container mt-4">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h2 class="mb-0"><i class="bi bi-calendar-event text-warning"></i> Event Management</h2>
             <div>
-                <a href="/admin/check-pending-points" class="btn btn-outline-secondary me-2" onclick="return confirm('Check for events that should award points?')">
-                    <i class="bi bi-clock"></i> Check Pending
-                </a>
-                <a href="/admin/check-student-points" class="btn btn-secondary me-2" onclick="return confirm('Check all student points status?')">
-                    <i class="bi bi-search"></i> Check Points
-                </a>
-                <a href="/admin/manual-award-points" class="btn btn-info me-2" onclick="return confirm('Manually trigger point awarding for ended events?')">
-                    <i class="bi bi-currency-dollar"></i> Award Points
-                </a>
+              
+             
+                    <a href="${pageContext.request.contextPath}/admin/event-participations" class="btn btn-info">
+                        <i class="bi bi-check-circle"></i>Event Participations
+                    </a>
+           
                 <a href="/admin/events/create" class="btn btn-warning"><i class="bi bi-plus-lg"></i> Create New Event</a>
             </div>
         </div>
@@ -40,7 +41,7 @@
                     <table class="table table-striped align-middle">
                         <thead>
                             <tr>
-                                <th scope="col">#</th>
+                               
                                 <th scope="col">Name</th>
                                 <th scope="col">Location</th>
                                 <th scope="col">Start</th>
@@ -52,7 +53,7 @@
                         <tbody>
                             <c:forEach var="event" items="${events}">
                                 <tr>
-                                    <td>${event.id}</td>
+                                   
                                     <td>${event.name}</td>
                                     <td>${event.location}</td>
                                     <td>${event.startTime}</td>

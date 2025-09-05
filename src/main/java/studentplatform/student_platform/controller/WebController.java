@@ -881,18 +881,66 @@ public class WebController {
     }
     
     @PostMapping("/admin/events/save")
-    public String saveEvent(@Valid @ModelAttribute("event") Event event, BindingResult result, HttpSession session) {
+    public String saveEvent(@ModelAttribute("event") Event event,
+                            BindingResult result,
+                            HttpSession session,
+                            RedirectAttributes redirectAttributes,
+                            jakarta.servlet.http.HttpServletRequest request,
+                            org.springframework.ui.Model model) {
         Admin admin = (Admin) session.getAttribute("user");
         if (admin == null) {
             return "redirect:/login";
         }
-        
+
+        // Reconstruct start/end from separate inputs if not bound
+        try {
+            if (event.getStartTime() == null || event.getEndTime() == null) {
+                String date = request.getParameter("eventDate");
+                String startOnly = request.getParameter("startTimeOnly");
+                String endOnly = request.getParameter("endTimeOnly");
+                if (date != null && !date.isBlank() && startOnly != null && !startOnly.isBlank() && endOnly != null && !endOnly.isBlank()) {
+                    LocalDate d = LocalDate.parse(date);
+                    LocalTime st = LocalTime.parse(startOnly.length() > 5 ? startOnly.substring(0,5) : startOnly);
+                    LocalTime et = LocalTime.parse(endOnly.length() > 5 ? endOnly.substring(0,5) : endOnly);
+                    event.setStartTime(LocalDateTime.of(d, st));
+                    event.setEndTime(LocalDateTime.of(d, et));
+                }
+            }
+        } catch (Exception parseEx) {
+            result.rejectValue("startTime", "ParseError", "Invalid date/time format");
+        }
+
+        // Minimal validations (keep end-after-start only)
+        if (event.getStartTime() == null) {
+            result.rejectValue("startTime", "NotNull", "Start time is required");
+        }
+        if (event.getEndTime() == null) {
+            result.rejectValue("endTime", "NotNull", "End time is required");
+        }
+        if (event.getStartTime() != null && event.getEndTime() != null) {
+            if (!event.getEndTime().isAfter(event.getStartTime())) {
+                result.rejectValue("endTime", "EndBeforeStart", "End time must be after start time");
+            }
+        }
+
         if (result.hasErrors()) {
+            model.addAttribute("event", event);
             return "admin/event-form";
         }
-        
-        eventService.saveEvent(event);
-        return "redirect:/admin/events";
+
+        try {
+            // Ensure creator is set from session (binding may not populate nested object reliably)
+            event.setCreatedBy(admin);
+            eventService.saveEvent(event);
+            redirectAttributes.addFlashAttribute("success", "Event saved successfully!");
+            return "redirect:/admin/events";
+        } catch (Exception e) {
+            System.err.println("Error saving event: " + e.getMessage());
+            e.printStackTrace();
+            model.addAttribute("event", event);
+            redirectAttributes.addFlashAttribute("error", "Error saving event: " + e.getMessage());
+            return "admin/event-form";
+        }
     }
     
     @GetMapping("/admin/events/edit/{id}")
@@ -954,13 +1002,24 @@ public class WebController {
     }
     
     @PostMapping("/admin/approve-event-participation/{id}")
-    public String approveEventParticipation(@PathVariable Long id, HttpSession session) {
+    public String approveEventParticipation(@PathVariable Long id, HttpSession session, RedirectAttributes redirectAttributes) {
         Admin admin = (Admin) session.getAttribute("user");
         if (admin == null) {
             return "redirect:/login";
         }
         
-        eventService.approveParticipation(id, admin);
+        try {
+            // First approve the participation
+            EventParticipation participation = eventService.approveParticipation(id, admin);
+            
+            // Then immediately award points without waiting for event end time
+            eventService.awardPointsForParticipation(participation);
+            
+            redirectAttributes.addFlashAttribute("success", "Participation approved and points awarded to student.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error: " + e.getMessage());
+        }
+        
         return "redirect:/admin/event-participations";
     }
     
@@ -992,6 +1051,41 @@ public class WebController {
             model.addAttribute("approvedParticipations", new ArrayList<>());
         }
         return "admin/activity-participations";
+    }
+
+    // Event participations moderation (Admin)
+    @GetMapping("/admin/event-participations")
+    public String adminEventParticipations(Model model, HttpSession session) {
+        Admin admin = (Admin) session.getAttribute("user");
+        if (admin == null) {
+            return "redirect:/login";
+        }
+        try {
+            List<EventParticipation> pending = eventService.getParticipationsByStatus(EventParticipation.ParticipationStatus.PENDING);
+            List<EventParticipation> approved = eventService.getParticipationsByStatus(EventParticipation.ParticipationStatus.APPROVED);
+            model.addAttribute("pendingParticipations", pending);
+            model.addAttribute("approvedParticipations", approved);
+        } catch (Exception e) {
+            model.addAttribute("pendingParticipations", new ArrayList<>());
+            model.addAttribute("approvedParticipations", new ArrayList<>());
+        }
+        return "admin/event-participation";
+    }
+
+    // Manual trigger for testing point awarding (Admin only)
+    @PostMapping("/admin/trigger-event-points")
+    public String triggerEventPoints(HttpSession session, RedirectAttributes redirectAttributes) {
+        Admin admin = (Admin) session.getAttribute("user");
+        if (admin == null) {
+            return "redirect:/login";
+        }
+        try {
+            eventService.manuallyAwardPointsForEndedEvents();
+            redirectAttributes.addFlashAttribute("success", "Event points awarding triggered successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error triggering point awarding: " + e.getMessage());
+        }
+        return "redirect:/admin/event-participations";
     }
 
     @PostMapping("/admin/approve-activity-participation/{id}")
@@ -1298,44 +1392,104 @@ public class WebController {
     }
     
     @GetMapping("/events")
-    public String studentEvents(Model model) {
+    public String studentEvents(Model model, HttpSession session, jakarta.servlet.http.HttpServletRequest request) {
         try {
+            Student student = (Student) session.getAttribute("user");
+            if (student != null) {
+                model.addAttribute("student", student);
+            }
             List<Event> events = eventService.getAllEvents();
             LocalDateTime now = LocalDateTime.now();
-            
-            // Create a map to store event time status
-            Map<Long, Map<String, Object>> eventTimeStatus = new HashMap<>();
-            
-            events.forEach(event -> {
-                try {
-                    if (event.getStartTime() != null && event.getEndTime() != null) {
-                        boolean isJoinWindow = !now.isBefore(event.getStartTime()) && now.isBefore(event.getEndTime());
-                        boolean hasStarted = !now.isBefore(event.getStartTime());
-                        boolean hasEnded = now.isAfter(event.getEndTime());
-                        
-                        Map<String, Object> status = new HashMap<>();
-                        status.put("isJoinWindow", isJoinWindow);
-                        status.put("hasStarted", hasStarted);
-                        status.put("hasEnded", hasEnded);
-                        eventTimeStatus.put(event.getId(), status);
-                    }
-                } catch (Exception e) {
-                    // Log error for individual event but continue processing others
-                    System.err.println("Error processing event " + event.getId() + ": " + e.getMessage());
+
+            Map<Long, Map<String, Object>> eventJoinStatus = new HashMap<>();
+            Map<Long, Map<String, Object>> eventStatus = new HashMap<>();
+            Map<Long, Boolean> joinedEventMap = new HashMap<>();
+
+            // Read flash attribute for immediate feedback
+            Long justJoinedId = null;
+            try {
+                java.util.Map<String, ?> flash = org.springframework.web.servlet.support.RequestContextUtils.getInputFlashMap(request);
+                if (flash != null && flash.get("joinedEventId") instanceof Long) {
+                    justJoinedId = (Long) flash.get("joinedEventId");
                 }
-            });
-            
+            } catch (Exception ignored) {}
+
+            // Mark already joined for current student
+            if (student != null) {
+                for (Event e : events) {
+                    boolean joined = false;
+                    try {
+                        joined = eventService.hasAnyParticipation(student, e);
+                    } catch (Exception ignored) {}
+                    if (joined) joinedEventMap.put(e.getId(), true);
+                }
+                if (justJoinedId != null) {
+                    joinedEventMap.put(justJoinedId, true);
+                }
+            }
+
+            for (Event event : events) {
+                Map<String, Object> join = new HashMap<>();
+                Map<String, Object> status = new HashMap<>();
+
+                boolean canJoin = false;
+                String primaryLabel = "Join Closed";
+                String secondaryLabel = null;
+                String state = "ended";
+
+                if (event.getStartTime() != null && event.getEndTime() != null) {
+                    LocalDate date = event.getStartTime().toLocalDate();
+                    LocalTime start = event.getStartTime().toLocalTime();
+                    LocalTime end = event.getEndTime().toLocalTime();
+                    LocalDateTime startWindow = LocalDateTime.of(date, start).minusMinutes(30);
+                    LocalDateTime endJoinDeadline = LocalDateTime.of(date, end).minusMinutes(30);
+
+                    if (now.isBefore(startWindow)) {
+                        Duration untilOpen = Duration.between(now, startWindow).plusMinutes(1);
+                        primaryLabel = "Join available in " + formatDurationShort(untilOpen);
+                        canJoin = false;
+                        state = "upcoming";
+                    } else if (!now.isAfter(endJoinDeadline)) {
+                        Duration untilClose = Duration.between(now, endJoinDeadline);
+                        primaryLabel = "Join now";
+                        secondaryLabel = "Join closes in " + formatDurationShort(untilClose);
+                        canJoin = true;
+                        state = "ongoing";
+                    } else {
+                        primaryLabel = "Join Disabled";
+                        canJoin = false;
+                        state = "ended";
+                    }
+                }
+
+                boolean alreadyJoined = joinedEventMap.getOrDefault(event.getId(), false);
+                if (alreadyJoined) {
+                    join.put("canJoin", false);
+                    join.put("primaryLabel", "Already Joined");
+                    join.put("secondaryLabel", null);
+                } else {
+                    join.put("canJoin", canJoin);
+                    join.put("primaryLabel", primaryLabel);
+                    join.put("secondaryLabel", secondaryLabel);
+                }
+                status.put("status", state);
+
+                eventJoinStatus.put(event.getId(), join);
+                eventStatus.put(event.getId(), status);
+            }
+
             model.addAttribute("events", events);
-            model.addAttribute("eventTimeStatus", eventTimeStatus);
-            model.addAttribute("currentTime", now);
-            return "events/list";
+            model.addAttribute("eventJoinStatus", eventJoinStatus);
+            model.addAttribute("eventStatus", eventStatus);
+            model.addAttribute("joinedEventMap", joinedEventMap);
+            return "students/eventjoin";
         } catch (Exception e) {
-            // Log overall error and return empty state
             System.err.println("Error loading events: " + e.getMessage());
             model.addAttribute("events", new ArrayList<>());
-            model.addAttribute("eventTimeStatus", new HashMap<>());
-            model.addAttribute("currentTime", LocalDateTime.now());
-            return "events/list";
+            model.addAttribute("eventJoinStatus", new HashMap<>());
+            model.addAttribute("eventStatus", new HashMap<>());
+            model.addAttribute("joinedEventMap", new HashMap<>());
+            return "students/eventjoin";
         }
     }
     
@@ -1387,18 +1541,17 @@ public class WebController {
     
 
     @PostMapping("/events/register/{id}")
-    public String registerForEvent(@PathVariable Long id, HttpSession session) {
+    public String registerForEvent(@PathVariable Long id, HttpSession session, RedirectAttributes redirectAttributes) {
         Student student = (Student) session.getAttribute("user");
         if (student == null) {
             return "redirect:/login";
         }
-        
+
         eventService.getEventById(id).ifPresent(event -> {
             EventParticipation participation = eventService.registerForEvent(student, event);
-            // If outside window, registration will return null; simply ignore
         });
-        
-        return "redirect:/events/view/" + id;
+        redirectAttributes.addFlashAttribute("joinedEventId", id);
+        return "redirect:/events";
     }
     
     // Manual trigger for point awarding (for testing)
@@ -1411,6 +1564,24 @@ public class WebController {
         
         eventService.manuallyAwardPointsForEndedEvents();
         return "redirect:/admin/events";
+    }
+    
+    // Force award points for all ended events (admin use)
+    @PostMapping("/admin/force-award-points")
+    public String forceAwardPoints(HttpSession session, RedirectAttributes redirectAttributes) {
+        Admin admin = (Admin) session.getAttribute("user");
+        if (admin == null) {
+            return "redirect:/login";
+        }
+        
+        try {
+            eventService.forceAwardPointsForAllEndedEvents();
+            redirectAttributes.addFlashAttribute("success", "Force point awarding completed successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error in force point awarding: " + e.getMessage());
+        }
+        
+        return "redirect:/admin/event-participations";
     }
     
     // Check all student points (for debugging)
@@ -1435,6 +1606,24 @@ public class WebController {
         
         eventService.checkPendingPointAwards();
         return "redirect:/admin/events";
+    }
+    
+    // Get event participation status (for debugging)
+    @GetMapping("/admin/event-participation-status")
+    public String getEventParticipationStatus(HttpSession session, Model model) {
+        Admin admin = (Admin) session.getAttribute("user");
+        if (admin == null) {
+            return "redirect:/login";
+        }
+        
+        try {
+            Map<String, Object> status = eventService.getEventParticipationStatus();
+            model.addAttribute("status", status);
+            return "admin/event-participation-status";
+        } catch (Exception e) {
+            model.addAttribute("error", "Error getting status: " + e.getMessage());
+            return "admin/event-participation-status";
+        }
     }
     
     // Update student dashboard to include clubs and events
@@ -1744,6 +1933,20 @@ public class WebController {
         model.addAttribute("participations", participations);
         
         return "students/participations";
+    }
+
+    @GetMapping("/students/eventparticipation")
+    public String studentEventParticipations(Model model, HttpSession session) {
+        Student student = (Student) session.getAttribute("user");
+        if (student == null) {
+            return "redirect:/login";
+        }
+        
+        List<EventParticipation> participations = eventService.getParticipationsByStudent(student);
+        model.addAttribute("student", student);
+        model.addAttribute("participations", participations);
+        
+        return "students/eventparticipation";
     }
 
     // Admin Attendance Management

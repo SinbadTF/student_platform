@@ -21,7 +21,7 @@
                 <h2><i class="bi bi-calendar-event"></i> ${event.id == null ? 'Create New Event' : 'Edit Event'}</h2>
             </div>
             <div class="card-body">
-                <form:form action="/admin/events/save" method="post" modelAttribute="event">
+                <form:form action="/admin/events/save" method="post" modelAttribute="event" id="eventForm">
                     <form:hidden path="id" />
                     
                     <div class="mb-3">
@@ -42,19 +42,30 @@
                         <form:errors path="location" cssClass="text-danger" />
                     </div>
                     
+                    <!-- Date and Time (mirror activity-form.jsp) -->
                     <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="startTime" class="form-label">Start Time</label>
-                            <form:input path="startTime" id="startTime" class="form-control datetime-picker" required="true" />
-                            <form:errors path="startTime" cssClass="text-danger" />
+                        <div class="col-md-4 mb-3">
+                            <label for="eventDate" class="form-label">Event Date *</label>
+                            <input type="date" class="form-control" id="eventDate" name="eventDate"
+                                   value="${event.startTime != null ? event.startTime.toLocalDate() : ''}" required>
                         </div>
-                        
-                        <div class="col-md-6 mb-3">
-                            <label for="endTime" class="form-label">End Time</label>
-                            <form:input path="endTime" id="endTime" class="form-control datetime-picker" required="true" />
-                            <form:errors path="endTime" cssClass="text-danger" />
+                        <div class="col-md-4 mb-3">
+                            <label for="startTimeOnly" class="form-label">Start Time *</label>
+                            <input type="time" class="form-control" id="startTimeOnly" name="startTimeOnly"
+                                   value="${event.startTime != null ? event.startTime.toLocalTime() : ''}" required>
+                            <form:errors path="startTime" cssClass="text-danger small" />
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="endTimeOnly" class="form-label">End Time *</label>
+                            <input type="time" class="form-control" id="endTimeOnly" name="endTimeOnly"
+                                   value="${event.endTime != null ? event.endTime.toLocalTime() : ''}" required>
+                            <form:errors path="endTime" cssClass="text-danger small" />
                         </div>
                     </div>
+                    
+                    <!-- Hidden fields to bind to LocalDateTime -->
+                    <form:hidden path="startTime" id="startTime" />
+                    <form:hidden path="endTime" id="endTime" />
                     
                     <div class="mb-3">
                         <label for="pointValue" class="form-label">Point Value</label>
@@ -63,7 +74,7 @@
                         <small class="text-muted">Points awarded to students for participating in this event</small>
                     </div>
                     
-                    <form:hidden path="createdBy" value="${sessionScope.user.id}" />
+                    <form:hidden path="createdBy.id" value="${sessionScope.user.id}" />
                     
                     <div class="mt-4">
                         <button type="submit" class="btn btn-warning">Save Event</button>
@@ -77,36 +88,54 @@
     <jsp:include page="../layout/footer.jsp" />
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const startPicker = flatpickr("#startTime", {
-                enableTime: true,
-                dateFormat: "Y-m-d H:i",
-                time_24hr: true,
-                minDate: new Date(),
-                onChange: function(selectedDates) {
-                    if (selectedDates && selectedDates.length) {
-                        endPicker.set('minDate', selectedDates[0]);
-                    }
-                }
-            });
-            const endPicker = flatpickr("#endTime", {
-                enableTime: true,
-                dateFormat: "Y-m-d H:i",
-                time_24hr: true,
-                minDate: new Date()
-            });
-
-            const form = document.querySelector('form');
-            form.addEventListener('submit', function(e) {
-                const start = startPicker.selectedDates[0];
-                const end = endPicker.selectedDates[0];
-                if (!start || !end || end < start) {
-                    e.preventDefault();
-                    alert('End time must be after the start time.');
-                }
-            });
+        document.getElementById('eventForm').addEventListener('submit', function(e) {
+            var name = document.querySelector('[name="name"]').value.trim();
+            var location = document.querySelector('[name="location"]').value.trim();
+            var pointValue = document.querySelector('[name="pointValue"]').value;
+            var eventDate = document.getElementById('eventDate').value;
+            var startTime = document.getElementById('startTimeOnly').value;
+            var endTime = document.getElementById('endTimeOnly').value;
+            
+            if (name === '') {
+                e.preventDefault();
+                alert('Please enter an event name');
+                return false;
+            }
+            if (location === '') {
+                e.preventDefault();
+                alert('Please enter a location');
+                return false;
+            }
+            if (pointValue === '' || pointValue < 0) {
+                e.preventDefault();
+                alert('Please enter valid points (0 or greater)');
+                return false;
+            }
+            if (eventDate === '') {
+                e.preventDefault();
+                alert('Please select an event date');
+                return false;
+            }
+            if (startTime === '') {
+                e.preventDefault();
+                alert('Please select a start time');
+                return false;
+            }
+            if (endTime === '') {
+                e.preventDefault();
+                alert('Please select an end time');
+                return false;
+            }
+            if (startTime >= endTime) {
+                e.preventDefault();
+                alert('End time must be after start time');
+                return false;
+            }
+            // Combine for backend binding (yyyy-MM-dd HH:mm)
+            document.getElementById('startTime').value = eventDate + ' ' + startTime.substring(0,5);
+            document.getElementById('endTime').value = eventDate + ' ' + endTime.substring(0,5);
+            return true;
         });
     </script>
 </body>

@@ -3,6 +3,7 @@ package studentplatform.student_platform.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import studentplatform.student_platform.model.Admin;
 import studentplatform.student_platform.model.Event;
 import studentplatform.student_platform.model.EventParticipation;
@@ -13,7 +14,9 @@ import studentplatform.student_platform.repository.EventRepository;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -49,21 +52,24 @@ public class EventService {
     }
 
     // Participation management
+    @Transactional
     public EventParticipation registerForEvent(Student student, Event event) {
         LocalDateTime now = LocalDateTime.now();
         
-        // Check if event times are valid
         if (event.getStartTime() == null || event.getEndTime() == null) {
             return null;
         }
         
-        if (now.isBefore(event.getStartTime()) || now.isAfter(event.getEndTime())) {
+        LocalDateTime startWindow = event.getStartTime().minusMinutes(30);
+        LocalDateTime endJoinDeadline = event.getEndTime().minusMinutes(30);
+        if (now.isBefore(startWindow) || now.isAfter(endJoinDeadline)) {
             return null;
         }
 
-        Optional<EventParticipation> existing = participationRepository.findByStudentAndEvent(student, event);
-        if (existing.isPresent()) {
-            return existing.get();
+        // Fast existence check to avoid duplicates
+        boolean exists = participationRepository.existsByStudentIdAndEventId(student.getId(), event.getId());
+        if (exists) {
+            return participationRepository.findByStudentAndEvent(student, event).orElse(null);
         }
 
         EventParticipation participation = new EventParticipation();
@@ -156,6 +162,67 @@ public class EventService {
         awardPointsForEndedEvents();
     }
     
+    // Method to force award points for all ended events (admin use)
+    @Transactional
+    public void forceAwardPointsForAllEndedEvents() {
+        System.out.println("=== Force Awarding Points for All Ended Events ===");
+        LocalDateTime now = LocalDateTime.now();
+        
+        List<EventParticipation> allParticipations = participationRepository.findAll();
+        System.out.println("Found " + allParticipations.size() + " total participations");
+        
+        int processedCount = 0;
+        int awardedCount = 0;
+        int autoApprovedCount = 0;
+        
+        for (EventParticipation p : allParticipations) {
+            try {
+                processedCount++;
+                System.out.println("Processing participation " + p.getId() + " - Status: " + p.getStatus() + 
+                                 ", Event: " + (p.getEvent() != null ? p.getEvent().getName() : "NULL") +
+                                 ", End time: " + (p.getEvent() != null && p.getEvent().getEndTime() != null ? p.getEvent().getEndTime() : "NULL") +
+                                 ", Points awarded: " + p.isPointsAwarded());
+                
+                if (p.getEvent() != null && p.getEvent().getEndTime() != null) {
+                    boolean ended = p.getEvent().getEndTime().isBefore(now) || p.getEvent().getEndTime().isEqual(now);
+                    System.out.println("Event ended: " + ended);
+                    
+                    if (ended && !p.isPointsAwarded()) {
+                        // Auto-approve if not approved
+                        if (p.getStatus() != ParticipationStatus.APPROVED) {
+                            System.out.println("Auto-approving participation " + p.getId());
+                            p.setStatus(ParticipationStatus.APPROVED);
+                            p.setApprovedAt(now);
+                            participationRepository.save(p);
+                            autoApprovedCount++;
+                            System.out.println("Participation " + p.getId() + " auto-approved");
+                        }
+                        
+                        // Now award points
+                        System.out.println("Attempting to award points for participation " + p.getId());
+                        awardPointsForParticipation(p);
+                        awardedCount++;
+                        System.out.println("Points awarded successfully for participation " + p.getId());
+                    } else if (p.isPointsAwarded()) {
+                        System.out.println("Points already awarded for participation " + p.getId());
+                    } else {
+                        System.out.println("Event not ended yet for participation " + p.getId());
+                    }
+                } else {
+                    System.out.println("Event or end time is null for participation " + p.getId());
+                }
+            } catch (Exception e) {
+                System.err.println("Error processing participation " + p.getId() + ": " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+        
+        System.out.println("=== Force Awarding Completed ===");
+        System.out.println("Processed: " + processedCount + " participations");
+        System.out.println("Auto-approved: " + autoApprovedCount + " participations");
+        System.out.println("Awarded points to: " + awardedCount + " participations");
+    }
+    
     // Method to check current point status for all students
     public void checkAllStudentPoints() {
         System.out.println("=== Checking All Student Points ===");
@@ -200,8 +267,9 @@ public class EventService {
         System.out.println("=== End of Pending Point Awards Check ===");
     }
     
-    // Run every 60 seconds to award points after events end
-    @Scheduled(fixedDelay = 60000)
+    // Run every 30 seconds to award points after events end
+    @Scheduled(fixedDelay = 30000)
+    @Transactional
     public void awardPointsForEndedEvents() {
         try {
             LocalDateTime now = LocalDateTime.now();
@@ -238,22 +306,80 @@ public class EventService {
                         }
                     }
                 } catch (Exception e) {
-                    // Log individual participation processing errors but continue with others
                     System.err.println("Error processing participation " + p.getId() + ": " + e.getMessage());
                     e.printStackTrace();
                 }
             }
+
+            // Fallback pass: scan all not-awarded and check individually
+            List<EventParticipation> notAwarded = participationRepository.findByPointsAwardedFalse();
+            System.out.println("Found " + notAwarded.size() + " participations without points awarded");
+            
+            int processedCount = 0;
+            int awardedCount = 0;
+            int autoApprovedCount = 0;
+            
+            for (EventParticipation p : notAwarded) {
+                try {
+                    processedCount++;
+                    System.out.println("Processing participation " + p.getId() + " - Status: " + p.getStatus() + 
+                                     ", Event: " + (p.getEvent() != null ? p.getEvent().getName() : "NULL") +
+                                     ", End time: " + (p.getEvent() != null && p.getEvent().getEndTime() != null ? p.getEvent().getEndTime() : "NULL"));
+                    
+                    if (p.getEvent() != null && p.getEvent().getEndTime() != null) {
+                        boolean ended = p.getEvent().getEndTime().isBefore(now) || p.getEvent().getEndTime().isEqual(now);
+                        System.out.println("Event ended: " + ended);
+                        
+                        if (ended) {
+                            // Auto-approve if not approved
+                            if (p.getStatus() != ParticipationStatus.APPROVED) {
+                                System.out.println("Auto-approving participation " + p.getId());
+                                p.setStatus(ParticipationStatus.APPROVED);
+                                p.setApprovedAt(now);
+                                // approvedBy remains null for auto-approval
+                                participationRepository.save(p);
+                                autoApprovedCount++;
+                                System.out.println("Participation " + p.getId() + " auto-approved");
+                            }
+                            // Now award points
+                            System.out.println("Attempting to award points for participation " + p.getId());
+                            awardPointsForParticipation(p);
+                            awardedCount++;
+                            System.out.println("Points awarded successfully for participation " + p.getId());
+                        } else {
+                            System.out.println("Event not ended yet for participation " + p.getId());
+                        }
+                    } else {
+                        System.out.println("Event or end time is null for participation " + p.getId());
+                    }
+                } catch (Exception e) {
+                    System.err.println("Error processing participation " + p.getId() + ": " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+            
+            System.out.println("Processed: " + processedCount + " participations");
+            System.out.println("Auto-approved: " + autoApprovedCount + " participations");
+            System.out.println("Awarded points to: " + awardedCount + " participations");
             System.out.println("=== Scheduled Task Completed ===");
         } catch (Exception e) {
-            // Log overall scheduled task errors
             System.err.println("Error in awardPointsForEndedEvents: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
+    @Transactional(readOnly = true)
+    public boolean hasAnyParticipation(Student student, Event event) {
+        try {
+            return participationRepository.existsByStudentIdAndEventId(student.getId(), event.getId());
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    @Transactional(readOnly = true)
     public List<EventParticipation> getParticipationsByStudent(Student student) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getParticipationsByStudent'");
+        return participationRepository.findByStudent(student);
     }
 
     public List<Student> getApprovedParticipationsByStudent(Student student) {
@@ -264,6 +390,44 @@ public class EventService {
     public Collection<Student> getUpcomingEvents() {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'getUpcomingEvents'");
+    }
+
+    public List<EventParticipation> getParticipationsByStatus(EventParticipation.ParticipationStatus status) {
+        return participationRepository.findByStatus(status);
+    }
+    
+    // Method to get detailed status of all event participations
+    public Map<String, Object> getEventParticipationStatus() {
+        Map<String, Object> status = new HashMap<>();
+        LocalDateTime now = LocalDateTime.now();
+        
+        List<EventParticipation> allParticipations = participationRepository.findAll();
+        List<EventParticipation> pendingParticipations = participationRepository.findByStatus(ParticipationStatus.PENDING);
+        List<EventParticipation> approvedParticipations = participationRepository.findByStatus(ParticipationStatus.APPROVED);
+        List<EventParticipation> notAwardedParticipations = participationRepository.findByPointsAwardedFalse();
+        
+        // Count participations by status
+        status.put("totalParticipations", allParticipations.size());
+        status.put("pendingParticipations", pendingParticipations.size());
+        status.put("approvedParticipations", approvedParticipations.size());
+        status.put("notAwardedParticipations", notAwardedParticipations.size());
+        
+        // Count ended events with pending points
+        int endedEventsWithPendingPoints = 0;
+        for (EventParticipation p : notAwardedParticipations) {
+            if (p.getEvent() != null && p.getEvent().getEndTime() != null) {
+                boolean ended = p.getEvent().getEndTime().isBefore(now) || p.getEvent().getEndTime().isEqual(now);
+                if (ended) {
+                    endedEventsWithPendingPoints++;
+                }
+            }
+        }
+        status.put("endedEventsWithPendingPoints", endedEventsWithPendingPoints);
+        
+        // Get current time for reference
+        status.put("currentTime", now);
+        
+        return status;
     }
 }
 
