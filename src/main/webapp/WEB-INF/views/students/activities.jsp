@@ -1,39 +1,73 @@
-<%@ include file="../layout/header.jsp" %>
+<%@ include file="../layout/student_header.jsp" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+<!-- Custom Dialog Styles -->
 <style>
-    .activity-card {
-        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    /* Custom Dialog Styles */
+    .custom-dialog-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 9999;
+        overflow-y: auto;
     }
     
-    .activity-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+    .custom-dialog {
+        position: relative;
+        width: 80%;
+        max-width: 800px;
+        margin: 50px auto;
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        z-index: 10000;
     }
     
-    .hover-lift {
-        transition: all 0.3s ease;
+    .custom-dialog-header {
+        padding: 15px 20px;
+        background-color: var(--primary);
+        color: white;
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
     }
     
-    .hover-lift:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    .custom-dialog-title {
+        margin: 0;
+        font-size: 1.25rem;
     }
     
-    .btn-group .btn {
-        border-radius: 0.375rem;
+    .custom-dialog-close {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 1.5rem;
+        cursor: pointer;
     }
     
-    .btn-group .btn:first-child {
-        border-top-right-radius: 0;
-        border-bottom-right-radius: 0;
+    .custom-dialog-body {
+        padding: 20px;
     }
     
-    .btn-group .btn:last-child {
-        border-top-left-radius: 0;
-        border-bottom-left-radius: 0;
+    .custom-dialog-footer {
+        padding: 15px 20px;
+        border-top: 1px solid #e9ecef;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    body.dialog-open {
+        overflow: hidden;
     }
 </style>
 
@@ -175,8 +209,8 @@
                                                                     <i class="bi bi-star-fill me-1"></i>${activity.points} points
                                                                 </span>
                                                                 <div class="btn-group" role="group">
-                                                                    <button type="button" class="btn btn-outline-info btn-sm" 
-                                                                            data-bs-toggle="modal" data-bs-target="#activityModal${activity.id}">
+                                                                    <button type="button" class="btn btn-outline-info btn-sm show-details-btn" 
+                                                                            data-activity-id="${activity.id}">
                                                                         <i class="bi bi-eye me-1"></i>Details
                                                                     </button>
                                                                     <c:choose>
@@ -245,154 +279,152 @@
         </c:otherwise>
     </c:choose>
 
-    <!-- Activity Detail Modals -->
+    <!-- Custom Activity Detail Dialogs -->
     <c:forEach items="${memberships}" var="membership">
         <c:if test="${not empty clubActivities[membership.club]}">
             <c:forEach items="${clubActivities[membership.club]}" var="activity">
-                <!-- Activity Modal ${activity.id} -->
-                <div class="modal fade" id="activityModal${activity.id}" tabindex="-1" aria-labelledby="activityModalLabel${activity.id}" aria-hidden="true">
-                    <div class="modal-dialog modal-lg">
-                        <div class="modal-content">
-                            <div class="modal-header bg-primary text-white">
-                                <h5 class="modal-title" id="activityModalLabel${activity.id}">
-                                    <i class="bi bi-calendar-event me-2"></i>${activity.title}
-                                </h5>
-                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body">
-                                <div class="row">
-                                    <div class="col-md-8">
-                                        <h6 class="text-primary mb-3">Activity Information</h6>
-                                        
-                                        <!-- Description -->
-                                        <div class="mb-3">
-                                            <label class="form-label fw-bold">Description:</label>
-                                            <p class="text-muted">
-                                                <c:choose>
-                                                    <c:when test="${not empty activity.description}">
-                                                        ${activity.description}
-                                                    </c:when>
-                                                    <c:otherwise>
-                                                        <em>No description available</em>
-                                                    </c:otherwise>
-                                                </c:choose>
-                                            </p>
-                                        </div>
-
-                                        <!-- Club Information -->
-                                        <div class="mb-3">
-                                            <label class="form-label fw-bold">Club:</label>
-                                            <p class="text-muted">
-                                                <i class="bi bi-people me-1"></i>${activity.club != null ? activity.club.name : 'No club assigned'}
-                                            </p>
-                                        </div>
-
-                                        <!-- Points -->
-                                        <div class="mb-3">
-                                            <label class="form-label fw-bold">Points:</label>
-                                            <p class="text-muted">
-                                                <span class="badge bg-success fs-6">
-                                                    <i class="bi bi-star-fill me-1"></i>${activity.points} points
-                                                </span>
-                                            </p>
-                                        </div>
-                                    </div>
+                <!-- Custom Activity Dialog ${activity.id} -->
+                <div class="custom-dialog-overlay" id="customDialog${activity.id}">
+                    <div class="custom-dialog">
+                        <div class="custom-dialog-header">
+                            <h5 class="custom-dialog-title">
+                                <i class="bi bi-calendar-event me-2"></i>${activity.title}
+                            </h5>
+                            <button type="button" class="custom-dialog-close" data-dialog-close="customDialog${activity.id}">&times;</button>
+                        </div>
+                        <div class="custom-dialog-body">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <h6 class="text-primary mb-3">Activity Information</h6>
                                     
-                                    <div class="col-md-4">
-                                        <h6 class="text-primary mb-3">Event Details</h6>
-                                        
-                                        <!-- Date -->
-                                        <div class="mb-3">
-                                            <label class="form-label fw-bold">Date:</label>
-                                            <p class="text-muted">
-                                                <c:choose>
-                                                    <c:when test="${not empty activity.clubDate}">
-                                                        <i class="bi bi-calendar-event me-1"></i>
-                                                        ${activity.clubDate}
-                                                    </c:when>
-                                                    <c:otherwise>
-                                                        <em>Not specified</em>
-                                                    </c:otherwise>
-                                                </c:choose>
-                                            </p>
-                                        </div>
+                                    <!-- Description -->
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Description:</label>
+                                        <p class="text-muted">
+                                            <c:choose>
+                                                <c:when test="${not empty activity.description}">
+                                                    ${activity.description}
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <em>No description available</em>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </p>
+                                    </div>
 
-                                        <!-- Time -->
-                                        <div class="mb-3">
-                                            <label class="form-label fw-bold">Time:</label>
-                                            <p class="text-muted">
-                                                <c:choose>
-                                                    <c:when test="${not empty activity.startTime && not empty activity.endTime}">
-                                                        <i class="bi bi-clock me-1"></i>
-                                                        ${activity.startTime} - ${activity.endTime}
-                                                    </c:when>
-                                                    <c:otherwise>
-                                                        <em>Not specified</em>
-                                                    </c:otherwise>
-                                                </c:choose>
-                                            </p>
-                                        </div>
+                                    <!-- Club Information -->
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Club:</label>
+                                        <p class="text-muted">
+                                            <i class="bi bi-people me-1"></i>${activity.club != null ? activity.club.name : 'No club assigned'}
+                                        </p>
+                                    </div>
 
-                                        <!-- Location -->
-                                        <div class="mb-3">
-                                            <label class="form-label fw-bold">Location:</label>
-                                            <p class="text-muted">
-                                                <c:choose>
-                                                    <c:when test="${not empty activity.activityPlace}">
-                                                        <i class="bi bi-geo-alt me-1"></i>
-                                                        ${activity.activityPlace}
-                                                    </c:when>
-                                                    <c:otherwise>
-                                                        <em>Not specified</em>
-                                                    </c:otherwise>
-                                                </c:choose>
-                                            </p>
-                                        </div>
+                                    <!-- Points -->
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Points:</label>
+                                        <p class="text-muted">
+                                            <span class="badge bg-success fs-6">
+                                                <i class="bi bi-star-fill me-1"></i>${activity.points} points
+                                            </span>
+                                        </p>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-4">
+                                    <h6 class="text-primary mb-3">Event Details</h6>
+                                    
+                                    <!-- Date -->
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Date:</label>
+                                        <p class="text-muted">
+                                            <c:choose>
+                                                <c:when test="${not empty activity.clubDate}">
+                                                    <i class="bi bi-calendar-event me-1"></i>
+                                                    ${activity.clubDate}
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <em>Not specified</em>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </p>
+                                    </div>
+
+                                    <!-- Time -->
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Time:</label>
+                                        <p class="text-muted">
+                                            <c:choose>
+                                                <c:when test="${not empty activity.startTime && not empty activity.endTime}">
+                                                    <i class="bi bi-clock me-1"></i>
+                                                    ${activity.startTime} - ${activity.endTime}
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <em>Not specified</em>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </p>
+                                    </div>
+
+                                    <!-- Location -->
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Location:</label>
+                                        <p class="text-muted">
+                                            <c:choose>
+                                                <c:when test="${not empty activity.activityPlace}">
+                                                    <i class="bi bi-geo-alt me-1"></i>
+                                                    ${activity.activityPlace}
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <em>Not specified</em>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </p>
                                     </div>
                                 </div>
                             </div>
-                            <div class="modal-footer d-flex justify-content-between align-items-center">
-                                <div>
-                                    <small class="text-muted">
-                                        <c:out value="${activityJoinStatus[activity.id].primaryLabel}"/>
+                        </div>
+                        <div class="custom-dialog-footer">
+                            <div>
+                                <small class="text-muted">
+                                    <c:out value="${activityJoinStatus[activity.id].primaryLabel}"/>
+                                </small>
+                                <c:if test="${not empty activityJoinStatus[activity.id].secondaryLabel}">
+                                    <small class="text-muted ms-2">
+                                        <c:out value="${activityJoinStatus[activity.id].secondaryLabel}"/>
                                     </small>
-                                    <c:if test="${not empty activityJoinStatus[activity.id].secondaryLabel}">
-                                        <small class="text-muted ms-2">
-                                            <c:out value="${activityJoinStatus[activity.id].secondaryLabel}"/>
-                                        </small>
-                                    </c:if>
-                                </div>
-                                <div>
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                        <i class="bi bi-x-circle me-1"></i>Close
-                                    </button>
-                                    <c:choose>
-                                        <c:when test="${joinedActivityMap[activity.id]}">
-                                            <c:set var="plModalJoined" value="${activityJoinStatus[activity.id].primaryLabel}"/>
-                                            <button type="button" class="btn btn-outline-secondary" disabled>
-                                                <i class="bi bi-check2-circle me-1"></i>
+                                </c:if>
+                            </div>
+                            <div>
+                                <button type="button" class="btn btn-secondary" data-dialog-close="customDialog${activity.id}">
+                                    <i class="bi bi-x-circle me-1"></i>Close
+                                </button>
+                                <c:choose>
+                                    <c:when test="${joinedActivityMap[activity.id]}">
+                                        <c:set var="plModalJoined" value="${activityJoinStatus[activity.id].primaryLabel}"/>
+                                        <button type="button" class="btn btn-outline-secondary" disabled>
+                                            <i class="bi bi-check2-circle me-1"></i>
+                                            <c:choose>
+                                                <c:when test="${fn:startsWith(plModalJoined, 'Join available in')}"><c:out value="${plModalJoined}"/></c:when>
+                                                <c:otherwise>Already Joined</c:otherwise>
+                                            </c:choose>
+                                        </button>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <form action="/students/activities/join/${activity.id}" method="post" class="d-inline">
+                                            <c:set var="plModal" value="${activityJoinStatus[activity.id].primaryLabel}"/>
+                                            <button type="submit" class="btn btn-primary"
+                                                    <c:if test="${!activityJoinStatus[activity.id].canJoin}">disabled</c:if>>
+                                                <i class="bi bi-plus-circle me-1"></i>
                                                 <c:choose>
-                                                    <c:when test="${fn:startsWith(plModalJoined, 'Join available in')}"><c:out value="${plModalJoined}"/></c:when>
-                                                    <c:otherwise>Already Joined</c:otherwise>
+                                                    <c:when test="${activityJoinStatus[activity.id].canJoin}">Join now</c:when>
+                                                    <c:when test="${fn:startsWith(plModal, 'Join available in')}"><c:out value="${plModal}"/></c:when>
+                                                    <c:otherwise>Joined Disabled</c:otherwise>
                                                 </c:choose>
                                             </button>
-                                        </c:when>
-                                        <c:otherwise>
-                                            <form action="/students/activities/join/${activity.id}" method="post" class="d-inline">
-                                                <c:set var="plModal" value="${activityJoinStatus[activity.id].primaryLabel}"/>
-                                                <button type="submit" class="btn btn-primary"
-                                                        <c:if test="${!activityJoinStatus[activity.id].canJoin}">disabled</c:if>>
-                                                    <i class="bi bi-plus-circle me-1"></i>
-                                                    <c:choose>
-                                                        <c:when test="${activityJoinStatus[activity.id].canJoin}">Join now</c:when>
-                                                        <c:when test="${fn:startsWith(plModal, 'Join available in')}"><c:out value="${plModal}"/></c:when>
-                                                        <c:otherwise>Joined Disabled</c:otherwise>
-                                                    </c:choose>
-                                                </button>
-                                            </form>
-                                        </c:otherwise>
-                                    </c:choose>
-                                </div>
+                                        </form>
+                                    </c:otherwise>
+                                </c:choose>
                             </div>
                         </div>
                     </div>
@@ -439,6 +471,57 @@
                 section.style.display = '';
             } else {
                 section.style.display = 'none';
+            }
+        });
+    });
+    
+    // Custom Dialog Functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        // Show dialog buttons
+        const showButtons = document.querySelectorAll('.show-details-btn');
+        showButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const activityId = this.getAttribute('data-activity-id');
+                const dialog = document.getElementById('customDialog' + activityId);
+                if (dialog) {
+                    dialog.style.display = 'block';
+                    document.body.classList.add('dialog-open');
+                }
+            });
+        });
+        
+        // Close dialog buttons
+        const closeButtons = document.querySelectorAll('[data-dialog-close]');
+        closeButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const dialogId = this.getAttribute('data-dialog-close');
+                const dialog = document.getElementById(dialogId);
+                if (dialog) {
+                    dialog.style.display = 'none';
+                    document.body.classList.remove('dialog-open');
+                }
+            });
+        });
+        
+        // Close dialog when clicking outside
+        const dialogs = document.querySelectorAll('.custom-dialog-overlay');
+        dialogs.forEach(dialog => {
+            dialog.addEventListener('click', function(event) {
+                if (event.target === this) {
+                    this.style.display = 'none';
+                    document.body.classList.remove('dialog-open');
+                }
+            });
+        });
+        
+        // Close dialog with Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                const openDialog = document.querySelector('.custom-dialog-overlay[style="display: block;"]');
+                if (openDialog) {
+                    openDialog.style.display = 'none';
+                    document.body.classList.remove('dialog-open');
+                }
             }
         });
     });
