@@ -1598,14 +1598,115 @@ public class WebController {
 
     @GetMapping("/students/profile")
     public String studentProfile(Model model, HttpSession session) {
-    Student student = (Student) session.getAttribute("user");
-    if (student == null) {
-        return "redirect:/login";
+        Student student = (Student) session.getAttribute("user");
+        if (student == null) {
+            return "redirect:/login";
+        }
+        
+        model.addAttribute("student", student);
+        return "students/profile";
     }
     
-    model.addAttribute("student", student);
-    return "students/profile";
-}
+    @PostMapping("/students/profile/update")
+    public String updateStudentProfile(
+            @RequestParam String firstName,
+            @RequestParam String lastName,
+            @RequestParam String email,
+            @RequestParam String department,
+            @RequestParam int year,
+            @RequestParam(required = false) String currentPassword,
+            @RequestParam(required = false) String newPassword,
+            @RequestParam(required = false) String confirmPassword,
+            HttpSession session,
+            RedirectAttributes redirectAttributes) {
+        
+        // Get current student from session
+        Student student = (Student) session.getAttribute("user");
+        if (student == null) {
+            return "redirect:/login";
+        }
+        
+        // Get fresh student data from database
+        Optional<Student> freshStudentOpt = studentService.getStudentById(student.getId());
+        if (!freshStudentOpt.isPresent()) {
+            redirectAttributes.addFlashAttribute("error", "Student not found");
+            return "redirect:/students/profile";
+        }
+        
+        Student freshStudent = freshStudentOpt.get();
+        
+        // Update basic profile information
+        freshStudent.setFirstName(firstName);
+        freshStudent.setLastName(lastName);
+        freshStudent.setEmail(email);
+        freshStudent.setDepartment(department);
+        freshStudent.setYear(year);
+        
+        // Handle password change if requested
+        boolean passwordChangeRequested = false;
+        
+        // Check if any password field is filled
+        if (currentPassword != null && !currentPassword.isEmpty() ||
+            newPassword != null && !newPassword.isEmpty() ||
+            confirmPassword != null && !confirmPassword.isEmpty()) {
+            
+            passwordChangeRequested = true;
+            
+            // Validate all password fields are provided
+            if (currentPassword == null || currentPassword.isEmpty()) {
+                redirectAttributes.addFlashAttribute("error", "Current password is required to change password");
+                return "redirect:/students/profile";
+            }
+            
+            if (newPassword == null || newPassword.isEmpty()) {
+                redirectAttributes.addFlashAttribute("error", "New password cannot be empty");
+                return "redirect:/students/profile";
+            }
+            
+            if (confirmPassword == null || confirmPassword.isEmpty()) {
+                redirectAttributes.addFlashAttribute("error", "Please confirm your new password");
+                return "redirect:/students/profile";
+            }
+            
+            // Verify current password
+            String hashedCurrentPassword = studentService.hashPassword(currentPassword);
+            if (!freshStudent.getPassword().equals(hashedCurrentPassword)) {
+                redirectAttributes.addFlashAttribute("error", "Current password is incorrect");
+                return "redirect:/students/profile";
+            }
+            
+            // Verify new password meets requirements
+            if (newPassword.length() < 6) {
+                redirectAttributes.addFlashAttribute("error", "New password must be at least 6 characters long");
+                return "redirect:/students/profile";
+            }
+            
+            // Verify new password matches confirmation
+            if (!newPassword.equals(confirmPassword)) {
+                redirectAttributes.addFlashAttribute("error", "New password and confirmation do not match");
+                return "redirect:/students/profile";
+            }
+            
+            // Hash and set new password
+            String hashedNewPassword = studentService.hashPassword(newPassword);
+            freshStudent.setPassword(hashedNewPassword);
+        }
+        
+        // Save updated student
+        studentService.saveStudent(freshStudent);
+        
+        // Update session with fresh student data
+        session.setAttribute("user", freshStudent);
+        
+        // Set appropriate success message
+        if (passwordChangeRequested) {
+            redirectAttributes.addFlashAttribute("success", "Profile and password updated successfully");
+        } else {
+            redirectAttributes.addFlashAttribute("success", "Profile updated successfully");
+        }
+        
+        return "redirect:/students/profile";
+    }
 
     @GetMapping("/students/activities")
     public String studentActivitiesView(Model model, HttpSession session) {
