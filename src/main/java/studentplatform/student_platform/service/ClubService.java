@@ -6,8 +6,11 @@ import studentplatform.student_platform.model.Club;
 import studentplatform.student_platform.model.Admin;
 import studentplatform.student_platform.model.Student;
 import studentplatform.student_platform.model.ClubMembership;
+import studentplatform.student_platform.model.Activity;
 import studentplatform.student_platform.repository.ClubRepository;
 import studentplatform.student_platform.repository.ClubMembershipRepository;
+import studentplatform.student_platform.repository.ActivityRepository;
+import studentplatform.student_platform.repository.ActivityParticipationRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -21,6 +24,12 @@ public class ClubService {
     
     @Autowired
     private ClubMembershipRepository clubMembershipRepository;
+    
+    @Autowired
+    private ActivityRepository activityRepository;
+    
+    @Autowired
+    private ActivityParticipationRepository activityParticipationRepository;
     
     public Club createClub(Club club, Admin admin) {
         club.setCreatedBy(admin);
@@ -51,17 +60,29 @@ public class ClubService {
         return clubRepository.save(club);
     }
     
+    @org.springframework.transaction.annotation.Transactional
     public void deleteClub(Long id) {
-        // First, delete all club memberships for this club
         Optional<Club> clubOpt = clubRepository.findById(id);
         if (clubOpt.isPresent()) {
             Club club = clubOpt.get();
+            
+            // First, delete all activities associated with this club
+            List<Activity> activities = activityRepository.findByClubId(club.getId());
+            for (Activity activity : activities) {
+                // Delete all participations for each activity
+                activityParticipationRepository.deleteByActivity(activity);
+            }
+            activityRepository.deleteAll(activities);
+            
+            // Then, delete all club memberships for this club
             List<ClubMembership> memberships = clubMembershipRepository.findByClub(club);
             clubMembershipRepository.deleteAll(memberships);
+            
+            // Finally delete the club
+            clubRepository.deleteById(id);
+        } else {
+            clubRepository.deleteById(id);
         }
-        
-        // Then delete the club
-        clubRepository.deleteById(id);
     }
     
     // Club Membership Methods
