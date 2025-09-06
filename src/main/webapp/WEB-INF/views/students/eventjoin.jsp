@@ -1,4 +1,4 @@
-<%@ include file="../layout/header.jsp" %>
+<%@ include file="../layout/student_header.jsp" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
@@ -34,6 +34,84 @@
     .btn-group .btn:last-child {
         border-top-left-radius: 0;
         border-bottom-left-radius: 0;
+    }
+    
+    /* Custom Dialog Styles */
+    .custom-dialog-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1050;
+        overflow-y: auto;
+        animation: fadeIn 0.3s ease;
+    }
+    
+    .custom-dialog {
+        position: relative;
+        width: 90%;
+        max-width: 800px;
+        margin: 30px auto;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        animation: slideIn 0.3s ease;
+    }
+    
+    .custom-dialog-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem 1.5rem;
+        background-color: #0d6efd;
+        color: white;
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
+    }
+    
+    .custom-dialog-title {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 500;
+    }
+    
+    .custom-dialog-close {
+        background: transparent;
+        border: none;
+        color: white;
+        font-size: 1.5rem;
+        cursor: pointer;
+        padding: 0;
+        line-height: 1;
+    }
+    
+    .custom-dialog-body {
+        padding: 1.5rem;
+    }
+    
+    .custom-dialog-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 1.5rem;
+        border-top: 1px solid #dee2e6;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    @keyframes slideIn {
+        from { transform: translateY(-50px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+    
+    .body-no-scroll {
+        overflow: hidden;
     }
 </style>
 
@@ -154,7 +232,7 @@
                                     </span>
                                     <div class="btn-group" role="group">
                                         <button type="button" class="btn btn-outline-info btn-sm" 
-                                                data-bs-toggle="modal" data-bs-target="#eventModal${event.id}">
+                                                onclick="openEventDialog(${event.id})">
                                             <i class="bi bi-eye me-1"></i>Details
                                         </button>
                                         <c:choose>
@@ -197,133 +275,130 @@
         </c:choose>
     </div>
 
-    <!-- Event Detail Modals -->
+    <!-- Custom Event Detail Dialogs -->
     <c:forEach items="${events}" var="event">
-        <!-- Event Modal ${event.id} -->
-        <div class="modal fade" id="eventModal${event.id}" tabindex="-1" aria-labelledby="eventModalLabel${event.id}" aria-hidden="true">
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                    <div class="modal-header bg-primary text-white">
-                        <h5 class="modal-title" id="eventModalLabel${event.id}">
-                            <i class="bi bi-calendar-event me-2"></i>${event.name}
-                        </h5>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="row">
-                            <div class="col-md-8">
-                                <h6 class="text-primary mb-3">Event Information</h6>
-                                
-                                <!-- Description -->
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold">Description:</label>
-                                    <p class="text-muted">
-                                        <c:choose>
-                                            <c:when test="${not empty event.description}">
-                                                ${event.description}
-                                            </c:when>
-                                            <c:otherwise>
-                                                <em>No description available</em>
-                                            </c:otherwise>
-                                        </c:choose>
-                                    </p>
-                                </div>
-
-                                <!-- Location -->
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold">Location:</label>
-                                    <p class="text-muted">
-                                        <i class="bi bi-geo-alt me-1"></i>
-                                        <c:choose>
-                                            <c:when test="${not empty event.location}">
-                                                ${event.location}
-                                            </c:when>
-                                            <c:otherwise>
-                                                <em>Not specified</em>
-                                            </c:otherwise>
-                                        </c:choose>
-                                    </p>
-                                </div>
-
-                                <!-- Points -->
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold">Points:</label>
-                                    <p class="text-muted">
-                                        <span class="badge bg-success fs-6">
-                                            <i class="bi bi-star-fill me-1"></i>${event.pointValue} points
-                                        </span>
-                                    </p>
-                                </div>
-                            </div>
+        <div id="eventDialog${event.id}" class="custom-dialog-overlay">
+            <div class="custom-dialog">
+                <div class="custom-dialog-header">
+                    <h5 class="custom-dialog-title">
+                        <i class="bi bi-calendar-event me-2"></i>${event.name}
+                    </h5>
+                    <button type="button" class="custom-dialog-close" onclick="closeEventDialog(${event.id})">&times;</button>
+                </div>
+                <div class="custom-dialog-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h6 class="text-primary mb-3">Event Information</h6>
                             
-                            <div class="col-md-4">
-                                <h6 class="text-primary mb-3">Event Details</h6>
-                                
-                                <!-- Date -->
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold">Date:</label>
-                                    <p class="text-muted">
-                                        <c:choose>
-                                            <c:when test="${not empty event.startTime}">
-                                                <i class="bi bi-calendar-event me-1"></i>
-                                                ${event.startTime.toLocalDate()}
-                                            </c:when>
-                                            <c:otherwise>
-                                                <em>Not specified</em>
-                                            </c:otherwise>
-                                        </c:choose>
-                                    </p>
-                                </div>
+                            <!-- Description -->
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Description:</label>
+                                <p class="text-muted">
+                                    <c:choose>
+                                        <c:when test="${not empty event.description}">
+                                            ${event.description}
+                                        </c:when>
+                                        <c:otherwise>
+                                            <em>No description available</em>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </p>
+                            </div>
 
-                                <!-- Time -->
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold">Time:</label>
-                                    <p class="text-muted">
-                                        <c:choose>
-                                            <c:when test="${not empty event.startTime && not empty event.endTime}">
-                                                <i class="bi bi-clock me-1"></i>
-                                                ${event.startTime.toLocalTime()} - ${event.endTime.toLocalTime()}
-                                            </c:when>
-                                            <c:otherwise>
-                                                <em>Not specified</em>
-                                            </c:otherwise>
-                                        </c:choose>
-                                    </p>
-                                </div>
+                            <!-- Location -->
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Location:</label>
+                                <p class="text-muted">
+                                    <i class="bi bi-geo-alt me-1"></i>
+                                    <c:choose>
+                                        <c:when test="${not empty event.location}">
+                                            ${event.location}
+                                        </c:when>
+                                        <c:otherwise>
+                                            <em>Not specified</em>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </p>
+                            </div>
+
+                            <!-- Points -->
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Points:</label>
+                                <p class="text-muted">
+                                    <span class="badge bg-success fs-6">
+                                        <i class="bi bi-star-fill me-1"></i>${event.pointValue} points
+                                    </span>
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <h6 class="text-primary mb-3">Event Details</h6>
+                            
+                            <!-- Date -->
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Date:</label>
+                                <p class="text-muted">
+                                    <c:choose>
+                                        <c:when test="${not empty event.startTime}">
+                                            <i class="bi bi-calendar-event me-1"></i>
+                                            ${event.startTime.toLocalDate()}
+                                        </c:when>
+                                        <c:otherwise>
+                                            <em>Not specified</em>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </p>
+                            </div>
+
+                            <!-- Time -->
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Time:</label>
+                                <p class="text-muted">
+                                    <c:choose>
+                                        <c:when test="${not empty event.startTime && not empty event.endTime}">
+                                            <i class="bi bi-clock me-1"></i>
+                                            ${event.startTime.toLocalTime()} - ${event.endTime.toLocalTime()}
+                                        </c:when>
+                                        <c:otherwise>
+                                            <em>Not specified</em>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </p>
                             </div>
                         </div>
                     </div>
-                    <div class="modal-footer d-flex justify-content-between align-items-center">
-                        <div>
-                            <small class="text-muted">
-                                <c:out value="${eventJoinStatus[event.id].primaryLabel}"/>
+                </div>
+                <div class="custom-dialog-footer">
+                    <div>
+                        <small class="text-muted">
+                            <c:out value="${eventJoinStatus[event.id].primaryLabel}"/>
+                        </small>
+                        <c:if test="${not empty eventJoinStatus[event.id].secondaryLabel}">
+                            <small class="text-muted ms-2">
+                                <c:out value="${eventJoinStatus[event.id].secondaryLabel}"/>
                             </small>
-                            <c:if test="${not empty eventJoinStatus[event.id].secondaryLabel}">
-                                <small class="text-muted ms-2">
-                                    <c:out value="${eventJoinStatus[event.id].secondaryLabel}"/>
-                                </small>
-                            </c:if>
-                        </div>
-                        <div>
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                <i class="bi bi-x-circle me-1"></i>Close
-                            </button>
-                            <c:choose>
-                                <c:when test="${eventJoinStatus[event.id].canJoin}">
-                                    <form action="${pageContext.request.contextPath}/events/register/${event.id}" method="post" class="d-inline">
-                                        <button type="submit" class="btn btn-primary">
-                                            <i class="bi bi-plus-circle me-1"></i>Join Event
-                                        </button>
-                                    </form>
-                                </c:when>
-                                <c:otherwise>
-                                    <button type="button" class="btn btn-outline-secondary" disabled>
-                                        <i class="bi bi-clock me-1"></i>
-                                        <c:out value="${eventJoinStatus[event.id].primaryLabel}"/>
+                        </c:if>
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-secondary" onclick="closeEventDialog(${event.id})">
+                            <i class="bi bi-x-circle me-1"></i>Close
+                        </button>
+                        <c:choose>
+                            <c:when test="${eventJoinStatus[event.id].canJoin}">
+                                <form action="${pageContext.request.contextPath}/events/register/${event.id}" method="post" class="d-inline">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-plus-circle me-1"></i>Join Event
                                     </button>
-                                </c:otherwise>
-                            </c:choose>
-                        </div>
+                                </form>
+                            </c:when>
+                            <c:otherwise>
+                                <button type="button" class="btn btn-outline-secondary" disabled>
+                                    <i class="bi bi-clock me-1"></i>
+                                    <c:out value="${eventJoinStatus[event.id].primaryLabel}"/>
+                                </button>
+                            </c:otherwise>
+                        </c:choose>
                     </div>
                 </div>
             </div>
@@ -372,6 +447,41 @@
                 card.style.display = 'none';
             }
         });
+    });
+    
+    // Custom dialog functionality
+    function openEventDialog(eventId) {
+        const dialog = document.getElementById('eventDialog' + eventId);
+        dialog.style.display = 'block';
+        document.body.classList.add('body-no-scroll');
+    }
+    
+    function closeEventDialog(eventId) {
+        const dialog = document.getElementById('eventDialog' + eventId);
+        dialog.style.display = 'none';
+        document.body.classList.remove('body-no-scroll');
+    }
+    
+    // Close dialog when clicking outside
+    document.addEventListener('click', function(event) {
+        const dialogs = document.querySelectorAll('.custom-dialog-overlay');
+        dialogs.forEach(dialog => {
+            if (event.target === dialog) {
+                dialog.style.display = 'none';
+                document.body.classList.remove('body-no-scroll');
+            }
+        });
+    });
+    
+    // Close dialog with Escape key
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            const openDialogs = document.querySelectorAll('.custom-dialog-overlay[style="display: block;"]');
+            openDialogs.forEach(dialog => {
+                dialog.style.display = 'none';
+                document.body.classList.remove('body-no-scroll');
+            });
+        }
     });
 </script>
 
