@@ -168,6 +168,26 @@
                                     </div>
                                 </div>
                             </div>
+                            <div class="col-md-4">
+                                <div class="card h-100 border-0 shadow-sm">
+                                    <div class="card-body text-center">
+                                        <i class="bi bi-mortarboard text-success" style="font-size: 2rem;"></i>
+                                        <h5 class="mt-3">Manage Semesters</h5>
+                                        <p>View, add, edit, or delete semester records</p>
+                                        <a href="${pageContext.request.contextPath}/admin/semesters" class="btn btn-success">Semester Management</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card h-100 border-0 shadow-sm">
+                                    <div class="card-body text-center">
+                                        <i class="bi bi-journal-check text-info" style="font-size: 2rem;"></i>
+                                        <h5 class="mt-3">Manage Semester Grades</h5>
+                                        <p>View, add, edit, or delete semester grade records</p>
+                                        <a href="${pageContext.request.contextPath}/admin/semester-grades" class="btn btn-info text-white">Semester Grades</a>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -218,51 +238,7 @@
             </div>
         </div>
         
-        <!-- Participation Management 
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="card border-0 shadow-sm rounded-3">
-                    <div class="card-header bg-white border-0 py-3">
-                        <h5 class="mb-0"><i class="bi bi-check-circle text-info me-2"></i> Participation Management</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <div class="card h-100 border-0 shadow-sm">
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-center mb-3">
-                                            <div class="bg-info bg-opacity-25 rounded-circle p-2 me-3">
-                                                <i class="bi bi-people-fill text-info"></i>
-                                            </div>
-                                            <h5 class="mb-0">Club Participations</h5>
-                                        </div>
-                                        <p>Review and approve/reject pending club participation requests</p>
-                                        <a href="/admin/club-participations" class="btn btn-info text-white">View Club Participations</a>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="col-md-6">
-                                <div class="card h-100 border-0 shadow-sm">
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-center mb-3">
-                                            <div class="bg-info bg-opacity-25 rounded-circle p-2 me-3">
-                                                <i class="bi bi-calendar-event text-info"></i>
-                                            </div>
-                                            <h5 class="mb-0">Event Participations</h5>
-                                        </div>
-                                        <p>Review and approve/reject pending event participation requests</p>
-                                        <a href="/admin/event-participations" class="btn btn-info text-white">View Event Participations</a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-      
-    </div>-->
+        
     
     <jsp:include page="../layout/footer.jsp" />
     

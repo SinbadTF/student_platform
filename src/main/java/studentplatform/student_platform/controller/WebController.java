@@ -3,6 +3,7 @@ package studentplatform.student_platform.controller;
 import java.time.LocalDateTime;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.beans.PropertyEditorSupport;
 import java.time.Duration;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -51,11 +52,21 @@ import studentplatform.student_platform.model.EventParticipation;
 
 
 import studentplatform.student_platform.service.AttendanceService;
+import studentplatform.student_platform.model.Semester;
+
+import studentplatform.student_platform.model.SemesterGrade;
+import studentplatform.student_platform.service.SemesterService;
+import studentplatform.student_platform.service.SemesterGradeService;
 import studentplatform.student_platform.service.ClubService;
 import studentplatform.student_platform.service.ActivityParticipationService;
 import studentplatform.student_platform.service.EventService;
-import studentplatform.student_platform.service.ClubService;
+
 import studentplatform.student_platform.service.ActivityService;
+
+
+import org.springframework.web.bind.WebDataBinder;
+import org.springframework.web.bind.annotation.InitBinder;
+
 
 
 
@@ -74,6 +85,8 @@ public class WebController {
     private final ActivityParticipationService activityParticipationService;
 
     private final AttendanceService attendanceService;
+    private final SemesterService semesterService;
+    private final SemesterGradeService semesterGradeService;
 
     
     @Autowired
@@ -82,7 +95,9 @@ public class WebController {
                          AdminService adminService,
                          EventService eventService, ClubService clubService, ActivityService activityService,
                          ActivityParticipationService activityParticipationService,
-                         AttendanceService attendanceService) {
+                         AttendanceService attendanceService,
+                         SemesterService semesterService,
+                         SemesterGradeService semesterGradeService) {
 
         this.studentService = studentService;
         this.staffService = staffService;
@@ -96,9 +111,10 @@ public class WebController {
         this.activityParticipationService = activityParticipationService;
 
         this.attendanceService = attendanceService;
-
+        this.semesterService = semesterService;
+        this.semesterGradeService = semesterGradeService;
     }
-
+    
     // Update the home method
     @GetMapping("/")
     public String home(Model model, HttpSession session) {
@@ -589,7 +605,7 @@ public class WebController {
         model.addAttribute("clubService", clubService);
         return "admin/clubs";
     }
-
+    
     @GetMapping("/admin/clubmanagement")
     public String adminClubManagement(Model model, HttpSession session) {
         Admin admin = (Admin) session.getAttribute("user");
@@ -2175,5 +2191,160 @@ public class WebController {
         
         attendanceService.calculateAndAwardPoints();
         return "redirect:/admin/attendances";
+    }
+    
+    // Semester Management
+    @GetMapping("/admin/semesters")
+    public String listSemesters(Model model) {
+        model.addAttribute("semesters", semesterService.getAllSemesters());
+        return "admin/semesters/list";
+    }
+
+    @GetMapping("/admin/semesters/new")
+    public String newSemesterForm(Model model) {
+        model.addAttribute("semester", new Semester());
+        model.addAttribute("semesterNames", Semester.getAllSemesterNames());
+        return "admin/semesters/form";
+    }
+
+    @PostMapping("/admin/semesters/save")
+    public String saveSemester(@ModelAttribute Semester semester, RedirectAttributes redirectAttributes, Model model) {
+        // Explicitly set active field if it's null
+        if (semester.getId() == null) {
+            // Only for new semesters
+            semester.setActive(false);
+        }
+        
+        try {
+            // Check if a semester with the same name and year already exists
+            Optional<Semester> existingSemester = semesterService.getSemesterByNameAndYear(semester.getName(), semester.getYear());
+            
+            if (existingSemester.isPresent() && (semester.getId() == null || !semester.getId().equals(existingSemester.get().getId()))) {
+                // Duplicate found and it's not the same record being edited
+                model.addAttribute("semester", semester);
+                model.addAttribute("semesterNames", Semester.getAllSemesterNames());
+                model.addAttribute("error", "A semester with this name and year already exists");
+                return "admin/semesters/form";
+            }
+            
+            semesterService.saveSemester(semester);
+            redirectAttributes.addFlashAttribute("message", "Semester saved successfully");
+            return "redirect:/admin/semesters";
+        } catch (Exception e) {
+            // Handle other exceptions
+            model.addAttribute("semester", semester);
+            model.addAttribute("semesterNames", Semester.getAllSemesterNames());
+            model.addAttribute("error", "Error saving semester: " + e.getMessage());
+            return "admin/semesters/form";
+        }
+    }
+
+    @GetMapping("/admin/semesters/edit/{id}")
+    public String editSemesterForm(@PathVariable Long id, Model model) {
+        Optional<Semester> semester = semesterService.getSemesterById(id);
+        if (semester.isPresent()) {
+            model.addAttribute("semester", semester.get());
+            model.addAttribute("semesterNames", Semester.getAllSemesterNames());
+            return "admin/semesters/form";
+        }
+        return "redirect:/admin/semesters";
+    }
+
+    @GetMapping("/admin/semesters/delete/{id}")
+    public String deleteSemester(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        semesterService.deleteSemester(id);
+        redirectAttributes.addFlashAttribute("message", "Semester deleted successfully");
+        return "redirect:/admin/semesters";
+    }
+
+    // Semester Grade Management
+    @GetMapping("/admin/semester-grades")
+    public String listSemesterGrades(Model model) {
+        List<SemesterGrade> grades = semesterGradeService.getAllSemesterGrades();
+        
+        // Convert LocalDateTime to Date for JSP compatibility
+        grades.forEach(grade -> {
+            if (grade.getCreatedAt() != null) {
+                model.addAttribute("createdAt_" + grade.getId(), 
+                    DateTimeUtil.toDate(grade.getCreatedAt()));
+            }
+        });
+        
+        model.addAttribute("semesterGrades", grades);
+        return "admin/semester-grades/list";
+    }
+
+    @GetMapping("/admin/semester-grades/new")
+    public String newSemesterGradeForm(Model model) {
+        model.addAttribute("semesterGrade", new SemesterGrade());
+        model.addAttribute("students", studentService.getAllStudents());
+        model.addAttribute("semesters", semesterService.getAllSemesters());
+        return "admin/semester-grades/form";
+    }
+
+    @PostMapping("/admin/semester-grades/save")
+    public String saveSemesterGrade(@ModelAttribute SemesterGrade semesterGrade, 
+                                  @RequestParam Long studentId,
+                                  @RequestParam Long semesterId,
+                                  HttpSession session,
+                                  RedirectAttributes redirectAttributes) {
+        // Get the current admin from the session
+        Admin admin = (Admin) session.getAttribute("user");
+        if (admin == null) {
+            return "redirect:/login";
+        }
+        
+        // Get the student and semester
+        Optional<Student> student = studentService.getStudentById(studentId);
+        Optional<Semester> semester = semesterService.getSemesterById(semesterId);
+        
+        if (student.isPresent() && semester.isPresent()) {
+            // Create or update the semester grade
+            SemesterGrade grade = semesterGradeService.createOrUpdateSemesterGrade(
+                student.get(), semester.get(), semesterGrade.getGpa(), admin);
+            
+            redirectAttributes.addFlashAttribute("message", "Semester grade saved successfully");
+        } else {
+            redirectAttributes.addFlashAttribute("error", "Student or semester not found");
+        }
+        
+        return "redirect:/admin/semester-grades";
+    }
+
+    @GetMapping("/admin/semester-grades/edit/{id}")
+    public String editSemesterGradeForm(@PathVariable Long id, Model model) {
+        Optional<SemesterGrade> semesterGrade = semesterGradeService.getSemesterGradeById(id);
+        if (semesterGrade.isPresent()) {
+            model.addAttribute("semesterGrade", semesterGrade.get());
+            model.addAttribute("students", studentService.getAllStudents());
+            model.addAttribute("semesters", semesterService.getAllSemesters());
+            return "admin/semester-grades/form";
+        }
+        return "redirect:/admin/semester-grades";
+    }
+
+    @GetMapping("/admin/semester-grades/delete/{id}")
+    public String deleteSemesterGrade(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        semesterGradeService.deleteSemesterGrade(id);
+        redirectAttributes.addFlashAttribute("message", "Semester grade deleted successfully");
+        return "redirect:/admin/semester-grades";
+    }
+
+    @GetMapping("/admin/semester-grades/award-points/{id}")
+    public String awardPointsForGrade(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        SemesterGrade grade = semesterGradeService.awardPointsForGrade(id);
+        if (grade != null) {
+            redirectAttributes.addFlashAttribute("message", "Points awarded successfully");
+        } else {
+            redirectAttributes.addFlashAttribute("error", "Failed to award points");
+        }
+        return "redirect:/admin/semester-grades";
+    }
+
+    @GetMapping("/admin/semester-grades/award-all-points")
+    public String awardAllPoints(RedirectAttributes redirectAttributes) {
+        semesterGradeService.calculateAndAwardPoints();
+        redirectAttributes.addFlashAttribute("message", "Points awarded for all eligible grades");
+        return "redirect:/admin/semester-grades";
     }
 }
