@@ -93,7 +93,7 @@
         
         .auth-header {
             padding: 2.5rem 2rem 2rem; /* Increased padding */
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            background: linear-gradient(135deg, var(--primary) 40%, var(--secondary) 60%);
             position: relative;
         }
         

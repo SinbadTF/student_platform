@@ -87,9 +87,14 @@
                                 <h2 class="mb-1"><i class="bi bi-calendar3"></i> Semesters</h2>
                                 <p class="mb-0 text-white-50">Manage academic semesters</p>
                             </div>
-                            <a href="<c:url value='/admin/semesters/new' />" class="btn btn-light add-btn">
-                                <i class="bi bi-plus-lg me-2"></i> Add Semester
-                            </a>
+                            <div>
+                                <a href="<c:url value='/admin/dashboard' />" class="btn btn-outline-light me-2">
+                                    <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+                                </a>
+                                <a href="<c:url value='/admin/semesters/new' />" class="btn btn-light add-btn">
+                                    <i class="bi bi-plus-lg me-2"></i> Add Semester
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>

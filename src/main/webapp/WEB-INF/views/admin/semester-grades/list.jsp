@@ -113,6 +113,9 @@
                                 <p class="mb-0 text-white-50">Manage student semester performance and points</p>
                             </div>
                             <div>
+                                <a href="<c:url value='/admin/dashboard' />" class="btn btn-outline-light me-2">
+                                    <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+                                </a>
                                 <a href="<c:url value='/admin/semester-grades/award-all-points' />" class="btn btn-success award-btn me-2">
                                     <i class="bi bi-award me-2"></i> Award All Points
                                 </a>

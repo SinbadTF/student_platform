@@ -2209,11 +2209,7 @@ public class WebController {
 
     @PostMapping("/admin/semesters/save")
     public String saveSemester(@ModelAttribute Semester semester, RedirectAttributes redirectAttributes, Model model) {
-        // Explicitly set active field if it's null
-        if (semester.getId() == null) {
-            // Only for new semesters
-            semester.setActive(false);
-        }
+        // The @ModelAttribute will automatically bind the checkbox value
         
         try {
             // Check if a semester with the same name and year already exists

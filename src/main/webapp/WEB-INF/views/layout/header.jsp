@@ -20,7 +20,7 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
-            <a class="navbar-brand" href="/">
+            <a class="navbar-brand" href="/admin/dashboard">
                 <div class="logo-container">
                     <span>Student Platform</span>
                 </div>

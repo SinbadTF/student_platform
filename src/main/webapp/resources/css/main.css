@@ -2,9 +2,9 @@
 :root {
   
  
-  --primary: #3d73e5;      /* Changed from #000000 to a richer blue */
-  --primary-dark: #1e429f; /* Adjusted to match the new primary */
-  --secondary: #38b2ac;    
+  --primary: #5884e4;      /* Changed from #000000 to a richer blue */
+  --primary-dark: #597bd2; /* Adjusted to match the new primary */
+  --secondary: #13908a;    
   --success: #2f855a;      
   --danger: #e53e3e;       
   --warning: #dd6b20;     
