@@ -26,9 +26,8 @@
         </div>
     </div>
 
-    <!-- Quick Stats -->
-    <div class="row mb-4">
-        <div class="col-md-3">
+    <div class="row mb-3">
+        <div class="col-md-4">
             <div class="card border-0 shadow-sm rounded-3 h-100">
                 <div class="card-body text-center">
                     <div class="bg-light rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
@@ -39,7 +38,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-4">
             <div class="card border-0 shadow-sm rounded-3 h-100">
                 <div class="card-body text-center">
                     <div class="bg-light rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
@@ -50,7 +49,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-4">
             <div class="card border-0 shadow-sm rounded-3 h-100">
                 <div class="card-body text-center">
                     <div class="bg-light rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
@@ -61,18 +60,8 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm rounded-3 h-100">
-                <div class="card-body text-center">
-                    <div class="bg-light rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
-                        <i class="bi bi-calendar-event-fill text-danger" style="font-size: 2rem;"></i>
-                    </div>
-                    <h5 class="card-title">Events Attended</h5>
-                    <h2 class="display-6 fw-bold text-danger">${eventsCount}</h2>
-                </div>
-            </div>
-        </div>
     </div>
+    
 
     <!-- Main Features -->
     <div class="row mb-4">

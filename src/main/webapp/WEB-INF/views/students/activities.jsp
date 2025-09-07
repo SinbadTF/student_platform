@@ -49,11 +49,17 @@
                     </h2>
                     <p class="lead text-muted">Join activities from your clubs to earn points and engage with your community</p>
                 </div>
-                <div>
-                    <a href="${pageContext.request.contextPath}/students/dashboard/${student.id}" class="btn btn-outline-primary">
-                        <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
-                    </a>
-                </div>
+                       <!-- Buttons grouped together -->
+                       <div>
+                        <a href="${pageContext.request.contextPath}/students/eventparticipation" 
+                           class="btn btn-primary me-2">
+                            <i class="bi bi-calendar-check me-2"></i>View My Event Participations
+                        </a>
+                        <a href="${pageContext.request.contextPath}/students/dashboard/${student.id}" 
+                           class="btn btn-outline-primary">
+                            <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+                        </a>
+                    </div>
             </div>
         </div>
     </div>
