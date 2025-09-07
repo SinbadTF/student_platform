@@ -188,8 +188,14 @@ public class EventService {
                     System.out.println("Event ended: " + ended);
                     
                     if (ended && !p.isPointsAwarded()) {
-                        // Auto-approve if not approved
-                        if (p.getStatus() != ParticipationStatus.APPROVED) {
+                        // Skip rejected participations
+                        if (p.getStatus() == ParticipationStatus.REJECTED) {
+                            System.out.println("Skipping rejected participation " + p.getId());
+                            continue;
+                        }
+                        
+                        // Auto-approve if pending
+                        if (p.getStatus() == ParticipationStatus.PENDING) {
                             System.out.println("Auto-approving participation " + p.getId());
                             p.setStatus(ParticipationStatus.APPROVED);
                             p.setApprovedAt(now);
@@ -198,11 +204,13 @@ public class EventService {
                             System.out.println("Participation " + p.getId() + " auto-approved");
                         }
                         
-                        // Now award points
-                        System.out.println("Attempting to award points for participation " + p.getId());
-                        awardPointsForParticipation(p);
-                        awardedCount++;
-                        System.out.println("Points awarded successfully for participation " + p.getId());
+                        // Now award points only if approved
+                        if (p.getStatus() == ParticipationStatus.APPROVED) {
+                            System.out.println("Attempting to award points for participation " + p.getId());
+                            awardPointsForParticipation(p);
+                            awardedCount++;
+                            System.out.println("Points awarded successfully for participation " + p.getId());
+                        }
                     } else if (p.isPointsAwarded()) {
                         System.out.println("Points already awarded for participation " + p.getId());
                     } else {
@@ -331,8 +339,14 @@ public class EventService {
                         System.out.println("Event ended: " + ended);
                         
                         if (ended) {
-                            // Auto-approve if not approved
-                            if (p.getStatus() != ParticipationStatus.APPROVED) {
+                            // Skip rejected participations
+                            if (p.getStatus() == ParticipationStatus.REJECTED) {
+                                System.out.println("Skipping rejected participation " + p.getId());
+                                continue;
+                            }
+                            
+                            // Auto-approve if pending
+                            if (p.getStatus() == ParticipationStatus.PENDING) {
                                 System.out.println("Auto-approving participation " + p.getId());
                                 p.setStatus(ParticipationStatus.APPROVED);
                                 p.setApprovedAt(now);
@@ -341,11 +355,14 @@ public class EventService {
                                 autoApprovedCount++;
                                 System.out.println("Participation " + p.getId() + " auto-approved");
                             }
-                            // Now award points
-                            System.out.println("Attempting to award points for participation " + p.getId());
-                            awardPointsForParticipation(p);
-                            awardedCount++;
-                            System.out.println("Points awarded successfully for participation " + p.getId());
+                            
+                            // Now award points only if approved
+                            if (p.getStatus() == ParticipationStatus.APPROVED) {
+                                System.out.println("Attempting to award points for participation " + p.getId());
+                                awardPointsForParticipation(p);
+                                awardedCount++;
+                                System.out.println("Points awarded successfully for participation " + p.getId());
+                            }
                         } else {
                             System.out.println("Event not ended yet for participation " + p.getId());
                         }
