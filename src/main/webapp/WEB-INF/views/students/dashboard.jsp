@@ -169,7 +169,7 @@
                                                                         <p class="mb-1 text-muted small">${activity.description}</p>
                                                                     </div>
                                                                     <form action="/students/activities/join/${activity.id}" method="post" class="ms-2" style="display:inline;">
-                                                                        <button type="submit" class="btn btn-sm btn-outline-info">Join</button>
+                                                                        
                                                                     </form>
                                                                 </div>
                                                             </c:forEach>
@@ -225,7 +225,7 @@
                                         <p class="card-text small">${reward.description}</p>
                                         <div class="d-flex justify-content-between align-items-center">
                                             <span class="badge bg-primary">${reward.pointValue} points</span>
-                                            <form action="${pageContext.request.contextPath}/students/rewards/exchange/${reward.id}" method="post" style="display:inline;">
+                                            <form action="${pageContext.request.contextPath}/students/rewards/exchange/${reward.id}" method="post" style="display:inline;" onsubmit="return confirmRedemption('${reward.name}', ${reward.pointValue});">
                                                 <button type="submit" class="btn btn-sm btn-outline-success">Redeem</button>
                                             </form> 
                                         </div>
@@ -290,6 +290,11 @@
             }
         }
     });
+    
+    // Confirmation dialog for reward redemption
+    function confirmRedemption(rewardName, pointValue) {
+        return confirm(`Are you sure you want to redeem "${rewardName}" for ${pointValue} points?`);
+    }
 </script>
 
 <%@ include file="../layout/footer.jsp" %>
