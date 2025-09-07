@@ -168,6 +168,16 @@ public String hashPassword(String password) {
         return studentRepository.save(student);
     }
     
+    public void addPoints(Long studentId, Integer pointsToAdd) {
+        Optional<Student> studentOpt = studentRepository.findById(studentId);
+        if (studentOpt.isPresent()) {
+            Student student = studentOpt.get();
+            Integer currentPoints = student.getPoints() != null ? student.getPoints() : 0;
+            student.setPoints(currentPoints + pointsToAdd);
+            studentRepository.save(student);
+        }
+    }
+    
     public Student setStudentPoints(Long studentId, Integer points) {
         Optional<Student> studentOpt = studentRepository.findById(studentId);
         if (studentOpt.isPresent()) {
@@ -204,6 +214,19 @@ public String hashPassword(String password) {
             } else {
                 throw new IllegalStateException("Student does not have enough points");
             }
+        }
+        return null;
+    }
+    
+    public Student deductPoints(Long studentId, Integer pointsToDeduct) {
+        Optional<Student> studentOpt = studentRepository.findById(studentId);
+        if (studentOpt.isPresent()) {
+            Student student = studentOpt.get();
+            Integer currentPoints = student.getPoints() != null ? student.getPoints() : 0;
+            
+            // Allow negative points for spinwheel history deletion
+            student.setPoints(Math.max(0, currentPoints - pointsToDeduct));
+            return studentRepository.save(student);
         }
         return null;
     }

@@ -98,12 +98,37 @@
             <!-- Lucky Spin -->
             <div class="card border-0 shadow-sm rounded-3 mb-4">
                 <div class="card-body text-center p-4">
-                    <div class="bg-warning bg-opacity-25 rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 100px; height: 100px;">
-                        <i class="bi bi-arrow-repeat text-warning" style="font-size: 3rem;"></i>
-                    </div>
                     <h5 class="card-title">Lucky Spin</h5>
-                    <p class="card-text">Try your luck and win rewards!</p>
-                    <a href="/students/lucky-spin" class="btn btn-warning text-white">Spin Now</a>
+                    <p class="card-text">Try your luck and win points daily!</p>
+                    
+                    <!-- Sample Spinwheel UI -->
+                    <div class="spinwheel-container mb-4" style="position: relative; width: 200px; height: 200px; margin: 0 auto;">
+                        <div class="spinwheel" id="sampleSpinwheel" style="width: 100%; height: 100%; border-radius: 50%; border: 6px solid #fff; box-shadow: 0 0 15px rgba(0,0,0,0.3); position: relative; background: conic-gradient(#ff6b6b 0deg 60deg, #4ecdc4 60deg 120deg, #45b7d1 120deg 180deg, #96ceb4 180deg 240deg, #feca57 240deg 300deg, #ff9ff3 300deg 360deg);">
+                            <!-- Sample items will be added by JavaScript -->
+                        </div>
+                        <button class="spin-button" id="sampleSpinButton" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 50px; height: 50px; border-radius: 50%; background: #fff; border: 3px solid #007bff; color: #007bff; font-weight: bold; z-index: 10; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
+                            <i class="bi bi-play-fill"></i>
+                        </button>
+                    </div>
+                    
+                    <c:choose>
+                        <c:when test="${hasSpunToday}">
+                            <div class="alert alert-info mb-3">
+                                <i class="bi bi-info-circle me-2"></i>
+                                You've already spun today! Come back tomorrow.
+                            </div>
+                            <button class="btn btn-secondary" disabled>
+                                <i class="bi bi-clock me-2"></i>Already Spun Today
+                            </button>
+                        </c:when>
+                        <c:otherwise>
+                            <a href="/students/spinwheel" class="btn btn-warning text-white">Go to Spinwheel</a>
+                        </c:otherwise>
+                    </c:choose>
+                    
+                    <div class="mt-2">
+                        <small class="text-muted">One spin per day</small>
+                    </div>
                 </div>
             </div>
 
@@ -218,10 +243,10 @@
     const pointsChart = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: ${pointsChartLabels},
+            labels: <c:out value='${pointsChartLabels}' escapeXml='false'/>,
             datasets: [{
                 label: 'Points Earned',
-                data: ${pointsChartData},
+                data: <c:out value='${pointsChartData}' escapeXml='false'/>,
                 backgroundColor: 'rgba(13, 110, 253, 0.2)',
                 borderColor: 'rgba(13, 110, 253, 1)',
                 borderWidth: 2,
@@ -258,6 +283,74 @@
                     }
                 }
             }
+        }
+    });
+
+    // Sample Spinwheel Animation (UI only)
+    document.addEventListener('DOMContentLoaded', function() {
+        const sampleSpinwheel = document.getElementById('sampleSpinwheel');
+        const sampleSpinButton = document.getElementById('sampleSpinButton');
+        
+        if (sampleSpinwheel && sampleSpinButton) {
+            // Add sample items to the spinwheel
+            const sampleItems = [
+                { label: '10 pts', color: '#ff6b6b', icon: 'bi-star' },
+                { label: '25 pts', color: '#4ecdc4', icon: 'bi-gift' },
+                { label: '50 pts', color: '#45b7d1', icon: 'bi-trophy' },
+                { label: '100 pts', color: '#96ceb4', icon: 'bi-award' },
+                { label: '5 pts', color: '#feca57', icon: 'bi-coin' },
+                { label: '15 pts', color: '#ff9ff3', icon: 'bi-gem' }
+            ];
+            
+            // Add item labels to the spinwheel
+            sampleItems.forEach((item, index) => {
+                const angle = (360 / sampleItems.length) * index;
+                const centerAngle = angle + (360 / sampleItems.length / 2);
+                const radians = (centerAngle * Math.PI) / 180;
+                const radius = 70;
+                const x = Math.cos(radians) * radius;
+                const y = Math.sin(radians) * radius;
+                
+                const labelDiv = document.createElement('div');
+                labelDiv.style.position = 'absolute';
+                labelDiv.style.left = '50%';
+                labelDiv.style.top = '50%';
+                labelDiv.style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%)`;
+                labelDiv.style.textAlign = 'center';
+                labelDiv.style.fontSize = '10px';
+                labelDiv.style.fontWeight = 'bold';
+                labelDiv.style.color = 'white';
+                labelDiv.style.textShadow = '1px 1px 2px rgba(0,0,0,0.8)';
+                labelDiv.style.pointerEvents = 'none';
+                labelDiv.style.zIndex = '5';
+                
+                labelDiv.innerHTML = `
+                    <i class="${item.icon}" style="font-size: 12px; display: block; margin-bottom: 2px;"></i>
+                    <div style="font-size: 8px; line-height: 1;">${item.label}</div>
+                `;
+                
+                sampleSpinwheel.appendChild(labelDiv);
+            });
+            
+            // Add click animation
+            sampleSpinButton.addEventListener('click', function() {
+                if (sampleSpinButton.disabled) return;
+                
+                sampleSpinButton.disabled = true;
+                sampleSpinButton.innerHTML = '<i class="bi bi-hourglass-split"></i>';
+                
+                // Random rotation
+                const randomRotation = Math.random() * 360 + 1800;
+                sampleSpinwheel.style.transition = 'transform 3s cubic-bezier(0.23, 1, 0.32, 1)';
+                sampleSpinwheel.style.transform = `rotate(${randomRotation}deg)`;
+                
+                setTimeout(() => {
+                    sampleSpinwheel.style.transition = 'none';
+                    sampleSpinwheel.style.transform = 'rotate(0deg)';
+                    sampleSpinButton.disabled = false;
+                    sampleSpinButton.innerHTML = '<i class="bi bi-play-fill"></i>';
+                }, 3000);
+            });
         }
     });
 </script>

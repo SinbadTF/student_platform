@@ -39,6 +39,16 @@
                     <li class="nav-item">
                         <a class="nav-link" href="/rewards"><i class="bi bi-award-fill"></i> Rewards</a>
                     </li>
+                    <li class="nav-item">
+                        <c:choose>
+                            <c:when test="${sessionScope.userRole == 'ADMIN'}">
+                                <a class="nav-link" href="/admin/spinwheels"><i class="bi bi-arrow-repeat"></i> Spinwheel</a>
+                            </c:when>
+                            <c:otherwise>
+                                <a class="nav-link" href="/students/spinwheel"><i class="bi bi-arrow-repeat"></i> Spinwheel</a>
+                            </c:otherwise>
+                        </c:choose>
+                    </li>
                 </ul>
                 
                 <!-- User dropdown menu -->

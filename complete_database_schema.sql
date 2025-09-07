@@ -178,3 +178,52 @@ CREATE INDEX idx_staff_username ON staff(username);
 CREATE INDEX idx_admins_username ON admins(username);
 CREATE INDEX idx_rewards_active ON rewards(active);
 CREATE INDEX idx_rewards_issued_by ON rewards(issued_by_id);
+
+-- Create spin_wheels table
+CREATE TABLE spin_wheels (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_by_id BIGINT,
+    active BOOLEAN DEFAULT TRUE,
+    FOREIGN KEY (created_by_id) REFERENCES admins(id)
+);
+
+-- Create spin_wheel_items table
+CREATE TABLE spin_wheel_items (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    label VARCHAR(50) NOT NULL,
+    description TEXT,
+    point_value INT NOT NULL,
+    probability_weight INT NOT NULL DEFAULT 1,
+    item_type VARCHAR(50) DEFAULT 'POINTS',
+    item_color VARCHAR(7) DEFAULT '#007bff',
+    icon VARCHAR(50) DEFAULT 'bi-star',
+    spin_wheel_id BIGINT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (spin_wheel_id) REFERENCES spin_wheels(id) ON DELETE CASCADE
+);
+
+-- Create spin_wheel_history table
+CREATE TABLE spin_wheel_history (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    student_id BIGINT NOT NULL,
+    spin_wheel_id BIGINT NOT NULL,
+    result_item_id BIGINT NOT NULL,
+    points_awarded INT NOT NULL,
+    spun_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
+    FOREIGN KEY (spin_wheel_id) REFERENCES spin_wheels(id) ON DELETE CASCADE,
+    FOREIGN KEY (result_item_id) REFERENCES spin_wheel_items(id) ON DELETE CASCADE
+);
+
+-- Create indexes for spinwheel tables
+CREATE INDEX idx_spin_wheels_created_by ON spin_wheels(created_by_id);
+CREATE INDEX idx_spin_wheels_active ON spin_wheels(active);
+CREATE INDEX idx_spin_wheel_items_spin_wheel ON spin_wheel_items(spin_wheel_id);
+CREATE INDEX idx_spin_wheel_history_student ON spin_wheel_history(student_id);
+CREATE INDEX idx_spin_wheel_history_spin_wheel ON spin_wheel_history(spin_wheel_id);
+CREATE INDEX idx_spin_wheel_history_spun_at ON spin_wheel_history(spun_at);

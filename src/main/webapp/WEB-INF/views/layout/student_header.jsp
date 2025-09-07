@@ -35,11 +35,9 @@
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
-            <div class="navbar-brand logo-container" href="/students/dashboard">
-                <img src="<c:url value='/resources/images/university_logo.png' />" alt="University Logo" class="logo-img">
-            </div>
+            
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -48,34 +46,16 @@
                     <li class="nav-item">
                         <a class="nav-link" href="/students/profile">My Profile</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/students/rewards/catalog">Available Rewards</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/students/rewards/history">My Redemptions</a>
-                    </li>
+                
                     <li class="nav-item">
                         <a class="nav-link" href="/students/spinwheel">🎯 Lucky Spin</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/students/clubs">Clubs</a>
+                        <a class="nav-link" href="/students/spinwheel-history">📊 Spin History</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/students/events">Events</a>
-                    </li>
+                    
                 </ul>
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-person-circle"></i> ${student.firstName} ${student.lastName}
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="/students/profile">My Profile</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="/logout">Logout</a></li>
-                        </ul>
-                    </li>
-                </ul>
+                
             </div>
         </div>
     </nav>
