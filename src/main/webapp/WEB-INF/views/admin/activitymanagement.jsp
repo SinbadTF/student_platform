@@ -47,6 +47,9 @@
                 <!-- Header -->
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h2 class="mb-0"><i class="bi bi-calendar text-primary me-2"></i>Activities Management</h2>
+                      <a href="${pageContext.request.contextPath}/admin/dashboard" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+                        </a>
                     <a href="${pageContext.request.contextPath}/admin/activities/create" class="btn btn-success">
                         <i class="bi bi-plus-circle me-2"></i>Add New Activity
                     </a>

@@ -30,9 +30,45 @@ public class ActivityParticipationService {
     private StudentService studentService;
     
     public ActivityParticipation participateInActivity(Student student, Activity activity) {
-        // Check if student is already participating
+        // Check if student is already participating in this activity
         if (activityParticipationRepository.existsByStudentAndActivity(student, activity)) {
             throw new IllegalStateException("Student is already participating in this activity");
+        }
+        
+        // Check if student is already participating in any other activity that hasn't ended yet
+        List<ActivityParticipation> studentParticipations = activityParticipationRepository.findByStudent(student);
+        LocalDateTime now = LocalDateTime.now();
+        
+        for (ActivityParticipation participation : studentParticipations) {
+            // Skip if the participation is already REJECTED
+            if (participation.getStatus() == ParticipationStatus.REJECTED) continue;
+            
+            Activity existingActivity = participation.getActivity();
+            if (existingActivity == null) continue;
+            
+            try {
+                String dateStr = existingActivity.getClubDate();
+                String endTimeStr = existingActivity.getEndTime();
+                
+                if (dateStr == null || endTimeStr == null || dateStr.isBlank() || endTimeStr.isBlank()) continue;
+                
+                LocalDate activityDate = LocalDate.parse(dateStr);
+                LocalTime endTime = LocalTime.parse(endTimeStr);
+                LocalDateTime activityEndDateTime = LocalDateTime.of(activityDate, endTime);
+                
+                // If the existing activity hasn't ended yet and the participation is PENDING or APPROVED
+                if (now.isBefore(activityEndDateTime)) {
+                    String status = participation.getStatus() == ParticipationStatus.APPROVED ? "approved" : "pending";
+                    throw new IllegalStateException("You can only join one activity at a time. You already have a " + status + 
+                                                  " participation in another activity that ends on " + dateStr + " at " + endTimeStr);
+                }
+            } catch (IllegalStateException e) {
+                // Re-throw the IllegalStateException
+                throw e;
+            } catch (Exception e) {
+                // Skip activities with invalid date/time format
+                continue;
+            }
         }
         
         ActivityParticipation participation = new ActivityParticipation();

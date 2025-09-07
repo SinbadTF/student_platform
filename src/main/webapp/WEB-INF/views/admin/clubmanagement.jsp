@@ -54,9 +54,9 @@
                                 <p class="text-muted mb-0">Advanced club administration and settings</p>
                             </div>
                             <div>
-                                <a href="${pageContext.request.contextPath}/admin/clubs" class="btn btn-outline-secondary">
-                                    <i class="bi bi-arrow-left me-2"></i>Back to Club Board
-                                </a>
+                              <a href="${pageContext.request.contextPath}/admin/dashboard" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+                        </a>
                             </div>
                         </div>
                     </div>
@@ -207,7 +207,7 @@
     
     <!-- Success/Error Message Display -->
     <script>
-        // Check for flash messages
+      // Check for flash messages
         <c:if test="${not empty success}">
             // Show success message
             document.addEventListener('DOMContentLoaded', function() {

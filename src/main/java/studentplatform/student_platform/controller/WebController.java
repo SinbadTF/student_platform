@@ -2032,11 +2032,12 @@ public class WebController {
                 }
             }
             
-            // Join the activity
+            // Join the activity - this will now check if student already has an active participation
             activityParticipationService.participateInActivity(student, activity);
             redirectAttributes.addFlashAttribute("success", "Successfully joined the activity. Waiting for approval.");
             
         } catch (IllegalStateException e) {
+            // This will catch the error when student already has an active participation
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Failed to join activity: " + e.getMessage());

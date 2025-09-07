@@ -13,6 +13,7 @@
                         <i class="bi bi-list-check me-2"></i>My Activity Participations
                     </h2>
                     <p class="lead text-muted">Track your activity participation status and points earned</p>
+                    
                 </div>
                 <div>
                     <a href="/students/activities" class="btn btn-outline-primary">

@@ -39,19 +39,24 @@
 
 <!-- Student Activities View -->
 <div class="container py-4">
+     <div class="alert alert-warning mt-2">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        <strong>Important:</strong> You can only join one activity at a time. You can join another activity only after your current activity ends. 
+                    </div>
     <!-- Header -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
+                
                 <div>
                     <h2 class="display-6 fw-bold text-primary">
                         <i class="bi bi-calendar-event me-2"></i>Club Activities
                     </h2>
-                    <p class="lead text-muted">Join activities from your clubs to earn points and engage with your community</p>
+                                      
                 </div>
                        <!-- Buttons grouped together -->
                        <div>
-                        <a href="${pageContext.request.contextPath}/students/eventparticipation" 
+                        <a href="/students/activities/participations"
                            class="btn btn-primary me-2">
                             <i class="bi bi-calendar-check me-2"></i>View My Event Participations
                         </a>

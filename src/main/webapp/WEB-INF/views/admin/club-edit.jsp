@@ -17,7 +17,8 @@
     
     <div class="d-flex">
         <!-- Left Sidebar -->
-        <div class="bg-dark text-white" style="width: 250px; min-height: 100vh;">
+      <!-- Left Sidebar -->
+        <div class="bg-dark text-white position-fixed" style="width: 300px; min-height: 100vh; left: 0; top: 0; z-index: 1000;">
             <div class="p-3">
                 <h5 class="text-white mb-4">
                     <i class="bi bi-trophy me-2"></i>ClubPoints Admin
@@ -42,9 +43,8 @@
         </div>
         
         <!-- Main Content -->
-        <div class="flex-grow-1">
-            <div class="container py-4">
-                <!-- Header -->
+         <div class="flex-grow-1" style="margin-left: 300px; padding-left: 1px;">
+        <div class="container-fluid py-4">                <!-- Header -->
                 <div class="row mb-4">
                     <div class="col-12">
                         <div class="d-flex justify-content-between align-items-center">

@@ -44,14 +44,26 @@
        <!-- Main Content -->
        <div class="flex-grow-1" style="margin-left: 300px; padding-left: 20px;">
         <div class="container-fluid py-4">
-                <!-- Header -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h2 class="mb-1"><i class="bi bi-gear text-primary me-2"></i>Studet Monitoring</h2>
+                                <p class="text-muted mb-0">Advanced student monitoring and settings</p>
+                            </div>
+                            <div>
+                              <a href="${pageContext.request.contextPath}/admin/dashboard" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+                        </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h2 class="mb-0"><i class="bi bi-mortarboard text-primary me-2"></i>Student Monitoring</h2>
+                    
                     <div class="d-flex align-items-center">
                         <div class="input-group me-3" style="width: 300px;">
-                            <span class="input-group-text">
-                              
-                            </span>
+                          
              
                         </div>
                        <!---- <div class="dropdown">
